@@ -87,6 +87,7 @@ const tr = {
       apiKeys: 'API anahtarları',
       generation: 'Üretim',
       behavior: 'Davranış',
+      notificationsAndSound: 'Bildirimler ve ses',
       shortcuts: 'Kısayollar'
     },
     fields: {
@@ -120,6 +121,12 @@ const tr = {
       alwaysOnTop: 'Her zaman üstte kal',
       autoCopy: 'Sonucu otomatik kopyala',
       launchAtStartup: 'Windows ile başlat',
+      enableNotifications: 'Masaüstü bildirimlerini etkinleştir',
+      enableNotificationsHint: 'Prompt üretimi tamamlandığında veya hata oluştuğunda işletim sistemi bildirimi gönderir.',
+      enableSound: 'Sesli uyarıları etkinleştir',
+      enableSoundHint: 'İşlem tamamlandığında veya hata aldığında hafif ses efekti çalar.',
+      notifyOnlyWhenBackground: 'Yalnızca arka plandayken bildir',
+      notifyOnlyWhenBackgroundHint: 'Uygulama halihazırda odaktayken masaüstü bildirimi göndermez.',
       historyLimit: 'Geçmiş kaydı sınırı',
       opacity: 'Küre saydamlığı',
       btnReset: 'Ayarları sıfırla',

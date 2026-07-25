@@ -21,6 +21,7 @@ const secrets = require('./secrets');
 const llm = require('./llm');
 const engine = require('./promptEngine');
 const projects = require('./projects');
+const notifier = require('./notifier');
 
 const COLLAPSED = { width: 340, height: 152 };
 const EXPANDED = { width: 480, height: 664 };
@@ -263,6 +264,12 @@ async function runGeneration(payload) {
     // Önce durum, sonra sonuç: baloncukta son sözü "done" mesajı söylesin.
     send('gen:status', { text: cfg.autoCopy ? 'Hazır — panoya kopyalandı' : 'Prompt hazır', kind: 'success' });
     send('gen:done', { output, id: entry.id, copied: !!cfg.autoCopy });
+    send('gen:playSound', 'success');
+    notifier.notifySuccess({
+      title: 'Sparky AI — Prompt Hazır ✨',
+      body: output.slice(0, 120) + (output.length > 120 ? '…' : ''),
+      targetWindow: orb
+    });
     if (panel && !panel.isDestroyed()) panel.webContents.send('history:changed');
 
     // 3) Öneriler — sonuç zaten teslim edildi, bu tur arayüzü kilitlemesin.
@@ -290,6 +297,14 @@ async function runGeneration(payload) {
     const message = aborted ? 'Durduruldu.' : err?.message || String(err);
     send('gen:error', { message, aborted });
     send('gen:status', { text: aborted ? 'Durduruldu' : 'Hata', kind: aborted ? 'info' : 'error' });
+    if (!aborted) {
+      send('gen:playSound', 'error');
+      notifier.notifyError({
+        title: 'Sparky AI — İşlem Başarısız ⚠️',
+        body: message,
+        targetWindow: orb
+      });
+    }
     return { ok: false, error: message };
   } finally {
     if (activeRun === controller) activeRun = null;

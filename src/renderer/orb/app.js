@@ -602,6 +602,12 @@ api.on.error(({ message }) => {
   showBubble(message.split('\n')[0], 'error', 8000);
 });
 
+api.on.playSound((type) => {
+  if (state.settings && state.settings.enableSound && typeof audioFeedback !== 'undefined') {
+    audioFeedback.play(type);
+  }
+});
+
 api.on.expanded((v) => {
   state.expanded = v;
   root.classList.toggle('expanded', v);

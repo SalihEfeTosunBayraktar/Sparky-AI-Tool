@@ -33,6 +33,9 @@ const DEFAULTS = {
   alwaysOnTop: true,
   opacity: 1,
   launchAtStartup: false,
+  enableNotifications: true,
+  enableSound: true,
+  notifyOnlyWhenBackground: true,
   historyLimit: 200,
   shortcuts: {
     toggle: 'Control+Shift+Space',

@@ -306,6 +306,9 @@ bindCheck('suggestions', 'suggestions');
 bindCheck('alwaysOnTop', 'alwaysOnTop');
 bindCheck('autoCopy', 'autoCopy');
 bindCheck('launchAtStartup', 'launchAtStartup');
+bindCheck('enableNotifications', 'enableNotifications');
+bindCheck('enableSound', 'enableSound');
+bindCheck('notifyOnlyWhenBackground', 'notifyOnlyWhenBackground');
 bindNumber('maxTokens', 'maxTokens', { min: 256, max: 32000 });
 bindNumber('historyLimit', 'historyLimit', { min: 10, max: 2000 });
 
@@ -644,6 +647,9 @@ function renderAll() {
   $('alwaysOnTop').checked = !!settings.alwaysOnTop;
   $('autoCopy').checked = !!settings.autoCopy;
   $('launchAtStartup').checked = !!settings.launchAtStartup;
+  if ($('enableNotifications')) $('enableNotifications').checked = !!settings.enableNotifications;
+  if ($('enableSound')) $('enableSound').checked = !!settings.enableSound;
+  if ($('notifyOnlyWhenBackground')) $('notifyOnlyWhenBackground').checked = !!settings.notifyOnlyWhenBackground;
 
   const sc = settings.shortcuts || {};
   document.querySelectorAll('.accel').forEach((i) => {

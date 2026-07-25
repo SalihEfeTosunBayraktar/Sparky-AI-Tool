@@ -80,6 +80,7 @@ const en = {
       apiKeys: 'API Keys',
       generation: 'Generation',
       behavior: 'Behavior',
+      notificationsAndSound: 'Notifications & Sound',
       shortcuts: 'Shortcuts'
     },
     fields: {
@@ -113,6 +114,12 @@ const en = {
       alwaysOnTop: 'Always on top',
       autoCopy: 'Auto copy result',
       launchAtStartup: 'Launch with Windows',
+      enableNotifications: 'Enable desktop notifications',
+      enableNotificationsHint: 'Sends native OS notification when prompt generation completes or fails.',
+      enableSound: 'Enable sound effects',
+      enableSoundHint: 'Plays a gentle chime audio effect on completion or error.',
+      notifyOnlyWhenBackground: 'Only notify when in background',
+      notifyOnlyWhenBackgroundHint: 'Suppresses desktop notification when the app is already focused.',
       historyLimit: 'History limit',
       opacity: 'Orb opacity',
       btnReset: 'Reset settings',
