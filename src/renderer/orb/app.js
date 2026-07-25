@@ -20,6 +20,30 @@ const refineEl = $('refine');
 const qaEl = $('qa');
 const qaList = $('qaList');
 const suggestsEl = $('suggests');
+const btnBubbleCopy = $('btnBubbleCopy');
+const btnAttachImg = $('btnAttachImg');
+const imgFileInput = $('imgFileInput');
+
+const imageHandler = new ImageHandler({
+  previewEl: $('imgPreviewContainer'),
+  imgEl: $('imgPreview'),
+  removeBtn: $('btnRemoveImg'),
+  dropTarget: $('card'),
+  onImageChanged: (img) => {
+    if (img && styleSel.value !== 'ui_design') {
+      styleSel.value = 'ui_design';
+      api.settings.patch({ style: 'ui_design' });
+    }
+  }
+});
+
+btnAttachImg.addEventListener('click', () => imgFileInput.click());
+imgFileInput.addEventListener('change', (e) => {
+  if (e.target.files && e.target.files.length) {
+    imageHandler.handleFile(e.target.files[0]);
+    imgFileInput.value = '';
+  }
+});
 
 const state = {
   settings: null,
@@ -179,8 +203,18 @@ function showBubble(text, kind, autoHideMs) {
   bubbleText.textContent = text;
   bubble.dataset.kind = kind;
   bubble.hidden = false;
+  if (btnBubbleCopy) {
+    btnBubbleCopy.hidden = !state.output;
+  }
   if (bubbleTimer) clearTimeout(bubbleTimer);
   if (autoHideMs) bubbleTimer = setTimeout(hideBubble, autoHideMs);
+}
+
+if (btnBubbleCopy) {
+  btnBubbleCopy.addEventListener('click', (e) => {
+    e.stopPropagation();
+    copyOutput('Panoya kopyalandı');
+  });
 }
 
 function hideBubble() {
@@ -400,8 +434,9 @@ function setBusy(next) {
 
 async function generate() {
   const raw = inputEl.value.trim();
-  if (!raw) {
-    setStatus({ text: 'Önce bir metin girin', kind: 'info' });
+  const image = imageHandler.getImage();
+  if (!raw && !image) {
+    setStatus({ text: 'Önce bir metin veya resim girin', kind: 'info' });
     inputEl.focus();
     return;
   }
@@ -409,7 +444,7 @@ async function generate() {
   hideQuestions();
   hideSuggestions();
   setOutput('');
-  await api.gen.start({ raw, mode: 'create' });
+  await api.gen.start({ raw, image, mode: 'create' });
 }
 
 async function applyRefine() {

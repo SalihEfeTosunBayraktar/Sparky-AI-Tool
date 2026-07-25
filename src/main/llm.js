@@ -108,7 +108,7 @@ async function listModels(providerId, { signal } = {}) {
   return r.impl.listModels({ endpoint: r.endpoint, apiKey: r.apiKey, signal, providerId });
 }
 
-async function chat({ providerId, model, system, messages, temperature, maxTokens, effort, signal, onToken }) {
+async function chat({ providerId, model, system, messages, image, temperature, maxTokens, effort, signal, onToken }) {
   const r = resolve(providerId);
   return r.impl.chat({
     endpoint: r.endpoint,
@@ -117,6 +117,7 @@ async function chat({ providerId, model, system, messages, temperature, maxToken
     model,
     system,
     messages,
+    image,
     temperature,
     maxTokens,
     effort,

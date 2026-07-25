@@ -29,16 +29,27 @@ async function listModels({ endpoint, apiKey, signal }) {
     .sort();
 }
 
-async function chat({ endpoint, apiKey, model, system, messages, temperature, maxTokens, signal, onToken }) {
+const { toGeminiContent } = require('./imageUtils');
+
+async function chat({ endpoint, apiKey, model, system, messages, image, temperature, maxTokens, signal, onToken }) {
   requireKey(apiKey);
   const base = trimSlash(endpoint) || DEFAULT_BASE;
   if (!model) throw new LlmError('Model seçilmedi. Ayarlar → Model bölümünden bir model seçin.', { provider: 'gemini' });
 
-  const payload = {
-    contents: messages.map((m) => ({
+  const contents = messages.map((m, idx) => {
+    const parts = [{ text: m.content || '' }];
+    if (image && idx === messages.length - 1 && m.role !== 'assistant') {
+      const imgPart = toGeminiContent(image);
+      if (imgPart) parts.push(imgPart);
+    }
+    return {
       role: m.role === 'assistant' ? 'model' : 'user',
-      parts: [{ text: m.content }]
-    })),
+      parts
+    };
+  });
+
+  const payload = {
+    contents,
     generationConfig: {
       temperature: Number(temperature),
       maxOutputTokens: Number(maxTokens)

@@ -41,6 +41,18 @@ Target 150-400 words.`
     label: 'Araştırma',
     hint: 'Derin araştırma görevleri için',
     guide: `FORMAT — Write a deep-research prompt covering: the central question, why it matters, scope and explicit boundaries, which sources or evidence types to prioritise, the analysis to perform, how to treat conflicting or low-quality evidence, citation expectations, and the structure of the final report.`
+  },
+  ui_design: {
+    label: 'UI/UX Tasarımı',
+    hint: 'Ekran görüntüsü / UI görselini prompt\'a dönüştür',
+    guide: `FORMAT — Produce a high-precision UI/UX Design Specification & Frontend Code Generation Prompt based on the provided UI design/screenshot and note:
+Role — Expert UI/UX Designer & Senior Frontend Engineer.
+Task — Create an exact specification and step-by-step prompt for building this UI interface.
+Visual Hierarchy & Layout — Describe header, nav, main canvas, sidebar, footer, grid structure and spacing tokens.
+Color Palette & Typography — List key hex/hsl color codes, gradients, font families, text sizes and contrasts observed.
+Component Specs — Detailed breakdown of every component (buttons, inputs, cards, dropdowns, badges) and state (hover, active, disabled).
+Interactive & Responsive Behavior — Specify layout flexibility, flexbox/grid alignments, breakpoint behavior, animations.
+Implementation Instructions — Instruct the code generator on HTML5/CSS3/React/Vue structure, modular clean code, accessibility (WCAG), and exact styling guidance.`
   }
 };
 
@@ -246,6 +258,7 @@ function answersBlock(answers) {
  */
 async function run({
   raw,
+  image,
   mode = 'create',
   previous = '',
   instruction = '',
@@ -257,8 +270,11 @@ async function run({
   onToken,
   signal
 }) {
-  const note = String(raw || '').trim();
-  if (!note && mode === 'create') throw new Error('Önce bir metin girin.');
+  let note = String(raw || '').trim();
+  if (!note && image) {
+    note = '[Uploaded image / UI screenshot to convert into prompt]';
+  }
+  if (!note && mode === 'create') throw new Error('Önce bir metin veya resim girin.');
 
   const system = buildSystem(cfg.style, cfg.outputLanguage);
   const common = {
@@ -274,7 +290,7 @@ async function run({
     onStatus?.({ text: 'Düzeltme uygulanıyor…', kind: 'thinking' });
     onStage?.();
     const user = `RAW NOTE:\n${note || '(değişmedi)'}\n\nCURRENT PROMPT:\n${previous}\n\nUSER'S EDIT REQUEST:\n${instruction}\n\nApply the edit request to the current prompt. Keep everything else intact. Output only the updated prompt.`;
-    const { text } = await chat({ ...common, system, messages: [{ role: 'user', content: user }], onToken });
+    const { text } = await chat({ ...common, image, system, messages: [{ role: 'user', content: user }], onToken });
     return clean(text);
   }
 
@@ -284,6 +300,7 @@ async function run({
     onStatus?.({ text: 'Niyet çözümleniyor…', kind: 'thinking' });
     const { text } = await chat({
       ...common,
+      image,
       system: ANALYSIS_SYSTEM,
       messages: [{ role: 'user', content: note }],
       maxTokens: Math.min(Number(cfg.maxTokens) || 1024, 1024)
@@ -307,6 +324,7 @@ async function run({
 
   const first = await chat({
     ...common,
+    image,
     system,
     messages: [{ role: 'user', content: userParts.join('\n\n') }],
     onToken

@@ -9,14 +9,28 @@ async function listModels({ endpoint, signal }) {
   return (json.models || []).map((m) => m.name).filter(Boolean).sort();
 }
 
-async function chat({ endpoint, model, system, messages, temperature, maxTokens, signal, onToken }) {
+const { normalizeImage } = require('./imageUtils');
+
+async function chat({ endpoint, model, system, messages, image, temperature, maxTokens, signal, onToken }) {
   const base = trimSlash(endpoint) || 'http://127.0.0.1:11434';
   if (!model) throw new LlmError('Model seçilmedi. Ayarlar → Model bölümünden bir model seçin.', { provider: 'ollama' });
+
+  const formattedMessages = [...(system ? [{ role: 'system', content: system }] : []), ...messages];
+  if (image && formattedMessages.length > 0) {
+    const norm = normalizeImage(image);
+    if (norm) {
+      const lastIdx = formattedMessages.length - 1;
+      formattedMessages[lastIdx] = {
+        ...formattedMessages[lastIdx],
+        images: [norm.base64]
+      };
+    }
+  }
 
   const payload = {
     model,
     stream: true,
-    messages: [...(system ? [{ role: 'system', content: system }] : []), ...messages],
+    messages: formattedMessages,
     options: {
       temperature: Number(temperature),
       num_predict: Number(maxTokens)

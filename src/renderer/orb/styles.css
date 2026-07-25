@@ -163,6 +163,24 @@ body {
   color: var(--txt);
   cursor: pointer;
   animation: pop 0.18s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bubble-copy {
+  border: 0;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  border-radius: 6px;
+  padding: 2px 6px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.bubble-copy:hover {
+  background: var(--accent);
 }
 
 .bubble[data-kind="thinking"] span::after {
@@ -199,6 +217,53 @@ body {
 .bubble[data-kind="error"] {
   border-color: rgba(255, 95, 109, 0.45);
   color: #ffd9dc;
+}
+
+/* Görsel Yükleme & Önizleme Alanı */
+.img-preview-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  margin-bottom: 8px;
+  background: var(--field);
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+}
+
+.img-preview {
+  width: 44px;
+  height: 44px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+}
+
+.img-info {
+  font-size: 12px;
+  color: var(--txt-dim);
+  flex: 1;
+}
+
+.btn-remove-img {
+  background: transparent;
+  border: 0;
+  color: var(--txt-faint);
+  font-size: 14px;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.btn-remove-img:hover {
+  color: var(--err);
+  background: rgba(255, 95, 109, 0.15);
+}
+
+.card.drag-over {
+  border-color: var(--accent);
+  box-shadow: 0 0 16px rgba(124, 108, 255, 0.4);
 }
 
 /* ------------------------------------------------------------------ */

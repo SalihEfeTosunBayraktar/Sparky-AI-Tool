@@ -64,7 +64,28 @@ async function listModels({ apiKey, endpoint }) {
   }
 }
 
-function buildParams({ model, system, messages, temperature, maxTokens, effort }) {
+const { toAnthropicContent } = require('./imageUtils');
+
+function formatAnthropicMessages(messages, image) {
+  const list = messages.map((m) => ({ ...m }));
+  if (image && list.length > 0) {
+    const imgPart = toAnthropicContent(image);
+    if (imgPart) {
+      const lastIdx = list.length - 1;
+      const lastMsg = list[lastIdx];
+      if (lastMsg.role === 'user') {
+        const textPart = { type: 'text', text: typeof lastMsg.content === 'string' ? lastMsg.content : '' };
+        list[lastIdx] = {
+          role: 'user',
+          content: [textPart, imgPart]
+        };
+      }
+    }
+  }
+  return list;
+}
+
+function buildParams({ model, system, messages, image, temperature, maxTokens, effort }) {
   const modern = MODERN.test(model);
   const want = Math.max(512, Number(maxTokens) || 2048);
 
@@ -73,7 +94,7 @@ function buildParams({ model, system, messages, temperature, maxTokens, effort }
     // Adaptif düşünme açıkken max_tokens düşünme + yanıtı birlikte kapsar;
     // yanıt yarıda kesilmesin diye ek pay bırakıyoruz.
     max_tokens: modern ? want + 8192 : want,
-    messages
+    messages: formatAnthropicMessages(messages, image)
   };
   if (system) params.system = system;
 
@@ -119,13 +140,13 @@ function isBetaRejection(err) {
   return err?.status === 400 && /fallback|beta|unexpected|unsupported|unrecognized/i.test(msg);
 }
 
-async function chat({ apiKey, endpoint, model, system, messages, temperature, maxTokens, effort, signal, onToken }) {
+async function chat({ apiKey, endpoint, model, system, messages, image, temperature, maxTokens, effort, signal, onToken }) {
   const client = makeClient(apiKey, endpoint);
   if (!model) {
     throw new LlmError('Model seçilmedi. Ayarlar → Model bölümünden bir model seçin.', { provider: 'anthropic' });
   }
 
-  const params = buildParams({ model, system, messages, temperature, maxTokens, effort });
+  const params = buildParams({ model, system, messages, image, temperature, maxTokens, effort });
 
   // Sunucu tarafı yedek yalnızca yeni modellerde ve beta uç mevcutsa anlamlı.
   const canFallback = MODERN.test(model) && typeof client.beta?.messages?.stream === 'function';

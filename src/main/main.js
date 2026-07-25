@@ -228,6 +228,7 @@ async function runGeneration(payload) {
     // 2) Asıl üretim
     const output = await engine.run({
       raw: payload.raw,
+      image: payload.image || null,
       mode,
       previous: payload.previous || '',
       instruction: payload.instruction || '',

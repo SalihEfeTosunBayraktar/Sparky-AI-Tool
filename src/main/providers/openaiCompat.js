@@ -17,7 +17,31 @@ async function listModels({ endpoint, apiKey, signal, providerId }) {
   return (json.data || []).map((m) => m.id).filter(Boolean).sort();
 }
 
-async function chat({ endpoint, apiKey, model, system, messages, temperature, maxTokens, signal, onToken, providerId }) {
+const { toOpenAiContent } = require('./imageUtils');
+
+function formatMessages(system, messages, image) {
+  const formatted = system ? [{ role: 'system', content: system }] : [];
+  const list = [...messages];
+
+  if (image && list.length > 0) {
+    const imgPart = toOpenAiContent(image);
+    if (imgPart) {
+      const lastIdx = list.length - 1;
+      const lastMsg = list[lastIdx];
+      if (lastMsg.role === 'user') {
+        const textPart = { type: 'text', text: typeof lastMsg.content === 'string' ? lastMsg.content : '' };
+        list[lastIdx] = {
+          ...lastMsg,
+          content: [textPart, imgPart]
+        };
+      }
+    }
+  }
+
+  return [...formatted, ...list];
+}
+
+async function chat({ endpoint, apiKey, model, system, messages, image, temperature, maxTokens, signal, onToken, providerId }) {
   const base = withV1(endpoint);
   if (!base) throw new LlmError('Sunucu adresi boş. Ayarlar bölümünden adresi girin.', { provider: providerId });
   if (!model) throw new LlmError('Model seçilmedi. Ayarlar → Model bölümünden bir model seçin.', { provider: providerId });
@@ -27,7 +51,7 @@ async function chat({ endpoint, apiKey, model, system, messages, temperature, ma
     stream: true,
     temperature: Number(temperature),
     max_tokens: Number(maxTokens),
-    messages: [...(system ? [{ role: 'system', content: system }] : []), ...messages]
+    messages: formatMessages(system, messages, image)
   };
 
   const res = await request(`${base}/chat/completions`, {
