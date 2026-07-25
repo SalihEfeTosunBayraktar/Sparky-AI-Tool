@@ -31,6 +31,7 @@ const en = {
     uiImageAttached: 'UI Design Attached',
     removeImage: 'Remove image',
     btnAttachImage: '📷 Image',
+    btnClearInputTitle: 'Clear input and prompt output',
     deepMode: 'Deep mode',
     deepModeTitle: 'Analyze → write → polish (3 stages, slower but higher quality)',
     askQuestions: 'Ask questions',

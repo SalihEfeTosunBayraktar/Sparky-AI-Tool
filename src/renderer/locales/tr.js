@@ -31,6 +31,7 @@ const tr = {
     uiImageAttached: 'UI Tasarımı Ekli',
     removeImage: 'Görseli kaldır',
     btnAttachImage: '📷 Görsel',
+    btnClearInputTitle: 'Metni ve çıktıyı temizle',
     deepMode: 'Derin mod',
     deepModeTitle: 'Analiz → yaz → cilala (3 aşama, daha yavaş ama daha iyi)',
     askQuestions: 'Soru sor',

@@ -24,6 +24,15 @@ const suggestsEl = $('suggests');
 const btnBubbleCopy = $('btnBubbleCopy');
 const btnAttachImg = $('btnAttachImg');
 const imgFileInput = $('imgFileInput');
+const btnClearInput = $('btnClearInput');
+
+function updateClearBtnVisibility() {
+  if (!btnClearInput) return;
+  const hasText = !!(inputEl && inputEl.value.trim());
+  const hasImg = !!(imageHandler && imageHandler.currentImage);
+  const hasPrompt = !!(state && state.hasResult);
+  btnClearInput.hidden = !(hasText || hasImg || hasPrompt);
+}
 
 const imageHandler = new ImageHandler({
   previewEl: $('imgPreviewContainer'),
@@ -36,6 +45,7 @@ const imageHandler = new ImageHandler({
       styleSel.value = 'ui_design';
       api.settings.patch({ style: 'ui_design' });
     }
+    updateClearBtnVisibility();
   },
   onError: (msg) => {
     setStatus({ text: msg, kind: 'error' });
@@ -276,6 +286,7 @@ function setOutput(text) {
   for (const id of ['btnCopy', 'btnCopyClose', 'btnRegen', 'btnRefine']) {
     $(id).disabled = !text;
   }
+  updateClearBtnVisibility();
 }
 
 async function copyOutput(msg) {
@@ -478,6 +489,26 @@ $('btnPaste').addEventListener('click', async () => {
   inputEl.value = text.trim();
   inputEl.focus();
 });
+
+btnClearInput?.addEventListener('click', () => {
+  if (state.busy) {
+    api.gen.abort();
+  }
+  inputEl.value = '';
+  state.lastInput = '';
+  imageHandler.clearImage();
+  renderEmpty();
+  state.output = '';
+  state.streaming = '';
+  state.hasResult = false;
+  hideSuggestions();
+  hideQuestions();
+  setStatus({ text: '', kind: 'info' });
+  inputEl.focus();
+  updateClearBtnVisibility();
+});
+
+inputEl.addEventListener('input', () => updateClearBtnVisibility());
 
 inputEl.addEventListener('keydown', (e) => {
   if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
