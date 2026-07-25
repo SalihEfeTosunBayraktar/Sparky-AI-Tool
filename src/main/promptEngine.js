@@ -159,6 +159,46 @@ Rules:
 - Only propose changes that would genuinely improve the output. Never suggest rewording for its own sake.
 - Do not rewrite the prompt yourself.`;
 
+const AUTO_DECISION_SYSTEM = `You are a prompt engineer analyzing a user's raw note to decide the best generation workflow.
+Choose between three workflows:
+1. "CLARIFICATION": Select this if the note is vague, under-specified, ambiguous, or lacks crucial details where multiple conflicting choices exist (e.g. "bana bir login yap" or "bir site hazırla").
+2. "DEEP_MODE": Select this if the note specifies a complex architecture, multi-step pipeline, detailed UI specification, complex algorithm, or full software module requiring multi-stage reasoning.
+3. "STANDARD": Select this if the note is a clear, standard, or self-contained request.
+
+Return ONLY a compact JSON object and nothing else:
+{"decision":"CLARIFICATION"|"DEEP_MODE"|"STANDARD","reason":""}`;
+
+/**
+ * Otomatik Mod Karar Motoru: Kullanıcının girdiği isteğin karmaşıklığına ve netliğine göre akış seçer.
+ */
+async function analyzeAutoMode({ raw, project, settings: cfg, chat, signal }) {
+  const note = String(raw || '').trim();
+  if (!note) return { decision: 'STANDARD', reason: 'Empty note' };
+
+  try {
+    const userContent = project
+      ? `PROJECT: ${project.name}\nRAW NOTE:\n${note}`
+      : `RAW NOTE:\n${note}`;
+
+    const { text } = await chat({
+      ...auxCall(cfg, signal),
+      system: AUTO_DECISION_SYSTEM,
+      messages: [{ role: 'user', content: userContent }],
+      maxTokens: 256
+    });
+
+    const parsed = extractJson(text);
+    const decision = (parsed?.decision || '').toUpperCase();
+    if (['CLARIFICATION', 'DEEP_MODE', 'STANDARD'].includes(decision)) {
+      return { decision, reason: String(parsed.reason || '').trim() };
+    }
+    return { decision: 'STANDARD', reason: 'Invalid model decision' };
+  } catch (err) {
+    console.warn('[promptEngine] analyzeAutoMode failed (fallback to STANDARD):', err.message);
+    return { decision: 'STANDARD', reason: 'Error in auto decision' };
+  }
+}
+
 const REFINE_SYSTEM = `You are a prompt editor and polisher. You are given a raw note and a draft prompt written from it.
 Your goal is to polish the DRAFT PROMPT for clarity, grammar, and flow WITHOUT losing any details.
 
@@ -318,6 +358,7 @@ async function run({
   onStatus,
   onStage,
   onToken,
+  onAutoDecision,
   signal
 }) {
   let note = String(raw || '').trim();
@@ -364,9 +405,22 @@ async function run({
     return clean(text);
   }
 
+  let effectiveDeepMode = !!cfg.deepMode;
+
+  if (cfg.autoMode && mode === 'create') {
+    onStatus?.({ text: 'İstek analiz ediliyor (Oto mod)…', kind: 'thinking' });
+    const autoRes = await analyzeAutoMode({ raw: note, project, settings: cfg, chat, signal });
+    if (typeof onAutoDecision === 'function') {
+      onAutoDecision(autoRes);
+    }
+    if (autoRes.decision === 'DEEP_MODE') {
+      effectiveDeepMode = true;
+    }
+  }
+
   let analysis = null;
 
-  if (cfg.deepMode) {
+  if (effectiveDeepMode) {
     onStatus?.({ text: 'Niyet çözümleniyor…', kind: 'thinking' });
     const userContent = projectBlock ? `${projectBlock}\n\nRAW NOTE:\n${note}` : note;
     const { text } = await chat({
@@ -379,7 +433,7 @@ async function run({
     analysis = extractJson(text);
   }
 
-  onStatus?.({ text: cfg.deepMode ? 'Prompt yazılıyor…' : 'Düşünüyor…', kind: 'thinking' });
+  onStatus?.({ text: effectiveDeepMode ? 'Prompt yazılıyor…' : 'Düşünüyor…', kind: 'thinking' });
   onStage?.();
 
   const userParts = [];
@@ -404,7 +458,7 @@ async function run({
 
   let output = clean(first.text);
 
-  if (cfg.deepMode && output) {
+  if (effectiveDeepMode && output) {
     onStatus?.({ text: 'Cilalanıyor…', kind: 'thinking' });
     onStage?.();
     const refined = await chat({
@@ -425,4 +479,4 @@ async function run({
   return output;
 }
 
-module.exports = { run, askQuestions, suggest, styleList, languageList, STYLES, LANGUAGE_LABELS, clean, validateRefinedPrompt };
+module.exports = { run, askQuestions, suggest, analyzeAutoMode, styleList, languageList, STYLES, LANGUAGE_LABELS, clean, validateRefinedPrompt };

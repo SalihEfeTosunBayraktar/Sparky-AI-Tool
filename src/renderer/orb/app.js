@@ -15,6 +15,7 @@ const outputEl = $('output');
 const styleSel = $('style');
 const deepBtn = $('deep');
 const clarifyBtn = $('clarify');
+const autoModeBtn = $('autoMode');
 const metaEl = $('meta');
 const refineEl = $('refine');
 const qaEl = $('qa');
@@ -519,6 +520,7 @@ function bindChip(btn, key) {
 
 bindChip(deepBtn, 'deepMode');
 bindChip(clarifyBtn, 'clarify');
+if (autoModeBtn) bindChip(autoModeBtn, 'autoMode');
 
 function renderMeta() {
   const s = state.settings;
@@ -555,6 +557,7 @@ function applySettings(s) {
   if (styleSel.value !== s.style) styleSel.value = s.style;
   deepBtn.setAttribute('aria-pressed', String(!!s.deepMode));
   clarifyBtn.setAttribute('aria-pressed', String(!!s.clarify));
+  if (autoModeBtn) autoModeBtn.setAttribute('aria-pressed', String(!!s.autoMode));
   renderMeta();
 }
 
@@ -569,6 +572,15 @@ api.on.stage(() => {
 });
 api.on.token((chunk) => appendToken(chunk));
 api.on.busy((v) => setBusy(v));
+
+api.on.autoDecision((res) => {
+  if (!res || !res.decision) return;
+  if (res.decision === 'DEEP_MODE') {
+    showBubble(i18n.t('card.autoDecisionDeep'), 'thinking', 6000);
+  } else if (res.decision === 'CLARIFICATION') {
+    showBubble(i18n.t('card.autoDecisionClarify'), 'info', 6000);
+  }
+});
 
 api.on.questions(({ questions }) => {
   showQuestions(questions);

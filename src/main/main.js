@@ -242,6 +242,12 @@ async function runGeneration(payload) {
       onStatus: (s) => send('gen:status', s),
       onStage: () => send('gen:stage'),
       onToken: (t) => send('gen:token', t),
+      onAutoDecision: (res) => {
+        send('gen:autoDecision', res);
+        if (res.decision === 'DEEP_MODE' || res.decision === 'CLARIFICATION') {
+          send('gen:playSound', 'success');
+        }
+      },
       signal: controller.signal
     });
 

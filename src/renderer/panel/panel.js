@@ -301,6 +301,7 @@ $('opacity').addEventListener('input', () => {
 $('opacity').addEventListener('change', () => save({ opacity: Number($('opacity').value) }));
 
 bindCheck('deepMode', 'deepMode');
+bindCheck('autoMode', 'autoMode');
 bindCheck('clarify', 'clarify');
 bindCheck('suggestions', 'suggestions');
 bindCheck('alwaysOnTop', 'alwaysOnTop');
@@ -642,6 +643,7 @@ function renderAll() {
   $('historyLimit').value = settings.historyLimit;
 
   $('deepMode').checked = !!settings.deepMode;
+  if ($('autoMode')) $('autoMode').checked = !!settings.autoMode;
   $('clarify').checked = !!settings.clarify;
   $('suggestions').checked = !!settings.suggestions;
   $('alwaysOnTop').checked = !!settings.alwaysOnTop;

@@ -22,6 +22,7 @@ const DEFAULTS = {
   outputLanguage: 'auto',
   appLanguage: 'tr',
   deepMode: false,
+  autoMode: false,
   // Model, belirsiz noktalar için önce soru sorsun mu? (ek bir tur maliyeti var)
   clarify: false,
   // Sonuç geldikten sonra iyileştirme önerileri üretilsin mi?

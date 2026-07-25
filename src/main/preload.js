@@ -88,6 +88,7 @@ contextBridge.exposeInMainWorld('sparky', {
     token: (cb) => on('gen:token', cb),
     done: (cb) => on('gen:done', cb),
     playSound: (cb) => on('gen:playSound', cb),
+    autoDecision: (cb) => on('gen:autoDecision', cb),
     error: (cb) => on('gen:error', cb),
     questions: (cb) => on('gen:questions', cb),
     suggestions: (cb) => on('gen:suggestions', cb),
