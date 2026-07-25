@@ -73,8 +73,9 @@ const en = {
     winMaximize: 'Maximize',
     winClose: 'Close',
     tabs: {
-      settings: 'Settings',
+      settings: 'General',
       projects: 'Projects',
+      providers: 'Model & API',
       history: 'History',
       about: 'About'
     },

@@ -146,16 +146,19 @@ function createPanel(tab = 'settings') {
 
   const saved = settings.get('panelBounds');
   panel = new BrowserWindow({
-    width: saved?.width || 940,
-    height: saved?.height || 660,
+    width: saved?.width || 520,
+    height: saved?.height || 620,
     x: saved?.x,
     y: saved?.y,
-    minWidth: 720,
-    minHeight: 520,
+    minWidth: 460,
+    minHeight: 500,
+    maxWidth: 600,
+    maxHeight: 750,
     frame: false,
+    transparent: true,
     show: false,
-    backgroundColor: '#0e1014',
-    title: 'Sparky AI',
+    backgroundColor: '#00000000',
+    title: 'Sparky AI — Ayarlar',
     icon: ICON,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),

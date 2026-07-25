@@ -34,6 +34,12 @@ function showTab(name) {
 document.querySelectorAll('.tab').forEach((t) => t.addEventListener('click', () => showTab(t.dataset.tab)));
 api.on.panelTab((tab) => showTab(tab || 'settings'));
 
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    api.ui.panelWindow('close');
+  }
+});
+
 /* ------------------------------------------------------------------ */
 /* Kaydetme yardımcıları                                               */
 /* ------------------------------------------------------------------ */

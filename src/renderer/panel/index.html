@@ -7,68 +7,34 @@
     <link rel="stylesheet" href="panel.css" />
   </head>
   <body>
-    <header class="titlebar">
-      <span class="mini-orb" aria-hidden="true">
-        <svg viewBox="0 0 24 24"><path d="M12 2.2 13.9 9 20.8 10.9 13.9 12.8 12 19.6 10.1 12.8 3.2 10.9 10.1 9Z" /></svg>
-      </span>
-      <span class="title">Sparky AI</span>
-      <span class="grow"></span>
-      <button class="win" data-win="minimize" title="Küçült" data-i18n-title="panel.winMinimize">─</button>
-      <button class="win" data-win="maximize" title="Büyüt" data-i18n-title="panel.winMaximize">▢</button>
-      <button class="win close" data-win="close" title="Kapat" data-i18n-title="panel.winClose">✕</button>
-    </header>
+    <div class="modal-shell">
+      <!-- Başlık Çubuğu / Titlebar -->
+      <header class="titlebar">
+        <span class="mini-orb" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M12 2.2 13.9 9 20.8 10.9 13.9 12.8 12 19.6 10.1 12.8 3.2 10.9 10.1 9Z" /></svg>
+        </span>
+        <span class="title">Sparky AI</span>
+        <span id="savedTag" class="tag-saved" hidden data-i18n="panel.fields.savedTag">kaydedildi</span>
+        <span class="grow"></span>
+        <button class="win" data-win="minimize" title="Küçült" data-i18n-title="panel.winMinimize">─</button>
+        <button class="win close" data-win="close" title="Kapat" data-i18n-title="panel.winClose">✕</button>
+      </header>
 
-    <div class="shell">
-      <nav class="side">
-        <button class="tab active" data-tab="settings" data-i18n="panel.tabs.settings">Ayarlar</button>
+      <!-- Yatay Sekme Yapısı / Horizontal Segmented Control -->
+      <nav class="segmented-tabs">
+        <button class="tab active" data-tab="settings" data-i18n="panel.tabs.settings">Genel</button>
         <button class="tab" data-tab="projects" data-i18n="panel.tabs.projects">Projeler</button>
+        <button class="tab" data-tab="providers" data-i18n="panel.tabs.providers">Model/API</button>
         <button class="tab" data-tab="history" data-i18n="panel.tabs.history">Geçmiş</button>
         <button class="tab" data-tab="about" data-i18n="panel.tabs.about">Hakkında</button>
       </nav>
 
+      <!-- İçerik Alanı / Content Canvas -->
       <main class="content">
-        <!-- ---------------------------------------------------------- -->
+        <!-- 1. GENEL AYARLAR PANE -->
         <section id="tab-settings" class="pane active">
-          <h2 data-i18n="panel.sections.providerAndModel">Sağlayıcı ve model</h2>
+          <h2 data-i18n="panel.sections.appInterface">Arayüz Dili</h2>
           <div class="card">
-            <div class="field">
-              <label for="provider" data-i18n="panel.fields.provider">Sağlayıcı</label>
-              <div class="inline">
-                <select id="provider"></select>
-                <button id="btnProbe" class="btn" data-i18n="panel.fields.btnProbe">Yerel sunucuları tara</button>
-              </div>
-              <p class="hint" id="providerHint"></p>
-            </div>
-
-            <div class="field">
-              <label for="endpoint" data-i18n="panel.fields.endpoint">Sunucu adresi</label>
-              <div class="inline">
-                <input id="endpoint" spellcheck="false" />
-                <button id="btnTest" class="btn" data-i18n="panel.fields.btnTest">Bağlantıyı test et</button>
-              </div>
-              <p class="hint" id="endpointHint"></p>
-              <p class="result" id="testResult" hidden></p>
-            </div>
-
-            <div class="field">
-              <label for="model" data-i18n="panel.fields.model">Model</label>
-              <div class="inline">
-                <select id="model"></select>
-                <button id="btnModels" class="btn" data-i18n="panel.fields.btnModelsRefresh">Listeyi yenile</button>
-              </div>
-              <p class="hint" data-i18n="panel.fields.modelManualHint">Model listede yoksa aşağıya elle yazabilirsiniz.</p>
-              <input id="modelManual" placeholder="Elle model adı (opsiyonel)" spellcheck="false" data-i18n-placeholder="panel.fields.modelManualPlaceholder" />
-            </div>
-          </div>
-
-          <h2 data-i18n="panel.sections.apiKeys">API anahtarları</h2>
-          <div class="card">
-            <p class="hint" id="cryptoNote"></p>
-            <div id="keys"></div>
-          </div>
-
-          <h2 data-i18n="panel.sections.generation">Üretim</h2>
-          <div class="card grid2">
             <div class="field">
               <label for="appLanguage" data-i18n="panel.fields.appLanguage">Arayüz Dili (App Language)</label>
               <select id="appLanguage">
@@ -76,40 +42,21 @@
                 <option value="en">English</option>
               </select>
             </div>
-            <div class="field">
-              <label for="style" data-i18n="panel.fields.promptStyle">Prompt biçimi</label>
-              <select id="style"></select>
+          </div>
+
+          <h2 data-i18n="panel.sections.generation">Üretim & Modlar</h2>
+          <div class="card">
+            <div class="field-grid">
+              <div class="field">
+                <label for="style" data-i18n="panel.fields.promptStyle">Prompt biçimi</label>
+                <select id="style"></select>
+              </div>
+              <div class="field">
+                <label for="language" data-i18n="panel.fields.outputLanguage">Çıktı dili</label>
+                <select id="language"></select>
+              </div>
             </div>
-            <div class="field">
-              <label for="language" data-i18n="panel.fields.outputLanguage">Çıktı dili</label>
-              <select id="language"></select>
-            </div>
-            <div class="field">
-              <label for="temperature"><span data-i18n="panel.fields.temperature">Sıcaklık</span> — <span id="temperatureVal"></span></label>
-              <input id="temperature" type="range" min="0" max="1" step="0.05" />
-              <p class="hint">Anthropic'in yeni modellerinde bu değer gönderilmez (API kabul etmiyor).</p>
-            </div>
-            <div class="field">
-              <label for="maxTokens" data-i18n="panel.fields.maxTokens">Maks. token</label>
-              <input id="maxTokens" type="number" min="256" max="32000" step="256" />
-            </div>
-            <div class="field">
-              <label for="effort" data-i18n="panel.fields.effort">Claude düşünme seviyesi</label>
-              <select id="effort">
-                <option value="low" data-i18n="panel.fields.effortOptions.low">Düşük — en hızlı</option>
-                <option value="medium" data-i18n="panel.fields.effortOptions.medium">Orta — dengeli</option>
-                <option value="high" data-i18n="panel.fields.effortOptions.high">Yüksek — en iyi</option>
-              </select>
-              <p class="hint">Yalnızca Anthropic modelleri için geçerli.</p>
-            </div>
-            <div class="field">
-              <label class="switch">
-                <input id="deepMode" type="checkbox" />
-                <span class="track"><span class="knob"></span></span>
-                <span class="switch-label" data-i18n="panel.fields.deepModeLabel">Derin mod (analiz → yaz → cilala)</span>
-              </label>
-              <p class="hint">Üç aşamalı hat. Daha yavaş, küçük yerel modellerde belirgin fark yaratır.</p>
-            </div>
+
             <div class="field">
               <label class="switch">
                 <input id="autoMode" type="checkbox" />
@@ -118,29 +65,37 @@
               </label>
               <p class="hint" data-i18n="panel.fields.autoModeHint">İsteğin karmaşıklığına göre Derin Mod veya Netleştirme Sorularını otomatik başlatır.</p>
             </div>
+
+            <div class="field">
+              <label class="switch">
+                <input id="deepMode" type="checkbox" />
+                <span class="track"><span class="knob"></span></span>
+                <span class="switch-label" data-i18n="panel.fields.deepModeLabel">Derin mod (analiz → yaz → cilala)</span>
+              </label>
+              <p class="hint" data-i18n="panel.fields.deepModeHint">Üç aşamalı hat. Daha yavaş, küçük yerel modellerde belirgin fark yaratır.</p>
+            </div>
+
             <div class="field">
               <label class="switch">
                 <input id="clarify" type="checkbox" />
                 <span class="track"><span class="knob"></span></span>
                 <span class="switch-label" data-i18n="panel.fields.clarifyLabel">Netleştirme soruları sor</span>
               </label>
-              <p class="hint">
-                Metin belirsizse model üretimden önce en fazla 3 soru sorar; cevaplarınız prompt'a işlenir.
-                Belirsizlik yoksa soru sormadan devam eder.
-              </p>
+              <p class="hint" data-i18n="panel.fields.clarifyHint">Metin belirsizse model üretimden önce sorular sorar.</p>
             </div>
+
             <div class="field">
               <label class="switch">
                 <input id="suggestions" type="checkbox" />
                 <span class="track"><span class="knob"></span></span>
                 <span class="switch-label" data-i18n="panel.fields.suggestionsLabel">İyileştirme önerileri üret</span>
               </label>
-              <p class="hint">Sonucun altında tek tıkla uygulanabilir öneri rozetleri gösterilir.</p>
+              <p class="hint" data-i18n="panel.fields.suggestionsHint">Sonucun altında tek tıkla uygulanabilir öneri rozetleri gösterilir.</p>
             </div>
           </div>
 
           <h2 data-i18n="panel.sections.behavior">Davranış</h2>
-          <div class="card grid2">
+          <div class="card">
             <div class="field">
               <label class="switch">
                 <input id="alwaysOnTop" type="checkbox" />
@@ -162,17 +117,9 @@
                 <span class="switch-label" data-i18n="panel.fields.launchAtStartup">Windows ile başlat</span>
               </label>
             </div>
-            <div class="field">
-              <label for="historyLimit" data-i18n="panel.fields.historyLimit">Geçmiş kaydı sınırı</label>
-              <input id="historyLimit" type="number" min="10" max="2000" step="10" />
-            </div>
-            <div class="field">
-              <label for="opacity"><span data-i18n="panel.fields.opacity">Küre saydamlığı</span> — <span id="opacityVal"></span></label>
-              <input id="opacity" type="range" min="0.4" max="1" step="0.05" />
-            </div>
           </div>
 
-          <h2 data-i18n="panel.sections.notificationsAndSound">Bildirimler ve ses</h2>
+          <h2 data-i18n="panel.sections.notificationsAndSound">Bildirimler ve Ses</h2>
           <div class="card">
             <div class="field">
               <label class="switch">
@@ -180,7 +127,6 @@
                 <span class="track"><span class="knob"></span></span>
                 <span class="switch-label" data-i18n="panel.fields.enableNotifications">Masaüstü bildirimlerini etkinleştir</span>
               </label>
-              <p class="hint" data-i18n="panel.fields.enableNotificationsHint">Prompt üretimi tamamlandığında veya hata oluştuğunda işletim sistemi bildirimi gönderir.</p>
             </div>
             <div class="field">
               <label class="switch">
@@ -188,7 +134,6 @@
                 <span class="track"><span class="knob"></span></span>
                 <span class="switch-label" data-i18n="panel.fields.enableSound">Sesli uyarıları etkinleştir</span>
               </label>
-              <p class="hint" data-i18n="panel.fields.enableSoundHint">İşlem tamamlandığında veya hata aldığında hafif ses efekti çalar.</p>
             </div>
             <div class="field">
               <label class="switch">
@@ -196,116 +141,103 @@
                 <span class="track"><span class="knob"></span></span>
                 <span class="switch-label" data-i18n="panel.fields.notifyOnlyWhenBackground">Yalnızca arka plandayken bildir</span>
               </label>
-              <p class="hint" data-i18n="panel.fields.notifyOnlyWhenBackgroundHint">Uygulama halihazırda odaktayken masaüstü bildirimi göndermez.</p>
             </div>
-          </div>
-
-          <h2 data-i18n="panel.sections.shortcuts">Kısayollar</h2>
-          <div class="card grid2">
-            <div class="field">
-              <label for="scToggle" data-i18n="panel.fields.scToggle">Paneli aç / kapat</label>
-              <input id="scToggle" class="accel" data-key="toggle" readonly />
-            </div>
-            <div class="field">
-              <label for="scClip" data-i18n="panel.fields.scClip">Panodaki metinden üret</label>
-              <input id="scClip" class="accel" data-key="fromClipboard" readonly />
-            </div>
-            <div class="field">
-              <label for="scCopy" data-i18n="panel.fields.scCopy">Son sonucu kopyala</label>
-              <input id="scCopy" class="accel" data-key="copyLast" readonly />
-            </div>
-            <div class="field">
-              <p class="hint" data-i18n="panel.fields.shortcutsHint">Kutuya tıklayıp tuş kombinasyonuna basın. Temizlemek için Backspace.</p>
-              <p class="result warn" id="scErrors" hidden></p>
-            </div>
-          </div>
-
-          <div class="footer-actions">
-            <button id="btnReset" class="btn danger" data-i18n="panel.fields.btnReset">Ayarları sıfırla</button>
-            <span id="savedTag" class="saved" hidden data-i18n="panel.fields.savedTag">kaydedildi</span>
           </div>
         </section>
 
-        <!-- ---------------------------------------------------------- -->
+        <!-- 2. PROJELER PANE -->
         <section id="tab-projects" class="pane">
-          <div class="projects-layout">
-            <aside class="projects-sidebar">
-              <button id="btnNewProject" class="btn primary" style="width:100%" data-i18n="projects.newProjectBtn">Yeni Proje Oluştur</button>
-              <div id="projectsList" class="projects-list"></div>
-            </aside>
-            <div id="projectDetail" class="project-detail">
-              <div class="empty-note" id="noProjectSelectedNote" data-i18n="projects.noProjectsYet">Henüz proje oluşturulmadı. Yeni bir proje ekleyerek başlayın.</div>
-              <div id="projectForm" hidden>
-                <div class="card">
-                  <div class="field">
-                    <label for="projectName" data-i18n="projects.nameLabel">Proje Adı</label>
-                    <input id="projectName" spellcheck="false" placeholder="Örn. Mobil E-Ticaret" data-i18n-placeholder="projects.namePlaceholder" />
-                  </div>
-                  <div class="field">
-                    <label for="projectDesc" data-i18n="projects.descLabel">Açıklama</label>
-                    <textarea id="projectDesc" spellcheck="false" rows="2" placeholder="Projenin kısa özeti veya amacı" data-i18n-placeholder="projects.descPlaceholder"></textarea>
-                  </div>
-                  <div class="inline" style="gap:8px; margin-top:8px">
-                    <button id="btnSaveProject" class="btn primary" data-i18n="projects.saveBtn">Kaydet</button>
-                    <button id="btnSetActiveProject" class="btn" data-i18n="projects.setActiveBtn">Aktif Yap</button>
-                    <button id="btnDeleteProject" class="btn danger" data-i18n="projects.deleteBtn">Projeyi Sil</button>
-                  </div>
-                </div>
+          <div id="projectsContainer"></div>
+        </section>
 
-                <div class="card" style="margin-top:16px">
-                  <div class="row-label">
-                    <h3 style="margin:0; font-size:14px" data-i18n="projects.textsTitle">Metin İçerikleri &amp; Bağlam</h3>
-                    <button id="btnAddTextNote" class="btn" data-i18n="projects.addTextBtn">+ Metin Ekle</button>
-                  </div>
-                  <div id="projectTextsList" style="margin-top:12px"></div>
-                </div>
+        <!-- 3. MODEL VE API PANE -->
+        <section id="tab-providers" class="pane">
+          <h2 data-i18n="panel.sections.providerAndModel">Sağlayıcı ve Model Seçimi</h2>
+          <div class="card">
+            <div class="field">
+              <label for="provider" data-i18n="panel.fields.provider">Sağlayıcı</label>
+              <div class="inline">
+                <select id="provider"></select>
+                <button id="btnProbe" class="btn" data-i18n="panel.fields.btnProbe">Sunucuları tara</button>
+              </div>
+              <p class="hint" id="providerHint"></p>
+            </div>
 
-                <div class="card" style="margin-top:16px">
-                  <div class="row-label">
-                    <h3 style="margin:0; font-size:14px" data-i18n="projects.imagesTitle">Görsel Bölümü (Vision / Multimodal)</h3>
-                    <input type="file" id="projImgFileInput" accept="image/*" hidden />
-                    <button id="btnAddProjImage" class="btn" data-i18n="projects.addImageBtn">📷 Görsel Yükle</button>
-                  </div>
-                  <p class="hint" style="margin-top:4px" data-i18n="projects.imageLimitHint">Proje başına maks. 5 görsel eklenebilir.</p>
-                  <div id="projectImagesGrid" class="project-images-grid"></div>
-                </div>
+            <div class="field">
+              <label for="endpoint" data-i18n="panel.fields.endpoint">Sunucu Adresi</label>
+              <div class="inline">
+                <input id="endpoint" spellcheck="false" />
+                <button id="btnTest" class="btn" data-i18n="panel.fields.btnTest">Test et</button>
+              </div>
+              <p class="hint" id="endpointHint"></p>
+              <p class="result" id="testResult" hidden></p>
+            </div>
+
+            <div class="field">
+              <label for="model" data-i18n="panel.fields.model">Model</label>
+              <div class="inline">
+                <select id="model"></select>
+                <button id="btnModels" class="btn" data-i18n="panel.fields.btnModelsRefresh">Yenile</button>
+              </div>
+              <p class="hint" data-i18n="panel.fields.modelManualHint">Model listede yoksa aşağıya elle yazabilirsiniz.</p>
+              <input id="modelManual" placeholder="Elle model adı (opsiyonel)" spellcheck="false" data-i18n-placeholder="panel.fields.modelManualPlaceholder" />
+            </div>
+          </div>
+
+          <!-- Akordiyon Detaylar / Accordion Sections -->
+          <details class="accordion">
+            <summary><span data-i18n="panel.sections.apiKeys">API Anahtarları</span> ▾</summary>
+            <div class="accordion-body">
+              <p class="hint" id="cryptoNote"></p>
+              <div id="keys"></div>
+            </div>
+          </details>
+
+          <details class="accordion">
+            <summary><span>Gelişmiş Model Parametreleri</span> ▾</summary>
+            <div class="accordion-body">
+              <div class="field">
+                <label for="temperature"><span data-i18n="panel.fields.temperature">Sıcaklık</span> — <span id="temperatureVal"></span></label>
+                <input id="temperature" type="range" min="0" max="1" step="0.05" />
+              </div>
+              <div class="field">
+                <label for="maxTokens" data-i18n="panel.fields.maxTokens">Maks. Token</label>
+                <input id="maxTokens" type="number" min="256" max="32000" step="256" />
+              </div>
+              <div class="field">
+                <label for="effort" data-i18n="panel.fields.effort">Claude Düşünme Seviyesi</label>
+                <select id="effort">
+                  <option value="low" data-i18n="panel.fields.effortOptions.low">Düşük — en hızlı</option>
+                  <option value="medium" data-i18n="panel.fields.effortOptions.medium">Orta — dengeli</option>
+                  <option value="high" data-i18n="panel.fields.effortOptions.high">Yüksek — en iyi</option>
+                </select>
               </div>
             </div>
-          </div>
+          </details>
         </section>
 
-        <!-- ---------------------------------------------------------- -->
+        <!-- 4. GEÇMİŞ PANE -->
         <section id="tab-history" class="pane">
-          <div class="hist-head">
-            <input id="search" placeholder="Geçmişte ara…" spellcheck="false" data-i18n-placeholder="panel.history.searchPlaceholder" />
-            <button id="btnExportMd" class="btn" data-i18n="panel.history.exportMd">.md dışa aktar</button>
-            <button id="btnExportJson" class="btn" data-i18n="panel.history.exportJson">.json dışa aktar</button>
-            <button id="btnClear" class="btn danger" data-i18n="panel.history.clear">Temizle</button>
+          <div class="bar">
+            <h2 style="margin:0;" data-i18n="panel.tabs.history">Geçmiş</h2>
+            <span class="grow"></span>
+            <button id="btnClearHistory" class="btn danger" data-i18n="panel.fields.btnClearHistory">Geçmişi temizle</button>
           </div>
-          <div id="histList" class="hist-list"></div>
+          <div id="historyList" class="history-list"></div>
         </section>
 
-        <!-- ---------------------------------------------------------- -->
+        <!-- 5. HAKKINDA PANE -->
         <section id="tab-about" class="pane">
-          <h2>Sparky AI</h2>
-          <div class="card">
-            <p data-i18n="panel.about.description">Yüzen prompt asistanı. Girdiğiniz metni, konuyu ve bağlamı bozmadan kullanıma hazır bir prompt'a çevirir.</p>
-            <dl id="aboutList" class="about"></dl>
-            <div class="inline">
-              <button id="btnOpenData" class="btn" data-i18n="panel.about.openDataDir">Veri klasörünü aç</button>
+          <div class="card about">
+            <span class="orb-icon-lg">✨</span>
+            <h3>Sparky AI</h3>
+            <p class="ver">v0.1.0 · Masaüstü Asistanı</p>
+            <p class="desc">Ham notlarınızı ve görsellerinizi yüksek kaliteli promptlara dönüştüren akıllı asistan.</p>
+
+            <div class="actions">
+              <button id="btnOpenData" class="btn" data-i18n="panel.fields.btnOpenData">Veri klasörünü aç</button>
+              <button id="btnReset" class="btn danger" data-i18n="panel.fields.btnReset">Ayarları sıfırla</button>
             </div>
-          </div>
-          <h2 data-i18n="panel.about.shortcutsSummaryTitle">Kısayol özeti</h2>
-          <div class="card">
-            <ul class="keys">
-              <li data-i18n="panel.about.clickOrb"><b>Küreye tık</b> — paneli aç</li>
-              <li data-i18n="panel.about.doubleClickOrb"><b>Küreye çift tık</b> veya <b>orta tık</b> — panodaki metni doğrudan prompt'a çevir</li>
-              <li data-i18n="panel.about.ctrlClickOrb"><b>Ctrl + küreye tık</b> — son sonucu kopyala</li>
-              <li data-i18n="panel.about.rightClickOrb"><b>Küreye sağ tık</b> — hızlı menü</li>
-              <li data-i18n="panel.about.clickBubble"><b>Baloncuğa tık</b> — hazır sonucu kopyala</li>
-              <li data-i18n="panel.about.ctrlEnter"><b>Ctrl + Enter</b> — üret</li>
-              <li data-i18n="panel.about.esc"><b>Esc</b> — üretimi durdur / paneli küçült</li>
-            </ul>
           </div>
         </section>
       </main>

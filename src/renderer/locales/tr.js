@@ -73,8 +73,9 @@ const tr = {
     winMaximize: 'Büyüt',
     winClose: 'Kapat',
     tabs: {
-      settings: 'Ayarlar',
+      settings: 'Genel',
       projects: 'Projeler',
+      providers: 'Model/API',
       history: 'Geçmiş',
       about: 'Hakkında'
     },
