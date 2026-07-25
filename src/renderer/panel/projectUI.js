@@ -24,49 +24,51 @@ class ProjectUI {
 
   ensureSkeleton() {
     const container = document.getElementById('projectsContainer');
-    if (!container || document.getElementById('projectsList')) return;
+    if (!container || document.getElementById('projectSelect')) return;
 
     container.innerHTML = `
-      <div class="projects-layout">
-        <div class="projects-sidebar">
-          <div class="projects-sidebar-header">
-            <span class="projects-sidebar-title" data-i18n="projects.title">Projeler</span>
-            <button id="btnNewProject" class="btn primary" style="height:24px; padding:0 8px; font-size:11px;" data-i18n="projects.newBtn">+ Yeni</button>
-          </div>
-          <div id="projectsList" class="projects-list"></div>
+      <div class="projects-wrapper">
+        <!-- Proje Seçim ve Yönetim Üst Barı -->
+        <div class="projects-topbar">
+          <select id="projectSelect" class="project-select"></select>
+          <button id="btnNewProject" class="btn primary" data-i18n="projects.chipNewProject">+ Yeni Proje</button>
         </div>
 
-        <div class="projects-main">
-          <div id="noProjectSelectedNote" class="empty-note" data-i18n="projects.noProjectSelected">Henüz proje seçilmedi veya proje yok.</div>
+        <div id="noProjectSelectedNote" class="card empty-note" hidden data-i18n="projects.noProjectsYet">
+          Henüz proje oluşturulmadı. Yeni bir proje ekleyerek başlayın.
+        </div>
 
-          <div id="projectForm" class="project-form" hidden>
-            <div class="project-form-header">
-              <input id="projectName" type="text" class="project-name-input" placeholder="Proje Adı" data-i18n-placeholder="projects.namePlaceholder" />
-              <div class="project-form-actions">
-                <button id="btnSetActiveProject" class="btn primary" data-i18n="projects.setActiveBtn">Aktif Yap</button>
-                <button id="btnSaveProject" class="btn" data-i18n="projects.saveBtn">Kaydet</button>
-                <button id="btnDeleteProject" class="btn danger" data-i18n="projects.deleteBtn">Sil</button>
-              </div>
+        <!-- Seçili Proje Düzenleme Kartı -->
+        <div id="projectForm" class="card project-card" hidden>
+          <div class="field">
+            <label for="projectName" data-i18n="projects.nameLabel">Proje Adı</label>
+            <div class="inline">
+              <input id="projectName" type="text" placeholder="Proje Adı" data-i18n-placeholder="projects.namePlaceholder" />
+              <button id="btnSetActiveProject" class="btn primary" data-i18n="projects.setActiveBtn">Aktif Yap</button>
+              <button id="btnSaveProject" class="btn" data-i18n="projects.saveBtn">Kaydet</button>
+              <button id="btnDeleteProject" class="btn danger" data-i18n="projects.deleteBtn">Sil</button>
             </div>
-
-            <div class="field" style="margin-top:8px;">
-              <label for="projectDesc" data-i18n="projects.descLabel">Açıklama / Bağlam</label>
-              <input id="projectDesc" type="text" placeholder="Proje açıklaması..." data-i18n-placeholder="projects.descPlaceholder" />
-            </div>
-
-            <div class="project-section-title">
-              <span data-i18n="projects.textsSection">Metin Notları & Şartnameler</span>
-              <button id="btnAddTextNote" class="btn" style="height:22px; padding:0 6px; font-size:10px;" data-i18n="projects.addTextBtn">+ Not Ekle</button>
-            </div>
-            <div id="projectTextsList" class="project-texts-list"></div>
-
-            <div class="project-section-title" style="margin-top:12px;">
-              <span data-i18n="projects.imagesSection">Ekran Görüntüleri & UI Tasarımları</span>
-              <input type="file" id="projImgFileInput" accept="image/*" hidden />
-              <button id="btnAddProjImage" class="btn" style="height:22px; padding:0 6px; font-size:10px;" data-i18n="projects.addImageBtn">+ Görsel Ekle</button>
-            </div>
-            <div id="projectImagesGrid" class="project-images-grid"></div>
           </div>
+
+          <div class="field">
+            <label for="projectDesc" data-i18n="projects.descLabel">Açıklama / Bağlam</label>
+            <input id="projectDesc" type="text" placeholder="Projenin kısa özeti veya amacı" data-i18n-placeholder="projects.descPlaceholder" />
+          </div>
+
+          <!-- Metin İçerikleri Bölümü -->
+          <div class="project-sub-header">
+            <span class="sub-title" data-i18n="projects.textsTitle">Metin İçerikleri & Bağlam</span>
+            <button id="btnAddTextNote" class="btn" data-i18n="projects.addTextBtn">+ Metin Ekle</button>
+          </div>
+          <div id="projectTextsList" class="project-texts-list"></div>
+
+          <!-- Görsel Bölümü -->
+          <div class="project-sub-header" style="margin-top: 12px;">
+            <span class="sub-title" data-i18n="projects.imagesTitle">Görsel Bölümü (Vision / Multimodal)</span>
+            <input type="file" id="projImgFileInput" accept="image/*" hidden />
+            <button id="btnAddProjImage" class="btn" data-i18n="projects.addImageBtn">📷 Görsel Yükle</button>
+          </div>
+          <div id="projectImagesGrid" class="project-images-grid"></div>
         </div>
       </div>
     `;
@@ -80,6 +82,11 @@ class ProjectUI {
   initEvents() {
     if (this.initialized) return;
     const $ = (id) => document.getElementById(id);
+
+    $('projectSelect')?.addEventListener('change', (e) => {
+      this.activeEditingId = e.target.value;
+      this.render();
+    });
 
     $('btnNewProject')?.addEventListener('click', async () => {
       const p = await this.api.projects.create({
@@ -169,11 +176,11 @@ class ProjectUI {
     const activeObj = await this.api.projects.getActive();
     const activeId = activeObj ? activeObj.id : null;
 
-    const listEl = $('projectsList');
-    if (!listEl) return;
-    listEl.innerHTML = '';
+    const selectEl = $('projectSelect');
+    if (!selectEl) return;
 
     if (!list.length) {
+      selectEl.innerHTML = `<option value="">${this.i18n.t('projects.chipNoProject') || 'Proje Yok'}</option>`;
       if ($('noProjectSelectedNote')) $('noProjectSelectedNote').hidden = false;
       if ($('projectForm')) $('projectForm').hidden = true;
       this.activeEditingId = null;
@@ -185,15 +192,13 @@ class ProjectUI {
       this.activeEditingId = activeId || list[0].id;
     }
 
+    selectEl.innerHTML = '';
     for (const p of list) {
-      const div = document.createElement('div');
-      div.className = `project-item${p.id === this.activeEditingId ? ' active' : ''}`;
-      div.innerHTML = `<span>📁 ${escapeHtml(p.name)}</span>${p.id === activeId ? `<span class="badge-act">${this.i18n.t('projects.activeBadge') || 'Aktif'}</span>` : ''}`;
-      div.addEventListener('click', () => {
-        this.activeEditingId = p.id;
-        this.render();
-      });
-      listEl.appendChild(div);
+      const opt = document.createElement('option');
+      opt.value = p.id;
+      opt.textContent = `${p.id === activeId ? '★ ' : '📁 '}${p.name}${p.id === activeId ? ` (${this.i18n.t('projects.activeBadge') || 'Aktif Proje'})` : ''}`;
+      if (p.id === this.activeEditingId) opt.selected = true;
+      selectEl.appendChild(opt);
     }
 
     const current = list.find((x) => x.id === this.activeEditingId);
@@ -208,7 +213,7 @@ class ProjectUI {
 
     const btnAct = $('btnSetActiveProject');
     if (btnAct) {
-      btnAct.textContent = isActive ? (this.i18n.t('projects.activeBadge') || 'Aktif') : (this.i18n.t('projects.setActiveBtn') || 'Aktif Yap');
+      btnAct.textContent = isActive ? (this.i18n.t('projects.activeBadge') || 'Aktif Proje') : (this.i18n.t('projects.setActiveBtn') || 'Aktif Yap');
       btnAct.disabled = isActive;
     }
 
@@ -221,7 +226,7 @@ class ProjectUI {
     if (!el) return;
     el.innerHTML = '';
     if (!proj.texts?.length) {
-      el.innerHTML = `<div class="empty-note">${this.i18n.t('projects.noTextsYet') || 'Henüz not eklenmedi'}</div>`;
+      el.innerHTML = `<div class="empty-note">${this.i18n.t('projects.noTextsYet') || 'Bu projede henüz metin içeriği yok.'}</div>`;
       return;
     }
     for (const t of proj.texts) {
@@ -229,10 +234,10 @@ class ProjectUI {
       card.className = 'project-text-card';
       card.innerHTML = `
         <div class="project-text-header">
-          <input type="text" class="text-title-input" value="${escapeHtml(t.title)}" placeholder="${this.i18n.t('projects.textTitlePlaceholder') || 'Başlık'}" style="font-weight:600; flex:1" />
-          <button class="btn danger btn-del-text" style="height:26px; padding:0 8px">✕</button>
+          <input type="text" class="text-title-input" value="${escapeHtml(t.title)}" placeholder="${this.i18n.t('projects.textTitlePlaceholder') || 'Başlık'}" style="font-weight:600; flex:1;" />
+          <button class="btn danger btn-del-text" style="height:26px; padding:0 8px;">✕</button>
         </div>
-        <textarea class="text-content-input" rows="2" style="width:100%" placeholder="${this.i18n.t('projects.textContentPlaceholder') || 'İçerik'}">${escapeHtml(t.content)}</textarea>
+        <textarea class="text-content-input" rows="3" style="width:100%; margin-top:6px;" placeholder="${this.i18n.t('projects.textContentPlaceholder') || 'İçerik'}">${escapeHtml(t.content)}</textarea>
       `;
       const titleInp = card.querySelector('.text-title-input');
       const contentInp = card.querySelector('.text-content-input');
@@ -253,7 +258,7 @@ class ProjectUI {
     if (!el) return;
     el.innerHTML = '';
     if (!proj.images?.length) {
-      el.innerHTML = `<div class="empty-note">${this.i18n.t('projects.noImagesYet') || 'Henüz görsel eklenmedi'}</div>`;
+      el.innerHTML = `<div class="empty-note">${this.i18n.t('projects.noImagesYet') || 'Bu projede henüz görsel yok.'}</div>`;
       return;
     }
     for (const img of proj.images) {
