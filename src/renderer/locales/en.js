@@ -25,12 +25,12 @@ const en = {
     loadedFromHistory: 'Loaded from history'
   },
   card: {
-    inputLabel: 'Your Text or UI Design',
+    inputLabel: 'Your Text',
     inputPlaceholder: 'Type what you need or upload a UI design image.\nCtrl+Enter → generate',
     pasteFromClipboard: 'paste from clipboard',
     uiImageAttached: 'UI Design Attached',
     removeImage: 'Remove image',
-    btnAttachImage: '📷 Image',
+    btnAttachImage: '📷',
     btnClearInputTitle: 'Clear input and prompt output',
     deepMode: 'Deep mode',
     deepModeTitle: 'Analyze → write → polish (3 stages, slower but higher quality)',

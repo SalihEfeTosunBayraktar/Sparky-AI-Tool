@@ -72,10 +72,9 @@
 
             <div class="composer-bar">
               <div class="toolbar">
-                <span id="tokenCounter" class="chip token-badge" title="Son istek / Toplam oturum token kullanımı">Tokens: 0</span>
                 <input type="file" id="imgFileInput" accept="image/*" hidden />
-                <button id="btnAttachImg" class="chip icon-chip" title="UI Görseli / Ekran görüntüsü yükle" data-i18n="card.btnAttachImage" data-i18n-title="card.btnAttachImage">
-                  📷 Görsel
+                <button id="btnAttachImg" class="chip icon-chip" title="Görsel Yükle" data-i18n="card.btnAttachImage" data-i18n-title="card.btnAttachImage">
+                  📷
                 </button>
                 <select id="projectSelect" class="chip-select" title="Aktif Proje" data-i18n-title="projects.activeBadge"></select>
                 <select id="modeSelect" class="chip-select" title="Çalışma Modu" data-i18n-title="modes.activeTitle"></select>
@@ -132,6 +131,10 @@
           <div class="refine">
             <input id="refine" placeholder="Düzeltme iste: “daha kısa”, “İngilizce olsun”, “JSON çıktı ekle”…" spellcheck="false" data-i18n="card.refinePlaceholder" data-i18n-attr="placeholder" />
             <button id="btnRefine" class="btn" disabled data-i18n="card.btnApplyRefine">Uygula</button>
+          </div>
+
+          <div class="card-footer-info">
+            <span id="tokenCounter" class="token-counter" title="Son istek / Toplam oturum token kullanımı">Tokens: 0</span>
           </div>
         </div>
       </section>
