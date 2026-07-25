@@ -53,7 +53,8 @@ let shortcutErrors = [];
 
 const ICON_ICO = path.join(__dirname, '..', '..', 'build', 'icon.ico');
 const ICON_PNG = path.join(__dirname, '..', '..', 'build', 'icon.png');
-const ICON = process.platform === 'win32' && fs.existsSync(ICON_ICO) ? ICON_ICO : ICON_PNG;
+const ICON_PATH = process.platform === 'win32' && fs.existsSync(ICON_ICO) ? ICON_ICO : ICON_PNG;
+const ICON = nativeImage.createFromPath(ICON_PATH);
 
 /* ------------------------------------------------------------------ */
 /* Pencereler                                                          */
@@ -99,6 +100,7 @@ function createOrb() {
     }
   });
 
+  if (!ICON.isEmpty()) orb.setIcon(ICON);
   orb.setAlwaysOnTop(!!settings.get('alwaysOnTop'), 'screen-saver');
   orb.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
   orb.setOpacity(Number(settings.get('opacity')) || 1);
@@ -186,6 +188,8 @@ function createPanel(tab = 'settings') {
       sandbox: false
     }
   });
+
+  if (!ICON.isEmpty()) panel.setIcon(ICON);
 
   panel.loadFile(path.join(__dirname, '..', 'renderer', 'panel', 'index.html'), { query: { tab: tab || 'settings' } });
   panel.once('ready-to-show', () => {
