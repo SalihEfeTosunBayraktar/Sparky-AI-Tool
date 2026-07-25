@@ -689,15 +689,36 @@ $('appLanguage').addEventListener('change', async () => {
 });
 $('effort').addEventListener('change', () => save({ effort: $('effort').value }));
 
-$('temperature').addEventListener('input', () => {
-  $('temperatureVal').textContent = Number($('temperature').value).toFixed(2);
-});
-$('temperature').addEventListener('change', () => save({ temperature: Number($('temperature').value) }));
+function updateSliderProgress(el) {
+  if (!el) return;
+  const min = Number(el.min) || 0;
+  const max = Number(el.max) || 100;
+  const val = Number(el.value) || 0;
+  const pct = Math.max(0, Math.min(100, ((val - min) / (max - min)) * 100));
+  el.style.setProperty('--val', `${pct.toFixed(1)}%`);
+}
 
-$('opacity').addEventListener('input', () => {
-  $('opacityVal').textContent = `%${Math.round(Number($('opacity').value) * 100)}`;
+$('temperature')?.addEventListener('input', () => {
+  const el = $('temperature');
+  if ($('temperatureVal')) $('temperatureVal').textContent = Number(el.value).toFixed(2);
+  updateSliderProgress(el);
 });
-$('opacity').addEventListener('change', () => save({ opacity: Number($('opacity').value) }));
+$('temperature')?.addEventListener('change', () => {
+  const el = $('temperature');
+  updateSliderProgress(el);
+  save({ temperature: Number(el.value) });
+});
+
+$('opacity')?.addEventListener('input', () => {
+  const el = $('opacity');
+  if ($('opacityVal')) $('opacityVal').textContent = `%${Math.round(Number(el.value) * 100)}`;
+  updateSliderProgress(el);
+});
+$('opacity')?.addEventListener('change', () => {
+  const el = $('opacity');
+  updateSliderProgress(el);
+  save({ opacity: Number(el.value) });
+});
 
 bindCheck('deepMode', 'deepMode');
 bindCheck('clarify', 'clarify');
@@ -747,10 +768,16 @@ function renderAll() {
   if ($('style')) $('style').value = settings.style;
   if ($('language')) $('language').value = settings.outputLanguage;
   if ($('effort')) $('effort').value = settings.effort || 'medium';
-  if ($('temperature')) $('temperature').value = settings.temperature;
+  if ($('temperature')) {
+    $('temperature').value = settings.temperature;
+    updateSliderProgress($('temperature'));
+  }
   if ($('temperatureVal')) $('temperatureVal').textContent = Number(settings.temperature).toFixed(2);
   if ($('maxTokens')) $('maxTokens').value = settings.maxTokens;
-  if ($('opacity')) $('opacity').value = settings.opacity;
+  if ($('opacity')) {
+    $('opacity').value = settings.opacity;
+    updateSliderProgress($('opacity'));
+  }
   if ($('opacityVal')) $('opacityVal').textContent = `%${Math.round(Number(settings.opacity) * 100)}`;
   if ($('historyLimit')) $('historyLimit').value = settings.historyLimit;
 

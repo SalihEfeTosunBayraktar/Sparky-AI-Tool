@@ -512,7 +512,7 @@ select,
   transition: border-color 0.18s ease, box-shadow 0.18s ease;
 }
 
-/* Custom Range Slider (Turuncu Degrade Slider & Belirgin Koyu Kanal) */
+/* Custom Range Slider with Dynamic Active Filled Progress Bar (Turuncu Dolu Çubuk) */
 input[type="range"] {
   -webkit-appearance: none;
   appearance: none;
@@ -523,34 +523,41 @@ input[type="range"] {
   padding: 0 !important;
   border: none !important;
   margin: 4px 0;
-  accent-color: #ff6f35 !important;
   cursor: pointer;
 }
 
 input[type="range"]::-webkit-slider-runnable-track {
   width: 100%;
-  height: 6px;
-  border-radius: 999px;
-  background: #2a2d3d !important;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  height: 4px;
+  border-radius: 2px;
+  background: linear-gradient(
+    to right,
+    #ff583a 0%,
+    #ff583a var(--val, 50%),
+    rgba(255, 255, 255, 0.12) var(--val, 50%),
+    rgba(255, 255, 255, 0.12) 100%
+  ) !important;
+  border: none;
+  transition: background 0.05s ease;
 }
 
 input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
   border-radius: 50%;
   background: linear-gradient(135deg, #ff6f35 0%, #ff4d4d 100%);
   cursor: pointer;
-  box-shadow: 0 0 10px rgba(255, 111, 56, 0.6);
+  box-shadow: 0 0 10px rgba(255, 88, 58, 0.7);
   margin-top: -5px;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.15s ease;
 }
 
-input[type="range"]::-webkit-slider-thumb:hover {
+input[type="range"]:hover::-webkit-slider-thumb,
+input[type="range"]:active::-webkit-slider-thumb {
   transform: scale(1.2);
-  box-shadow: 0 0 14px rgba(255, 111, 56, 0.85);
+  box-shadow: 0 0 14px rgba(255, 88, 58, 0.95);
 }
 
 /* Entegre Prompt Besteci */
