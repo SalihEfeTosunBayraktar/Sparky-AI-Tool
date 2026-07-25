@@ -25,6 +25,8 @@ const projectContext = require('./projectContext');
 const { getRotator } = require('./apiKeyRotator');
 const projects = require('./projects');
 const notifier = require('./notifier');
+const { ModeManager } = require('./modeManager');
+const modeManager = new ModeManager(settings);
 
 const COLLAPSED = { width: 340, height: 152 };
 const EXPANDED = { width: 480, height: 664 };
@@ -803,9 +805,18 @@ function registerIpc() {
     return img;
   });
   ipcMain.handle('projects:removeImage', (_e, { projectId, imageId }) => {
-    const r = projects.removeImage(projectId, imageId);
+    const actId = projects.removeImage(projectId, imageId);
     broadcast('projects:changed');
-    return r;
+    return actId;
+  });
+
+  // --- modlar (modes)
+  ipcMain.handle('modes:catalog', () => modeManager.getCatalog());
+  ipcMain.handle('modes:getActive', () => modeManager.getMode());
+  ipcMain.handle('modes:setActive', (_e, mode) => {
+    const actMode = modeManager.setMode(mode);
+    broadcast('modes:changed', actMode);
+    return actMode;
   });
 
   // --- kabuk

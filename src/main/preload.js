@@ -87,6 +87,12 @@ contextBridge.exposeInMainWorld('sparky', {
     removeImage: (projectId, imageId) => ipcRenderer.invoke('projects:removeImage', { projectId, imageId })
   },
 
+  modes: {
+    catalog: () => ipcRenderer.invoke('modes:catalog'),
+    getActive: () => ipcRenderer.invoke('modes:getActive'),
+    setActive: (mode) => ipcRenderer.invoke('modes:setActive', mode)
+  },
+
   shell: {
     openUserData: () => ipcRenderer.invoke('shell:openUserData')
   },
@@ -110,6 +116,7 @@ contextBridge.exposeInMainWorld('sparky', {
     secretsChanged: (cb) => on('secrets:changed', cb),
     historyChanged: (cb) => on('history:changed', cb),
     projectsChanged: (cb) => on('projects:changed', cb),
+    modeChanged: (cb) => on('modes:changed', cb),
     panelTab: (cb) => on('panel:tab', cb)
   }
 });

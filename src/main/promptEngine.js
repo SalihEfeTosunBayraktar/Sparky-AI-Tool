@@ -90,6 +90,15 @@ NON-NEGOTIABLE RULES
 5. GAPS — Where the note is vague, fill the gap with the most standard, widely-applicable assumption for that domain and state it inside the prompt as an explicit assumption. Use an <angle-bracket slot> only when the value is genuinely user-specific and cannot be assumed.
 6. NO PADDING — Every line must earn its place. Do not add generic filler like "be creative" or "think step by step" unless it materially helps this specific task.`;
 
+const NORMAL_CHAT_BASE_RULES = `You are Sparky AI, a highly capable desktop AI assistant.
+Your task is to respond DIRECTLY to the user's message, question, or request in a clear, natural, intelligent, and helpful conversational tone.
+
+NON-NEGOTIABLE RULES
+1. DIRECT RESPONSE — Answer the user's question or execute their task directly.
+2. DO NOT WRITE A PROMPT TEMPLATE — Do NOT generate meta-prompts, role headings, or prompt engineering templates. Provide the direct solution or answer.
+3. LANGUAGE — Respond in {{LANG}}.
+4. QUALITY — Be precise, well-formatted, and concise.`;
+
 function styleList() {
   return Object.entries(STYLES).map(([id, s]) => ({ id, label: s.label, hint: s.hint }));
 }
@@ -98,9 +107,12 @@ function languageList() {
   return Object.keys(LANGUAGES).map((id) => ({ id, label: LANGUAGE_LABELS[id] || id }));
 }
 
-function buildSystem(styleId, languageId) {
-  const style = STYLES[styleId] || STYLES.detailed;
+function buildSystem(styleId, languageId, appMode) {
   const lang = LANGUAGES[languageId] || LANGUAGES.auto;
+  if (appMode === 'normal-chat') {
+    return NORMAL_CHAT_BASE_RULES.replace('{{LANG}}', lang);
+  }
+  const style = STYLES[styleId] || STYLES.detailed;
   return `${BASE_RULES.replace('{{LANG}}', lang)}\n\n${style.guide}`;
 }
 
@@ -496,7 +508,7 @@ async function run({
   // biçim (style) değiştirse bile önbelleğe alınan öneki korur.
   const withProject = (sys) => (projectBlock ? `${projectBlock}\n\n---\n\n${sys}` : sys);
 
-  const system = withProject(buildSystem(cfg.style, cfg.outputLanguage));
+  const system = withProject(buildSystem(cfg.style, cfg.outputLanguage, cfg.appMode));
   const budget = craftBudget(cfg);
   const common = {
     providerId: cfg.provider,

@@ -21,6 +21,7 @@ const DEFAULTS = {
   style: 'detailed',
   outputLanguage: 'auto',
   appLanguage: 'tr',
+  appMode: 'normal-chat',
   deepMode: false,
   autoMode: false,
   // Model, belirsiz noktalar için önce soru sorsun mu? (ek bir tur maliyeti var)

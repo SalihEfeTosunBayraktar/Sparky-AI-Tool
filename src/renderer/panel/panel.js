@@ -671,10 +671,34 @@ function populateStyleAndLangSelects() {
     }
     if (curLang) langSel.value = curLang;
   }
+
+  populateModeSelect();
 }
 
-$('style').addEventListener('change', () => save({ style: $('style').value }));
-$('language').addEventListener('change', () => save({ outputLanguage: $('language').value }));
+async function populateModeSelect() {
+  const modeSel = $('appMode');
+  if (!modeSel) return;
+  const catalog = await api.modes.catalog();
+  const activeMode = await api.modes.getActive();
+  modeSel.innerHTML = '';
+  for (const m of catalog) {
+    const o = document.createElement('option');
+    o.value = m.id;
+    o.textContent = typeof i18n !== 'undefined' ? i18n.t(m.labelKey) : m.id;
+    if (m.id === activeMode) o.selected = true;
+    modeSel.appendChild(o);
+  }
+}
+
+$('appMode')?.addEventListener('change', async () => {
+  const mode = $('appMode').value;
+  await api.modes.setActive(mode);
+});
+
+api.on.modeChanged(() => populateModeSelect());
+
+$('style')?.addEventListener('change', () => save({ style: $('style').value }));
+$('language')?.addEventListener('change', () => save({ outputLanguage: $('language').value }));
 $('appLanguage').addEventListener('change', async () => {
   const lang = $('appLanguage').value;
   if (typeof i18n !== 'undefined') {

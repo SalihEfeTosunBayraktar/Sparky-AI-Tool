@@ -64,6 +64,13 @@ const en = {
     imageSizeTooLarge: 'Image file size is too large (Max 10 MB).',
     imageReadError: 'An error occurred while loading the image.'
   },
+  modes: {
+    activeTitle: 'Operation Mode',
+    normalChat: '💬 Normal Chat',
+    promptPreparer: '✨ Prompt Preparer',
+    label: 'Application Mode',
+    hint: 'Determines whether Sparky AI responds in direct chat or synthesizes a structured prompt'
+  },
   provider: {
     customLabel: 'Custom (OpenAI compatible)',
     customKeyHint: 'Enter key if required',

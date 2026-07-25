@@ -768,8 +768,32 @@ api.on.loadEntry((item) => {
 
 api.on.settingsChanged((s) => applySettings(s));
 api.on.projectsChanged(() => populateProjects());
+api.on.modeChanged(() => populateModes());
 
 const projectSel = $('projectSelect');
+const modeSel = $('modeSelect');
+
+async function populateModes() {
+  if (!modeSel) return;
+  const catalog = await api.modes.catalog();
+  const activeMode = await api.modes.getActive();
+
+  modeSel.innerHTML = '';
+  for (const m of catalog) {
+    const opt = document.createElement('option');
+    opt.value = m.id;
+    opt.textContent = i18n.t(m.labelKey) || m.id;
+    if (m.id === activeMode) opt.selected = true;
+    modeSel.appendChild(opt);
+  }
+}
+
+if (modeSel) {
+  modeSel.addEventListener('change', async (e) => {
+    const mode = e.target.value;
+    await api.modes.setActive(mode);
+  });
+}
 
 async function populateProjects() {
   if (!projectSel) return;
@@ -826,6 +850,7 @@ if (projectSel) {
 
   applySettings(settings);
   await populateProjects();
+  await populateModes();
   renderEmpty();
   setStatus({ text: settings.model ? i18n.t('app.ready') : i18n.t('app.selectModel'), kind: settings.model ? 'idle' : 'info' });
 })();

@@ -64,6 +64,13 @@ const tr = {
     imageSizeTooLarge: 'Görsel boyutu çok büyük (Maksimum 10 MB).',
     imageReadError: 'Görsel yüklenirken bir hata oluştu.'
   },
+  modes: {
+    activeTitle: 'Çalışma Modu',
+    normalChat: '💬 Normal Sohbet',
+    promptPreparer: '✨ Prompt Hazırlayıcı',
+    label: 'Uygulama Modu',
+    hint: 'Sparky AI\'ın doğrudan sohbet mi edeceği yoksa özel prompt mu üreteceğini belirler'
+  },
   provider: {
     customLabel: 'Özel (OpenAI uyumlu)',
     customKeyHint: 'Gerekiyorsa anahtar girin',
