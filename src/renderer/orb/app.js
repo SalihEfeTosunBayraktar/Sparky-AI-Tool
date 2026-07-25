@@ -241,7 +241,7 @@ function renderEmpty() {
   outputEl.textContent = '';
   const d = document.createElement('div');
   d.className = 'empty';
-  d.textContent = 'Üretilen prompt burada belirecek.';
+  d.textContent = typeof i18n !== 'undefined' ? i18n.t('card.emptyPrompt') : 'Üretilen prompt burada belirecek.';
   outputEl.appendChild(d);
 }
 

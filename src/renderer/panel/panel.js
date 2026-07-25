@@ -64,10 +64,12 @@ function renderProviderFields() {
   $('provider').value = p.id;
   $('endpoint').value = settings.endpoints?.[p.id] ?? p.defaultEndpoint ?? '';
   $('endpoint').disabled = false;
-  $('endpointHint').textContent = p.endpointHint || '';
+  $('endpointHint').textContent = p.id === 'anthropic'
+    ? (typeof i18n !== 'undefined' ? i18n.t('provider.anthropicEndpointHint') : p.endpointHint || '')
+    : (p.endpointHint || '');
   $('providerHint').textContent = p.needsKey
-    ? (typeof i18n !== 'undefined' ? i18n.t('panel.fields.modelManualHint') : 'Bu sağlayıcı için API anahtarı gerekiyor.')
-    : (typeof i18n !== 'undefined' ? i18n.t('panel.fields.modelManualHint') : 'Yerel sunucu — API anahtarı gerekmez.');
+    ? (typeof i18n !== 'undefined' ? i18n.t('panel.fields.needsKey') : 'Bu sağlayıcı için API anahtarı gerekiyor.')
+    : (typeof i18n !== 'undefined' ? i18n.t('panel.fields.localNoKey') : 'Yerel sunucu — API anahtarı gerekmez.');
   $('testResult').hidden = true;
 }
 
@@ -196,10 +198,13 @@ function renderKeys() {
     const row = document.createElement('div');
     row.className = 'keyrow';
 
+    const providerLabel = p.id === 'custom' && typeof i18n !== 'undefined' ? i18n.t('provider.customLabel') : p.label;
+    const providerKeyHint = p.id === 'custom' && typeof i18n !== 'undefined' ? i18n.t('provider.customKeyHint') : (p.keyHint || '');
+
     const name = document.createElement('div');
     name.className = 'name';
-    name.textContent = p.label;
-    name.title = p.keyHint || '';
+    name.textContent = providerLabel;
+    name.title = providerKeyHint;
 
     const regTxt = typeof i18n !== 'undefined' ? i18n.t('panel.fields.registered') : 'kayıtlı';
     const notRegTxt = typeof i18n !== 'undefined' ? i18n.t('panel.fields.notRegistered') : 'yok';
@@ -208,7 +213,7 @@ function renderKeys() {
 
     const input = document.createElement('input');
     input.type = 'password';
-    input.placeholder = p.hasKey ? `${regTxt} • ****${p.keyMask}` : p.keyHint || 'API key';
+    input.placeholder = p.hasKey ? `${regTxt} • ****${p.keyMask}` : (providerKeyHint || 'API key');
     input.autocomplete = 'off';
 
     const saveBtn = document.createElement('button');
@@ -587,11 +592,26 @@ $('btnReset').addEventListener('click', async () => {
 /* Başlangıç                                                           */
 /* ------------------------------------------------------------------ */
 
+function populateProviderSelect() {
+  const provSel = $('provider');
+  if (!provSel || !providers.length) return;
+  const current = provSel.value;
+  provSel.innerHTML = '';
+  for (const p of providers) {
+    const o = document.createElement('option');
+    o.value = p.id;
+    o.textContent = p.id === 'custom' && typeof i18n !== 'undefined' ? i18n.t('provider.customLabel') : p.label;
+    provSel.appendChild(o);
+  }
+  if (current) provSel.value = current;
+}
+
 function renderAll() {
   if (typeof i18n !== 'undefined') {
     i18n.init(settings.appLanguage || 'tr');
     i18n.translateDOM();
     populateStyleAndLangSelects();
+    populateProviderSelect();
   }
 
   renderProviderFields();
@@ -629,6 +649,7 @@ api.on.settingsChanged((s) => {
 
 api.on.secretsChanged(async () => {
   providers = await api.providers.catalog();
+  populateProviderSelect();
   renderKeys();
 });
 
@@ -645,15 +666,7 @@ api.on.secretsChanged(async () => {
   metaStyles = styles;
   metaLangs = langs;
 
-  const provSel = $('provider');
-  provSel.innerHTML = '';
-  for (const p of providers) {
-    const o = document.createElement('option');
-    o.value = p.id;
-    o.textContent = p.label;
-    provSel.appendChild(o);
-  }
-
+  populateProviderSelect();
   renderAll();
   renderAbout();
   refreshShortcutErrors();

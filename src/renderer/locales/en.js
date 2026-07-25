@@ -55,6 +55,11 @@ const en = {
     hideTitle: 'Hide to tray',
     noTextOrImage: 'Please enter text or upload an image first'
   },
+  provider: {
+    customLabel: 'Custom (OpenAI compatible)',
+    customKeyHint: 'Enter key if required',
+    anthropicEndpointHint: 'Leave empty (uses default endpoint)'
+  },
   panel: {
     title: 'Sparky AI — Settings',
     winMinimize: 'Minimize',
@@ -80,6 +85,8 @@ const en = {
       btnTest: 'Test connection',
       model: 'Model',
       btnModelsRefresh: 'Refresh list',
+      needsKey: 'API key required for this provider (see section below).',
+      localNoKey: 'Local server — API key not required.',
       modelManualHint: 'If the model is not listed, you can type it manually below.',
       modelManualPlaceholder: 'Manual model name (optional)',
       appLanguage: 'App Language',

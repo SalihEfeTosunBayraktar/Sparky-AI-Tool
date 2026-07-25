@@ -55,6 +55,11 @@ const tr = {
     hideTitle: 'Tepsiye gizle',
     noTextOrImage: 'Önce bir metin veya resim girin'
   },
+  provider: {
+    customLabel: 'Özel (OpenAI uyumlu)',
+    customKeyHint: 'Gerekiyorsa anahtar girin',
+    anthropicEndpointHint: 'Boş bırakın (varsayılan uç kullanılır)'
+  },
   panel: {
     title: 'Sparky AI — Ayarlar',
     winMinimize: 'Küçült',
@@ -80,6 +85,8 @@ const tr = {
       btnTest: 'Bağlantıyı test et',
       model: 'Model',
       btnModelsRefresh: 'Listeyi yenile',
+      needsKey: 'Bu sağlayıcı için API anahtarı gerekiyor (aşağıdaki bölüm).',
+      localNoKey: 'Yerel sunucu — API anahtarı gerekmez.',
       modelManualHint: 'Model listede yoksa aşağıya elle yazabilirsiniz.',
       modelManualPlaceholder: 'Elle model adı (opsiyonel)',
       appLanguage: 'Arayüz Dili (App Language)',
