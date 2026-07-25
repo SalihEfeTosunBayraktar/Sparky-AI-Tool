@@ -69,15 +69,15 @@ const { toAnthropicContent } = require('./imageUtils');
 function formatAnthropicMessages(messages, image) {
   const list = messages.map((m) => ({ ...m }));
   if (image && list.length > 0) {
-    const imgPart = toAnthropicContent(image);
-    if (imgPart) {
+    const imgParts = toAnthropicContent(image);
+    if (imgParts.length > 0) {
       const lastIdx = list.length - 1;
       const lastMsg = list[lastIdx];
       if (lastMsg.role === 'user') {
         const textPart = { type: 'text', text: typeof lastMsg.content === 'string' ? lastMsg.content : '' };
         list[lastIdx] = {
           role: 'user',
-          content: [textPart, imgPart]
+          content: [textPart, ...imgParts]
         };
       }
     }

@@ -259,6 +259,7 @@ function answersBlock(answers) {
 async function run({
   raw,
   image,
+  project,
   mode = 'create',
   previous = '',
   instruction = '',
@@ -271,10 +272,30 @@ async function run({
   signal
 }) {
   let note = String(raw || '').trim();
-  if (!note && image) {
-    note = '[Uploaded image / UI screenshot to convert into prompt]';
+  const allImages = [];
+  if (image) allImages.push(image);
+  if (project && Array.isArray(project.images)) {
+    for (const img of project.images) {
+      if (img && img.base64) allImages.push({ mimeType: img.mimeType, base64: img.base64 });
+    }
+  }
+  const imagePayload = allImages.length > 0 ? allImages : null;
+
+  if (!note && imagePayload) {
+    note = '[Uploaded image / project screenshots to convert into prompt]';
   }
   if (!note && mode === 'create') throw new Error('Önce bir metin veya resim girin.');
+
+  let projectBlock = '';
+  if (project) {
+    const parts = [`PROJECT CONTEXT / BACKGROUND:\nName: ${project.name}`];
+    if (project.description) parts.push(`Description: ${project.description}`);
+    if (Array.isArray(project.texts) && project.texts.length > 0) {
+      const notes = project.texts.map((t) => `- [${t.title}]: ${t.content}`).join('\n');
+      parts.push(`Project Notes & Specifications:\n${notes}`);
+    }
+    projectBlock = parts.join('\n');
+  }
 
   const system = buildSystem(cfg.style, cfg.outputLanguage);
   const common = {
@@ -289,8 +310,8 @@ async function run({
   if (mode === 'refine') {
     onStatus?.({ text: 'Düzeltme uygulanıyor…', kind: 'thinking' });
     onStage?.();
-    const user = `RAW NOTE:\n${note || '(değişmedi)'}\n\nCURRENT PROMPT:\n${previous}\n\nUSER'S EDIT REQUEST:\n${instruction}\n\nApply the edit request to the current prompt. Keep everything else intact. Output only the updated prompt.`;
-    const { text } = await chat({ ...common, image, system, messages: [{ role: 'user', content: user }], onToken });
+    const user = `RAW NOTE:\n${note || '(değişmedi)'}\n\n${projectBlock ? `${projectBlock}\n\n` : ''}CURRENT PROMPT:\n${previous}\n\nUSER'S EDIT REQUEST:\n${instruction}\n\nApply the edit request to the current prompt. Keep everything else intact. Output only the updated prompt.`;
+    const { text } = await chat({ ...common, image: imagePayload, system, messages: [{ role: 'user', content: user }], onToken });
     return clean(text);
   }
 
@@ -298,13 +319,13 @@ async function run({
 
   if (cfg.deepMode) {
     onStatus?.({ text: 'Niyet çözümleniyor…', kind: 'thinking' });
+    const userContent = projectBlock ? `${projectBlock}\n\nRAW NOTE:\n${note}` : note;
     const { text } = await chat({
       ...common,
-      image,
+      image: imagePayload,
       system: ANALYSIS_SYSTEM,
-      messages: [{ role: 'user', content: note }],
+      messages: [{ role: 'user', content: userContent }],
       maxTokens: Math.min(Number(cfg.maxTokens) || 1024, 1024)
-      // Bu aşama akıtılmaz; kullanıcıya JSON göstermenin anlamı yok.
     });
     analysis = extractJson(text);
   }
@@ -312,7 +333,9 @@ async function run({
   onStatus?.({ text: cfg.deepMode ? 'Prompt yazılıyor…' : 'Düşünüyor…', kind: 'thinking' });
   onStage?.();
 
-  const userParts = [`RAW NOTE:\n${note}`];
+  const userParts = [];
+  if (projectBlock) userParts.push(projectBlock);
+  userParts.push(`RAW NOTE:\n${note}`);
   if (analysis) {
     userParts.push(
       `ANALYSIS (use it, but the raw note always wins if they disagree):\n${JSON.stringify(analysis, null, 2)}`
@@ -324,7 +347,7 @@ async function run({
 
   const first = await chat({
     ...common,
-    image,
+    image: imagePayload,
     system,
     messages: [{ role: 'user', content: userParts.join('\n\n') }],
     onToken

@@ -67,6 +67,7 @@ const en = {
     winClose: 'Close',
     tabs: {
       settings: 'Settings',
+      projects: 'Projects',
       history: 'History',
       about: 'About'
     },
@@ -169,6 +170,33 @@ const en = {
     es: 'Spanish',
     ar: 'Arabic',
     ru: 'Russian'
+  },
+  projects: {
+    tabTitle: 'Projects',
+    chipNoProject: 'No Project',
+    chipNewProject: '+ New Project',
+    listTitle: 'My Projects',
+    newProjectBtn: 'Create New Project',
+    nameLabel: 'Project Name',
+    namePlaceholder: 'e.g. Mobile E-Commerce',
+    descLabel: 'Description',
+    descPlaceholder: 'Short summary or goal of the project',
+    saveBtn: 'Save',
+    deleteBtn: 'Delete Project',
+    setActiveBtn: 'Set Active',
+    activeBadge: 'Active Project',
+    textsTitle: 'Text Contents & Context',
+    addTextBtn: '+ Add Text Note',
+    textTitleLabel: 'Title',
+    textTitlePlaceholder: 'e.g. Tech Stack / Rules',
+    textContentLabel: 'Content',
+    textContentPlaceholder: 'Text context, specifications, or rules for this project…',
+    imagesTitle: 'Image Gallery (Vision / Multimodal)',
+    addImageBtn: '📷 Upload Image',
+    imageLimitHint: 'Max 5 images per project.',
+    noProjectsYet: 'No projects created yet. Click "Create New Project" to get started.',
+    noTextsYet: 'No text notes in this project yet.',
+    noImagesYet: 'No images in this project yet.'
   }
 };
 

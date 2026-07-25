@@ -7,6 +7,14 @@ let settings = null;
 let providers = [];
 let historyItems = [];
 let savedTimer = null;
+let projectUI = null;
+
+function renderProjects() {
+  if (!projectUI && typeof ProjectUI !== 'undefined') {
+    projectUI = new ProjectUI(api, typeof i18n !== 'undefined' ? i18n : { t: (k) => k });
+  }
+  if (projectUI) projectUI.render();
+}
 
 /* ------------------------------------------------------------------ */
 /* Pencere ve sekmeler                                                 */
@@ -20,6 +28,7 @@ function showTab(name) {
   document.querySelectorAll('.tab').forEach((t) => t.classList.toggle('active', t.dataset.tab === name));
   document.querySelectorAll('.pane').forEach((p) => p.classList.toggle('active', p.id === `tab-${name}`));
   if (name === 'history') loadHistory();
+  if (name === 'projects') renderProjects();
 }
 
 document.querySelectorAll('.tab').forEach((t) => t.addEventListener('click', () => showTab(t.dataset.tab)));

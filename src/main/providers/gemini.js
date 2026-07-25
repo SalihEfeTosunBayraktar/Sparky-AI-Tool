@@ -39,8 +39,8 @@ async function chat({ endpoint, apiKey, model, system, messages, image, temperat
   const contents = messages.map((m, idx) => {
     const parts = [{ text: m.content || '' }];
     if (image && idx === messages.length - 1 && m.role !== 'assistant') {
-      const imgPart = toGeminiContent(image);
-      if (imgPart) parts.push(imgPart);
+      const imgParts = toGeminiContent(image);
+      if (imgParts.length > 0) parts.push(...imgParts);
     }
     return {
       role: m.role === 'assistant' ? 'model' : 'user',

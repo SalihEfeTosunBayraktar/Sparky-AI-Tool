@@ -44,54 +44,62 @@ function normalizeImage(image) {
 }
 
 /**
- * Converts image payload into OpenAI Vision message content object.
- * OpenAI Vision uyumlu mesaj içerik parçası üretir.
+ * Normalizes single or multiple image inputs into an array of standard objects.
+ * Görsel verilerini ({ mimeType, base64 }) dizisi olarak normalleştirir.
  */
-function toOpenAiContent(image) {
-  const norm = normalizeImage(image);
-  if (!norm) return null;
-  return {
+function normalizeImages(imageInput) {
+  if (!imageInput) return [];
+  const list = Array.isArray(imageInput) ? imageInput : [imageInput];
+  return list.map(normalizeImage).filter(Boolean);
+}
+
+/**
+ * Converts image payload into OpenAI Vision content array.
+ * OpenAI Vision uyumlu görsel dizi parçaları üretir.
+ */
+function toOpenAiContent(imageInput) {
+  const normList = normalizeImages(imageInput);
+  return normList.map((norm) => ({
     type: 'image_url',
     image_url: {
       url: `data:${norm.mimeType};base64,${norm.base64}`
     }
-  };
+  }));
 }
 
 /**
- * Converts image payload into Anthropic Claude vision content object.
- * Anthropic Claude uyumlu görsel içerik parçası üretir.
+ * Converts image payload into Anthropic Claude vision content array.
+ * Anthropic Claude uyumlu görsel dizi parçaları üretir.
  */
-function toAnthropicContent(image) {
-  const norm = normalizeImage(image);
-  if (!norm) return null;
-  return {
+function toAnthropicContent(imageInput) {
+  const normList = normalizeImages(imageInput);
+  return normList.map((norm) => ({
     type: 'image',
     source: {
       type: 'base64',
       media_type: norm.mimeType,
       data: norm.base64
     }
-  };
+  }));
 }
 
 /**
- * Converts image payload into Google Gemini inlineData content part.
- * Google Gemini uyumlu inlineData içerik parçası üretir.
+ * Converts image payload into Google Gemini inlineData content array.
+ * Google Gemini uyumlu inlineData dizi parçaları üretir.
  */
-function toGeminiContent(image) {
-  const norm = normalizeImage(image);
-  if (!norm) return null;
-  return {
+function toGeminiContent(imageInput) {
+  const normList = normalizeImages(imageInput);
+  return normList.map((norm) => ({
     inlineData: {
       mimeType: norm.mimeType,
       data: norm.base64
     }
-  };
+  }));
 }
 
 module.exports = {
   normalizeImage,
+  normalizeImages,
   toOpenAiContent,
   toAnthropicContent,
   toGeminiContent

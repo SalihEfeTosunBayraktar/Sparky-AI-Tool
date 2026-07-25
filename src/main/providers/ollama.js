@@ -9,7 +9,7 @@ async function listModels({ endpoint, signal }) {
   return (json.models || []).map((m) => m.name).filter(Boolean).sort();
 }
 
-const { normalizeImage } = require('./imageUtils');
+const { normalizeImages } = require('./imageUtils');
 
 async function chat({ endpoint, model, system, messages, image, temperature, maxTokens, signal, onToken }) {
   const base = trimSlash(endpoint) || 'http://127.0.0.1:11434';
@@ -17,12 +17,12 @@ async function chat({ endpoint, model, system, messages, image, temperature, max
 
   const formattedMessages = [...(system ? [{ role: 'system', content: system }] : []), ...messages];
   if (image && formattedMessages.length > 0) {
-    const norm = normalizeImage(image);
-    if (norm) {
+    const normList = normalizeImages(image);
+    if (normList.length > 0) {
       const lastIdx = formattedMessages.length - 1;
       formattedMessages[lastIdx] = {
         ...formattedMessages[lastIdx],
-        images: [norm.base64]
+        images: normList.map((n) => n.base64)
       };
     }
   }

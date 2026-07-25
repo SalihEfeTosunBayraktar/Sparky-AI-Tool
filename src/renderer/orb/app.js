@@ -547,6 +547,7 @@ function applySettings(s) {
     i18n.translateDOM();
   }
   populateStyles();
+  populateProjects();
   if (styleSel.value !== s.style) styleSel.value = s.style;
   deepBtn.setAttribute('aria-pressed', String(!!s.deepMode));
   clarifyBtn.setAttribute('aria-pressed', String(!!s.clarify));
@@ -624,6 +625,48 @@ api.on.loadEntry((item) => {
 });
 
 api.on.settingsChanged((s) => applySettings(s));
+api.on.projectsChanged(() => populateProjects());
+
+const projectSel = $('projectSelect');
+
+async function populateProjects() {
+  if (!projectSel) return;
+  const list = await api.projects.list();
+  const activeObj = await api.projects.getActive();
+  const activeId = activeObj ? activeObj.id : '';
+
+  projectSel.innerHTML = '';
+
+  const noneOpt = document.createElement('option');
+  noneOpt.value = '';
+  noneOpt.textContent = `📁 ${i18n.t('projects.chipNoProject')}`;
+  projectSel.appendChild(noneOpt);
+
+  for (const p of list) {
+    const opt = document.createElement('option');
+    opt.value = p.id;
+    opt.textContent = `📁 ${p.name}`;
+    if (p.id === activeId) opt.selected = true;
+    projectSel.appendChild(opt);
+  }
+
+  const newOpt = document.createElement('option');
+  newOpt.value = '__new__';
+  newOpt.textContent = i18n.t('projects.chipNewProject');
+  projectSel.appendChild(newOpt);
+}
+
+if (projectSel) {
+  projectSel.addEventListener('change', async (e) => {
+    const val = e.target.value;
+    if (val === '__new__') {
+      await populateProjects();
+      api.ui.openPanel('projects');
+      return;
+    }
+    await api.projects.setActive(val || null);
+  });
+}
 
 /* ------------------------------------------------------------------ */
 /* Başlangıç                                                           */
@@ -640,6 +683,7 @@ api.on.settingsChanged((s) => applySettings(s));
   state.styles = styles;
 
   applySettings(settings);
+  await populateProjects();
   renderEmpty();
   setStatus({ text: settings.model ? i18n.t('app.ready') : i18n.t('app.selectModel'), kind: settings.model ? 'idle' : 'info' });
 })();

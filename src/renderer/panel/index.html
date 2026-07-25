@@ -21,6 +21,7 @@
     <div class="shell">
       <nav class="side">
         <button class="tab active" data-tab="settings" data-i18n="panel.tabs.settings">Ayarlar</button>
+        <button class="tab" data-tab="projects" data-i18n="panel.tabs.projects">Projeler</button>
         <button class="tab" data-tab="history" data-i18n="panel.tabs.history">Geçmiş</button>
         <button class="tab" data-tab="about" data-i18n="panel.tabs.about">Hakkında</button>
       </nav>
@@ -190,6 +191,54 @@
         </section>
 
         <!-- ---------------------------------------------------------- -->
+        <section id="tab-projects" class="pane">
+          <div class="projects-layout">
+            <aside class="projects-sidebar">
+              <button id="btnNewProject" class="btn primary" style="width:100%" data-i18n="projects.newProjectBtn">Yeni Proje Oluştur</button>
+              <div id="projectsList" class="projects-list"></div>
+            </aside>
+            <div id="projectDetail" class="project-detail">
+              <div class="empty-note" id="noProjectSelectedNote" data-i18n="projects.noProjectsYet">Henüz proje oluşturulmadı. Yeni bir proje ekleyerek başlayın.</div>
+              <div id="projectForm" hidden>
+                <div class="card">
+                  <div class="field">
+                    <label for="projectName" data-i18n="projects.nameLabel">Proje Adı</label>
+                    <input id="projectName" spellcheck="false" placeholder="Örn. Mobil E-Ticaret" data-i18n-placeholder="projects.namePlaceholder" />
+                  </div>
+                  <div class="field">
+                    <label for="projectDesc" data-i18n="projects.descLabel">Açıklama</label>
+                    <textarea id="projectDesc" spellcheck="false" rows="2" placeholder="Projenin kısa özeti veya amacı" data-i18n-placeholder="projects.descPlaceholder"></textarea>
+                  </div>
+                  <div class="inline" style="gap:8px; margin-top:8px">
+                    <button id="btnSaveProject" class="btn primary" data-i18n="projects.saveBtn">Kaydet</button>
+                    <button id="btnSetActiveProject" class="btn" data-i18n="projects.setActiveBtn">Aktif Yap</button>
+                    <button id="btnDeleteProject" class="btn danger" data-i18n="projects.deleteBtn">Projeyi Sil</button>
+                  </div>
+                </div>
+
+                <div class="card" style="margin-top:16px">
+                  <div class="row-label">
+                    <h3 style="margin:0; font-size:14px" data-i18n="projects.textsTitle">Metin İçerikleri &amp; Bağlam</h3>
+                    <button id="btnAddTextNote" class="btn" data-i18n="projects.addTextBtn">+ Metin Ekle</button>
+                  </div>
+                  <div id="projectTextsList" style="margin-top:12px"></div>
+                </div>
+
+                <div class="card" style="margin-top:16px">
+                  <div class="row-label">
+                    <h3 style="margin:0; font-size:14px" data-i18n="projects.imagesTitle">Görsel Bölümü (Vision / Multimodal)</h3>
+                    <input type="file" id="projImgFileInput" accept="image/*" hidden />
+                    <button id="btnAddProjImage" class="btn" data-i18n="projects.addImageBtn">📷 Görsel Yükle</button>
+                  </div>
+                  <p class="hint" style="margin-top:4px" data-i18n="projects.imageLimitHint">Proje başına maks. 5 görsel eklenebilir.</p>
+                  <div id="projectImagesGrid" class="project-images-grid"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ---------------------------------------------------------- -->
         <section id="tab-history" class="pane">
           <div class="hist-head">
             <input id="search" placeholder="Geçmişte ara…" spellcheck="false" data-i18n-placeholder="panel.history.searchPlaceholder" />
@@ -229,6 +278,7 @@
     <script src="../locales/tr.js"></script>
     <script src="../locales/en.js"></script>
     <script src="../i18n.js"></script>
+    <script src="projectUI.js"></script>
     <script src="panel.js"></script>
   </body>
 </html>

@@ -64,6 +64,20 @@ contextBridge.exposeInMainWorld('sparky', {
     export: (format) => ipcRenderer.invoke('history:export', format)
   },
 
+  projects: {
+    list: () => ipcRenderer.invoke('projects:list'),
+    getActive: () => ipcRenderer.invoke('projects:getActive'),
+    setActive: (id) => ipcRenderer.invoke('projects:setActive', id),
+    create: (payload) => ipcRenderer.invoke('projects:create', payload),
+    update: (id, partial) => ipcRenderer.invoke('projects:update', { id, partial }),
+    remove: (id) => ipcRenderer.invoke('projects:remove', id),
+    addText: (projectId, item) => ipcRenderer.invoke('projects:addText', { projectId, item }),
+    updateText: (projectId, textId, partial) => ipcRenderer.invoke('projects:updateText', { projectId, textId, partial }),
+    removeText: (projectId, textId) => ipcRenderer.invoke('projects:removeText', { projectId, textId }),
+    addImage: (projectId, item) => ipcRenderer.invoke('projects:addImage', { projectId, item }),
+    removeImage: (projectId, imageId) => ipcRenderer.invoke('projects:removeImage', { projectId, imageId })
+  },
+
   shell: {
     openUserData: () => ipcRenderer.invoke('shell:openUserData')
   },
@@ -84,6 +98,7 @@ contextBridge.exposeInMainWorld('sparky', {
     settingsChanged: (cb) => on('settings:changed', cb),
     secretsChanged: (cb) => on('secrets:changed', cb),
     historyChanged: (cb) => on('history:changed', cb),
+    projectsChanged: (cb) => on('projects:changed', cb),
     panelTab: (cb) => on('panel:tab', cb)
   }
 });

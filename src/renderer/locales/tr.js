@@ -67,8 +67,16 @@ const tr = {
     winClose: 'Kapat',
     tabs: {
       settings: 'Ayarlar',
+      projects: 'Projeler',
       history: 'Geçmiş',
       about: 'Hakkında'
+    },
+    panel: {
+      tabSettings: 'Genel Ayarlar',
+      tabProjects: 'Projeler',
+      tabProviders: 'Sağlayıcılar & API',
+      tabHistory: 'Geçmiş',
+      tabAbout: 'Hakkında'
     },
     sections: {
       providerAndModel: 'Sağlayıcı ve model',
@@ -169,6 +177,33 @@ const tr = {
     es: 'İspanyolca',
     ar: 'Arapça',
     ru: 'Rusça'
+  },
+  projects: {
+    tabTitle: 'Projeler',
+    chipNoProject: 'Proje Yok',
+    chipNewProject: '+ Yeni Proje',
+    listTitle: 'Projelerim',
+    newProjectBtn: 'Yeni Proje Oluştur',
+    nameLabel: 'Proje Adı',
+    namePlaceholder: 'Örn. Mobil E-Ticaret',
+    descLabel: 'Açıklama',
+    descPlaceholder: 'Projenin kısa özeti veya amacı',
+    saveBtn: 'Kaydet',
+    deleteBtn: 'Projeyi Sil',
+    setActiveBtn: 'Aktif Yap',
+    activeBadge: 'Aktif Proje',
+    textsTitle: 'Metin İçerikleri & Bağlam',
+    addTextBtn: '+ Metin Ekle',
+    textTitleLabel: 'Başlık',
+    textTitlePlaceholder: 'Örn. Teknoloji Yığını / Kurallar',
+    textContentLabel: 'İçerik',
+    textContentPlaceholder: 'Proje ile ilgili metin bilgisi, kurallar veya detaylar…',
+    imagesTitle: 'Görsel Bölümü (Vision / Multimodal)',
+    addImageBtn: '📷 Görsel Yükle',
+    imageLimitHint: 'Proje başına maks. 5 görsel eklenebilir.',
+    noProjectsYet: 'Henüz proje oluşturulmadı. Yeni bir proje ekleyerek başlayın.',
+    noTextsYet: 'Bu projede henüz metin içeriği yok.',
+    noImagesYet: 'Bu projede henüz görsel yok.'
   }
 };
 

@@ -24,15 +24,15 @@ function formatMessages(system, messages, image) {
   const list = [...messages];
 
   if (image && list.length > 0) {
-    const imgPart = toOpenAiContent(image);
-    if (imgPart) {
+    const imgParts = toOpenAiContent(image);
+    if (imgParts.length > 0) {
       const lastIdx = list.length - 1;
       const lastMsg = list[lastIdx];
       if (lastMsg.role === 'user') {
         const textPart = { type: 'text', text: typeof lastMsg.content === 'string' ? lastMsg.content : '' };
         list[lastIdx] = {
           ...lastMsg,
-          content: [textPart, imgPart]
+          content: [textPart, ...imgParts]
         };
       }
     }

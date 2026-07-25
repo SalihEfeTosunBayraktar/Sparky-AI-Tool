@@ -20,6 +20,7 @@ const { settings, history } = require('./store');
 const secrets = require('./secrets');
 const llm = require('./llm');
 const engine = require('./promptEngine');
+const projects = require('./projects');
 
 const COLLAPSED = { width: 340, height: 152 };
 const EXPANDED = { width: 480, height: 664 };
@@ -226,9 +227,11 @@ async function runGeneration(payload) {
     }
 
     // 2) Asıl üretim
+    const activeProject = projects.getActive();
     const output = await engine.run({
       raw: payload.raw,
       image: payload.image || null,
+      project: activeProject,
       mode,
       previous: payload.previous || '',
       instruction: payload.instruction || '',
@@ -638,6 +641,56 @@ function registerIpc() {
     }
   });
 
+  // --- projeler
+  ipcMain.handle('projects:list', () => projects.list());
+  ipcMain.handle('projects:getActive', () => projects.getActive());
+  ipcMain.handle('projects:setActive', (_e, id) => {
+    const actId = projects.setActive(id);
+    broadcast('projects:changed');
+    return actId;
+  });
+  ipcMain.handle('projects:create', (_e, payload) => {
+    const item = projects.create(payload || {});
+    broadcast('projects:changed');
+    return item;
+  });
+  ipcMain.handle('projects:update', (_e, { id, partial }) => {
+    const p = projects.update(id, partial || {});
+    broadcast('projects:changed');
+    return p;
+  });
+  ipcMain.handle('projects:remove', (_e, id) => {
+    const actId = projects.remove(id);
+    broadcast('projects:changed');
+    return actId;
+  });
+  ipcMain.handle('projects:addText', (_e, { projectId, item }) => {
+    const t = projects.addText(projectId, item || {});
+    broadcast('projects:changed');
+    return t;
+  });
+  ipcMain.handle('projects:updateText', (_e, { projectId, textId, partial }) => {
+    const t = projects.updateText(projectId, textId, partial || {});
+    broadcast('projects:changed');
+    return t;
+  });
+  ipcMain.handle('projects:removeText', (_e, { projectId, textId }) => {
+    const r = projects.removeText(projectId, textId);
+    broadcast('projects:changed');
+    return r;
+  });
+  ipcMain.handle('projects:addImage', (_e, { projectId, item }) => {
+    const img = projects.addImage(projectId, item || {});
+    broadcast('projects:changed');
+    return img;
+  });
+  ipcMain.handle('projects:removeImage', (_e, { projectId, imageId }) => {
+    const r = projects.removeImage(projectId, imageId);
+    broadcast('projects:changed');
+    return r;
+  });
+
+  // --- kabuk
   ipcMain.handle('shell:openUserData', () => shell.openPath(app.getPath('userData')));
 }
 
