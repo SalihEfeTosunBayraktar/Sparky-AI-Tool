@@ -747,6 +747,29 @@ select option {
   box-shadow: 0 0 10px rgba(255, 111, 56, 0.25);
 }
 
+.token-badge {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--txt-dim);
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--border-color);
+  padding: 0 9px;
+  height: 28px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  user-select: none;
+  cursor: default;
+  transition: all 0.15s ease;
+}
+
+.token-badge:hover {
+  border-color: var(--accent-orange);
+  color: var(--txt);
+  background: rgba(255, 111, 56, 0.1);
+}
+
 .btn {
   height: 30px;
   padding: 0 13px;

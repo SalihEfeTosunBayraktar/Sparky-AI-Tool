@@ -841,6 +841,23 @@ if (projectSel) {
   });
 }
 
+const tokenCounterEl = $('tokenCounter');
+
+function updateTokenCounter(stats) {
+  if (!tokenCounterEl) return;
+  const last = Number(stats?.lastTokens) || 0;
+  const total = Number(stats?.sessionTotal) || 0;
+  const fmt = (n) => n.toLocaleString();
+  tokenCounterEl.textContent = last > 0
+    ? `Tokens: ${fmt(last)}`
+    : 'Tokens: 0';
+  tokenCounterEl.title = `Son istek: ${fmt(last)} token · Oturum Toplamı: ${fmt(total)} token`;
+}
+
+if (api.on.tokensUpdated) {
+  api.on.tokensUpdated((stats) => updateTokenCounter(stats));
+}
+
 /* ------------------------------------------------------------------ */
 /* Başlangıç                                                           */
 /* ------------------------------------------------------------------ */
@@ -858,6 +875,10 @@ if (projectSel) {
   applySettings(settings);
   await populateProjects();
   await populateModes();
+  if (api.tokens && api.tokens.get) {
+    const stats = await api.tokens.get();
+    updateTokenCounter(stats);
+  }
   renderEmpty();
   setStatus({ text: settings.model ? i18n.t('app.ready') : i18n.t('app.selectModel'), kind: settings.model ? 'idle' : 'info' });
 })();

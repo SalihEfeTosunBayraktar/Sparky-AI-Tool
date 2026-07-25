@@ -27,6 +27,8 @@ const projects = require('./projects');
 const notifier = require('./notifier');
 const { ModeManager } = require('./modeManager');
 const modeManager = new ModeManager(settings);
+const TokenTracker = require('./tokenTracker');
+const tokenTracker = new TokenTracker();
 
 const COLLAPSED = { width: 340, height: 152 };
 const EXPANDED = { width: 480, height: 664 };
@@ -323,6 +325,13 @@ async function runGeneration(payload) {
 
     lastOutput = output;
     if (cfg.autoCopy) clipboard.writeText(output);
+
+    const tokenStats = tokenTracker.record({
+      totalTokens: result.totalTokens,
+      input: payload.raw,
+      output
+    });
+    broadcast('tokens:updated', tokenStats);
 
     const entry = history.add({
       input: payload.raw,
@@ -818,6 +827,9 @@ function registerIpc() {
     broadcast('modes:changed', actMode);
     return actMode;
   });
+
+  // --- tokenlar (token counter)
+  ipcMain.handle('tokens:get', () => tokenTracker.getStats());
 
   // --- kabuk
   ipcMain.handle('shell:openUserData', () => shell.openPath(app.getPath('userData')));
