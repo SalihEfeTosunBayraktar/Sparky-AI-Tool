@@ -20,6 +20,7 @@ const DEFAULTS = {
   modelByProvider: {},
   style: 'detailed',
   outputLanguage: 'auto',
+  appLanguage: 'tr',
   deepMode: false,
   // Model, belirsiz noktalar için önce soru sorsun mu? (ek bir tur maliyeti var)
   clarify: false,

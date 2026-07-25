@@ -48,75 +48,80 @@
 
         <div class="body">
           <div class="row-label">
-            <label for="input">Metniniz veya UI Tasarımı</label>
-            <button id="btnPaste" class="link" title="Panodaki metni yapıştır">panodan al</button>
+            <label for="input" data-i18n="card.inputLabel">Metniniz veya UI Tasarımı</label>
+            <button id="btnPaste" class="link" title="Panodaki metni yapıştır" data-i18n="card.pasteFromClipboard">panodan al</button>
           </div>
 
           <div id="imgPreviewContainer" class="img-preview-container" hidden>
             <img id="imgPreview" class="img-preview" alt="Yüklenen UI Tasarımı" />
-            <span class="img-info">UI Tasarımı Ekli</span>
-            <button id="btnRemoveImg" class="btn-remove-img" title="Görseli kaldır">✕</button>
+            <span class="img-info" data-i18n="card.uiImageAttached">UI Tasarımı Ekli</span>
+            <button id="btnRemoveImg" class="btn-remove-img" title="Görseli kaldır" data-i18n="card.removeImage" data-i18n-attr="title">✕</button>
           </div>
 
           <textarea
             id="input"
             spellcheck="false"
             placeholder="Ne istediğinizi yazın veya UI tasarım görseli yükleyin.&#10;Ctrl+Enter → üret"
+            data-i18n="card.inputPlaceholder"
+            data-i18n-attr="placeholder"
           ></textarea>
 
           <div class="toolbar">
             <input type="file" id="imgFileInput" accept="image/*" hidden />
-            <button id="btnAttachImg" class="chip icon-chip" title="UI Görseli / Ekran görüntüsü yükle">
+            <button id="btnAttachImg" class="chip icon-chip" title="UI Görseli / Ekran görüntüsü yükle" data-i18n="card.btnAttachImage">
               📷 Görsel
             </button>
             <select id="style" title="Prompt biçimi"></select>
-            <button id="deep" class="chip" title="Analiz → yaz → cilala (3 aşama, daha yavaş ama daha iyi)">
+            <button id="deep" class="chip" title="Analiz → yaz → cilala (3 aşama, daha yavaş ama daha iyi)" data-i18n="card.deepMode">
               Derin mod
             </button>
-            <button id="clarify" class="chip" title="Belirsiz noktalar için önce sana soru sorsun">
+            <button id="clarify" class="chip" title="Belirsiz noktalar için önce sana soru sorsun" data-i18n="card.askQuestions">
               Soru sor
             </button>
             <span class="grow"></span>
-            <button id="btnStop" class="btn danger" hidden>Durdur</button>
-            <button id="btnGen" class="btn primary">Üret</button>
+            <button id="btnStop" class="btn danger" hidden data-i18n="card.btnStop">Durdur</button>
+            <button id="btnGen" class="btn primary" data-i18n="card.btnGenerate">Üret</button>
           </div>
 
           <div class="row-label out">
-            <label for="output">Prompt</label>
+            <label for="output" data-i18n="card.promptOutputLabel">Prompt</label>
             <span id="meta" class="meta"></span>
           </div>
           <div id="output" class="output" tabindex="0">
-            <div class="empty">Üretilen prompt burada belirecek.</div>
+            <div class="empty" data-i18n="card.emptyPrompt">Üretilen prompt burada belirecek.</div>
           </div>
 
           <!-- Model netleştirme sorusu sorduğunda çıktının yerini alır -->
           <div id="qa" class="qa" hidden>
-            <p class="qa-lead">Daha iyi bir prompt için birkaç şeyi netleştirelim:</p>
+            <p class="qa-lead" data-i18n="card.qaLead">Daha iyi bir prompt için birkaç şeyi netleştirelim:</p>
             <div id="qaList"></div>
             <div class="qa-actions">
-              <button id="qaSubmit" class="btn primary">Cevapla ve üret</button>
-              <button id="qaSkip" class="btn">Sormadan üret</button>
+              <button id="qaSubmit" class="btn primary" data-i18n="card.qaSubmit">Cevapla ve üret</button>
+              <button id="qaSkip" class="btn" data-i18n="card.qaSkip">Sormadan üret</button>
             </div>
           </div>
 
           <div id="suggests" class="suggests" hidden></div>
 
           <div class="out-actions">
-            <button id="btnCopy" class="btn primary" disabled>Kopyala</button>
-            <button id="btnCopyClose" class="btn" disabled>Kopyala &amp; küçült</button>
-            <button id="btnRegen" class="btn" disabled>Yeniden</button>
+            <button id="btnCopy" class="btn primary" disabled data-i18n="card.btnCopy">Kopyala</button>
+            <button id="btnCopyClose" class="btn" disabled data-i18n="card.btnCopyClose">Kopyala &amp; küçült</button>
+            <button id="btnRegen" class="btn" disabled data-i18n="card.btnRegen">Yeniden</button>
             <span class="grow"></span>
-            <button id="btnHistory" class="btn ghost">Geçmiş</button>
+            <button id="btnHistory" class="btn ghost" data-i18n="card.btnHistory">Geçmiş</button>
           </div>
 
           <div class="refine">
-            <input id="refine" placeholder="Düzeltme iste: “daha kısa”, “İngilizce olsun”, “JSON çıktı ekle”…" spellcheck="false" />
-            <button id="btnRefine" class="btn" disabled>Uygula</button>
+            <input id="refine" placeholder="Düzeltme iste: “daha kısa”, “İngilizce olsun”, “JSON çıktı ekle”…" spellcheck="false" data-i18n="card.refinePlaceholder" data-i18n-attr="placeholder" />
+            <button id="btnRefine" class="btn" disabled data-i18n="card.btnApplyRefine">Uygula</button>
           </div>
         </div>
       </section>
     </div>
 
+    <script src="../locales/tr.js"></script>
+    <script src="../locales/en.js"></script>
+    <script src="../i18n.js"></script>
     <script src="imageHandler.js"></script>
     <script src="app.js"></script>
   </body>

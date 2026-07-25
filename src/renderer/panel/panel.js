@@ -256,6 +256,14 @@ function bindNumber(id, key, { min, max } = {}) {
 
 $('style').addEventListener('change', () => save({ style: $('style').value }));
 $('language').addEventListener('change', () => save({ outputLanguage: $('language').value }));
+$('appLanguage').addEventListener('change', () => {
+  const lang = $('appLanguage').value;
+  if (typeof i18n !== 'undefined') {
+    i18n.setLanguage(lang);
+    i18n.translateDOM();
+  }
+  save({ appLanguage: lang });
+});
 $('effort').addEventListener('change', () => save({ effort: $('effort').value }));
 
 $('temperature').addEventListener('input', () => {
@@ -491,6 +499,12 @@ async function renderAbout() {
 function renderAll() {
   renderProviderFields();
   renderKeys();
+
+  if ($('appLanguage')) $('appLanguage').value = settings.appLanguage || 'tr';
+  if (typeof i18n !== 'undefined') {
+    i18n.init(settings.appLanguage || 'tr');
+    i18n.translateDOM();
+  }
 
   $('style').value = settings.style;
   $('language').value = settings.outputLanguage;

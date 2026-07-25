@@ -525,6 +525,11 @@ function renderMeta() {
 
 function applySettings(s) {
   state.settings = s;
+  if (typeof i18n !== 'undefined' && s.appLanguage) {
+    i18n.init(s.appLanguage);
+    i18n.setLanguage(s.appLanguage);
+    i18n.translateDOM();
+  }
   if (styleSel.value !== s.style) styleSel.value = s.style;
   deepBtn.setAttribute('aria-pressed', String(!!s.deepMode));
   clarifyBtn.setAttribute('aria-pressed', String(!!s.clarify));
