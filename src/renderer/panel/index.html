@@ -20,7 +20,7 @@
         <button class="win close" data-win="close" title="Kapat" data-i18n-title="panel.winClose">✕</button>
       </header>
 
-      <!-- Yatay Sekme Yapısı / Horizontal Segmented Control -->
+      <!-- Yatay Segmented Sekme Kontrolü / Horizontal Segmented Control -->
       <nav class="segmented-tabs">
         <button class="tab active" data-tab="settings" data-i18n="panel.tabs.settings">Genel</button>
         <button class="tab" data-tab="projects" data-i18n="panel.tabs.projects">Projeler</button>
@@ -250,10 +250,13 @@
 
         <!-- 5. GEÇMİŞ PANE -->
         <section id="tab-history" class="pane">
-          <div class="bar" style="display:flex; align-items:center; margin-bottom:8px;">
-            <h2 style="margin:0;" data-i18n="panel.tabs.history">Geçmiş</h2>
-            <span class="grow"></span>
-            <button id="btnClearHistory" class="btn danger" data-i18n="panel.fields.btnClearHistory">Geçmişi temizle</button>
+          <div class="card" style="padding: 8px 10px;">
+            <div class="field-grid" style="grid-template-columns: 1fr auto auto auto; gap: 6px;">
+              <input id="search" type="text" placeholder="Geçmişte ara…" data-i18n-placeholder="panel.history.searchPlaceholder" />
+              <button id="btnExportMd" class="btn" data-i18n="panel.history.exportMd">.md</button>
+              <button id="btnExportJson" class="btn" data-i18n="panel.history.exportJson">.json</button>
+              <button id="btnClear" class="btn danger" data-i18n="panel.history.clear">Temizle</button>
+            </div>
           </div>
           <div id="historyList" class="history-list"></div>
         </section>
@@ -264,7 +267,9 @@
             <span class="orb-icon-lg">✨</span>
             <h3>Sparky AI</h3>
             <p class="ver">v0.1.0 · Masaüstü Asistanı</p>
-            <p class="desc">Ham notlarınızı ve görsellerinizi yüksek kaliteli promptlara dönüştüren akıllı asistan.</p>
+            <p class="desc" data-i18n="panel.about.description">Ham notlarınızı ve görsellerinizi yüksek kaliteli promptlara dönüştüren akıllı asistan.</p>
+
+            <dl id="aboutList" class="about-dl"></dl>
 
             <div class="actions">
               <button id="btnOpenData" class="btn" data-i18n="panel.fields.btnOpenData">Veri klasörünü aç</button>

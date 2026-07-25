@@ -418,8 +418,10 @@ async function loadHistory() {
 }
 
 function renderHistory() {
-  const host = $('histList');
-  const q = $('search').value.trim().toLocaleLowerCase('tr');
+  const host = $('historyList') || $('histList');
+  if (!host) return;
+  const searchEl = $('search');
+  const q = searchEl ? searchEl.value.trim().toLocaleLowerCase('tr') : '';
   host.innerHTML = '';
 
   const items = q
@@ -433,60 +435,51 @@ function renderHistory() {
   if (!items.length) {
     const p = document.createElement('p');
     p.className = 'empty-note';
-    p.textContent = historyItems.length ? i18n.t('panel.history.noSearchResults') : i18n.t('panel.history.noEntries');
+    p.textContent = historyItems.length
+      ? (typeof i18n !== 'undefined' ? i18n.t('panel.history.noSearchResults') : 'Aramayla eşleşen kayıt yok.')
+      : (typeof i18n !== 'undefined' ? i18n.t('panel.history.noEntries') : 'Henüz kayıt yok.');
     host.appendChild(p);
     return;
   }
 
   for (const item of items) {
     const el = document.createElement('div');
-    el.className = `hist-item${item.favorite ? ' fav' : ''}`;
+    el.className = `history-item${item.favorite ? ' fav' : ''}`;
 
     const top = document.createElement('div');
     top.className = 'hist-top';
-    const tag = document.createElement('span');
-    tag.className = 'tagline';
-    tag.textContent = `${fmtDate(item.ts)} · ${item.provider} · ${item.model || '-'} · ${item.style}${
-      item.deep ? ' · derin' : ''
-    }`;
-    top.appendChild(tag);
+    top.style.cssText = 'display:flex; justify-content:space-between; margin-bottom:4px; font-size:10.5px; color:var(--txt-dim);';
+    top.innerHTML = `<span>${fmtDate(item.ts)} · <b>${escapeHtml(item.provider)}</b> / ${escapeHtml(item.model || '-')}</span>`;
 
     const inp = document.createElement('p');
-    inp.className = 'hist-in';
+    inp.style.cssText = 'margin:2px 0 6px 0; font-size:11.5px; color:var(--txt); font-weight:500;';
     inp.textContent = item.input || '';
 
     const out = document.createElement('div');
-    out.className = 'hist-out';
+    out.style.cssText = 'margin:4px 0 8px 0; font-size:11px; color:var(--txt-dim); background:rgba(0,0,0,0.2); padding:6px 8px; border-radius:6px; max-height:80px; overflow-y:auto; white-space:pre-wrap;';
     out.textContent = item.output || '';
 
     const actions = document.createElement('div');
-    actions.className = 'hist-actions';
+    actions.style.cssText = 'display:flex; gap:6px; justify-content:flex-end;';
 
     const mk = (label, cls, fn) => {
       const b = document.createElement('button');
       b.className = `btn${cls ? ` ${cls}` : ''}`;
+      b.style.height = '24px';
+      b.style.fontSize = '10.5px';
+      b.style.padding = '0 8px';
       b.textContent = label;
       b.addEventListener('click', fn);
       actions.appendChild(b);
       return b;
     };
 
-    const copyTxt = i18n.t('card.btnCopy');
+    const copyTxt = typeof i18n !== 'undefined' ? i18n.t('card.btnCopy') : 'Kopyala';
     const reuseTxt = typeof i18n !== 'undefined' ? (i18n.currentLang === 'en' ? 'Load in panel' : 'Panele yükle') : 'Panele yükle';
-    const showAllTxt = typeof i18n !== 'undefined' ? (i18n.currentLang === 'en' ? 'Show all' : 'Tamamını göster') : 'Tamamını göster';
-    const collapseTxt = typeof i18n !== 'undefined' ? (i18n.currentLang === 'en' ? 'Collapse' : 'Daralt') : 'Daralt';
     const deleteTxt = typeof i18n !== 'undefined' ? (i18n.currentLang === 'en' ? 'Delete' : 'Sil') : 'Sil';
 
     mk(copyTxt, 'primary', () => api.clipboard.write(item.output));
     mk(reuseTxt, '', () => api.history.reuse(item.id));
-    mk(showAllTxt, '', (e) => {
-      out.classList.toggle('open');
-      e.target.textContent = out.classList.contains('open') ? collapseTxt : showAllTxt;
-    });
-    mk(item.favorite ? '★ Favorite' : '☆ Favorite', '', async () => {
-      await api.history.update(item.id, { favorite: !item.favorite });
-      loadHistory();
-    });
     mk(deleteTxt, 'danger', async () => {
       await api.history.remove(item.id);
       loadHistory();
@@ -497,44 +490,49 @@ function renderHistory() {
   }
 }
 
-$('search').addEventListener('input', renderHistory);
-$('btnClear').addEventListener('click', async () => {
+$('search')?.addEventListener('input', renderHistory);
+$('btnClear')?.addEventListener('click', async () => {
   await api.history.clear();
   loadHistory();
 });
-$('btnExportMd').addEventListener('click', () => api.history.export('md'));
-$('btnExportJson').addEventListener('click', () => api.history.export('json'));
-api.on.historyChanged(() => {
-  if ($('tab-history').classList.contains('active')) loadHistory();
+$('btnClearHistory')?.addEventListener('click', async () => {
+  await api.history.clear();
+  loadHistory();
 });
+$('btnExportMd')?.addEventListener('click', () => api.history.export('md'));
+$('btnExportJson')?.addEventListener('click', () => api.history.export('json'));
 
 /* ------------------------------------------------------------------ */
 /* Hakkında                                                            */
 /* ------------------------------------------------------------------ */
 
-$('btnOpenData').addEventListener('click', () => api.shell.openUserData());
+$('btnOpenData')?.addEventListener('click', () => api.shell.openUserData());
 
 async function renderAbout() {
   const info = await api.meta.app();
   const dl = $('aboutList');
-  dl.innerHTML = '';
-  const isEn = typeof i18n !== 'undefined' && i18n.currentLang === 'en';
-  const rows = [
-    [isEn ? 'Version' : 'Sürüm', info.version],
-    ['Electron', info.electron],
-    [isEn ? 'Data directory' : 'Veri klasörü', info.userData],
-    [isEn ? 'Key encryption' : 'Anahtar şifrelemesi', info.encryptionAvailable ? (isEn ? 'Active (Windows DPAPI)' : 'Etkin (Windows DPAPI)') : (isEn ? 'Unavailable' : 'Kullanılamıyor')]
-  ];
-  for (const [k, v] of rows) {
-    const dt = document.createElement('dt');
-    dt.textContent = k;
-    const dd = document.createElement('dd');
-    dd.textContent = v;
-    dl.append(dt, dd);
+  if (dl) {
+    dl.innerHTML = '';
+    const isEn = typeof i18n !== 'undefined' && i18n.currentLang === 'en';
+    const rows = [
+      [isEn ? 'Version' : 'Sürüm', info.version],
+      ['Electron', info.electron],
+      [isEn ? 'Data directory' : 'Veri klasörü', info.userData],
+      [isEn ? 'Key encryption' : 'Anahtar şifrelemesi', info.encryptionAvailable ? (isEn ? 'Active (Windows DPAPI)' : 'Etkin (Windows DPAPI)') : (isEn ? 'Unavailable' : 'Kullanılamıyor')]
+    ];
+    for (const [k, v] of rows) {
+      const dt = document.createElement('dt');
+      dt.textContent = k;
+      const dd = document.createElement('dd');
+      dd.textContent = v;
+      dl.append(dt, dd);
+    }
   }
-  $('cryptoNote').textContent = info.encryptionAvailable
-    ? i18n.t('panel.fields.cryptoNoteAvailable')
-    : i18n.t('panel.fields.cryptoNoteUnavailable');
+  if ($('cryptoNote')) {
+    $('cryptoNote').textContent = info.encryptionAvailable
+      ? (typeof i18n !== 'undefined' ? i18n.t('panel.fields.cryptoNoteAvailable') : 'Etkin (Windows DPAPI)')
+      : (typeof i18n !== 'undefined' ? i18n.t('panel.fields.cryptoNoteUnavailable') : 'Kullanılamıyor');
+  }
 }
 
 let metaStyles = [];
