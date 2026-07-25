@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;" />
+    <title>Sparky AI — Ayarlar</title>
+    <link rel="stylesheet" href="panel.css" />
+  </head>
+  <body>
+    <header class="titlebar">
+      <span class="mini-orb" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M12 2.2 13.9 9 20.8 10.9 13.9 12.8 12 19.6 10.1 12.8 3.2 10.9 10.1 9Z" /></svg>
+      </span>
+      <span class="title">Sparky AI</span>
+      <span class="grow"></span>
+      <button class="win" data-win="minimize" title="Küçült">─</button>
+      <button class="win" data-win="maximize" title="Büyüt">▢</button>
+      <button class="win close" data-win="close" title="Kapat">✕</button>
+    </header>
+
+    <div class="shell">
+      <nav class="side">
+        <button class="tab active" data-tab="settings">Ayarlar</button>
+        <button class="tab" data-tab="history">Geçmiş</button>
+        <button class="tab" data-tab="about">Hakkında</button>
+      </nav>
+
+      <main class="content">
+        <!-- ---------------------------------------------------------- -->
+        <section id="tab-settings" class="pane active">
+          <h2>Sağlayıcı ve model</h2>
+          <div class="card">
+            <div class="field">
+              <label for="provider">Sağlayıcı</label>
+              <div class="inline">
+                <select id="provider"></select>
+                <button id="btnProbe" class="btn">Yerel sunucuları tara</button>
+              </div>
+              <p class="hint" id="providerHint"></p>
+            </div>
+
+            <div class="field">
+              <label for="endpoint">Sunucu adresi</label>
+              <div class="inline">
+                <input id="endpoint" spellcheck="false" />
+                <button id="btnTest" class="btn">Bağlantıyı test et</button>
+              </div>
+              <p class="hint" id="endpointHint"></p>
+              <p class="result" id="testResult" hidden></p>
+            </div>
+
+            <div class="field">
+              <label for="model">Model</label>
+              <div class="inline">
+                <select id="model"></select>
+                <button id="btnModels" class="btn">Listeyi yenile</button>
+              </div>
+              <p class="hint">Model listede yoksa aşağıya elle yazabilirsiniz.</p>
+              <input id="modelManual" placeholder="Elle model adı (opsiyonel)" spellcheck="false" />
+            </div>
+          </div>
+
+          <h2>API anahtarları</h2>
+          <div class="card">
+            <p class="hint" id="cryptoNote"></p>
+            <div id="keys"></div>
+          </div>
+
+          <h2>Üretim</h2>
+          <div class="card grid2">
+            <div class="field">
+              <label for="style">Prompt biçimi</label>
+              <select id="style"></select>
+            </div>
+            <div class="field">
+              <label for="language">Çıktı dili</label>
+              <select id="language"></select>
+            </div>
+            <div class="field">
+              <label for="temperature">Sıcaklık — <span id="temperatureVal"></span></label>
+              <input id="temperature" type="range" min="0" max="1" step="0.05" />
+              <p class="hint">Anthropic'in yeni modellerinde bu değer gönderilmez (API kabul etmiyor).</p>
+            </div>
+            <div class="field">
+              <label for="maxTokens">Maks. token</label>
+              <input id="maxTokens" type="number" min="256" max="32000" step="256" />
+            </div>
+            <div class="field">
+              <label for="effort">Claude düşünme seviyesi</label>
+              <select id="effort">
+                <option value="low">Düşük — en hızlı</option>
+                <option value="medium">Orta — dengeli</option>
+                <option value="high">Yüksek — en iyi</option>
+              </select>
+              <p class="hint">Yalnızca Anthropic modelleri için geçerli.</p>
+            </div>
+            <div class="field">
+              <label class="switch">
+                <input id="deepMode" type="checkbox" />
+                <span class="track"><span class="knob"></span></span>
+                <span class="switch-label">Derin mod (analiz → yaz → cilala)</span>
+              </label>
+              <p class="hint">Üç aşamalı hat. Daha yavaş, küçük yerel modellerde belirgin fark yaratır.</p>
+            </div>
+            <div class="field">
+              <label class="switch">
+                <input id="clarify" type="checkbox" />
+                <span class="track"><span class="knob"></span></span>
+                <span class="switch-label">Netleştirme soruları sor</span>
+              </label>
+              <p class="hint">
+                Metin belirsizse model üretimden önce en fazla 3 soru sorar; cevaplarınız prompt'a işlenir.
+                Belirsizlik yoksa soru sormadan devam eder.
+              </p>
+            </div>
+            <div class="field">
+              <label class="switch">
+                <input id="suggestions" type="checkbox" />
+                <span class="track"><span class="knob"></span></span>
+                <span class="switch-label">İyileştirme önerileri üret</span>
+              </label>
+              <p class="hint">Sonucun altında tek tıkla uygulanabilir öneri rozetleri gösterilir.</p>
+            </div>
+          </div>
+
+          <h2>Davranış</h2>
+          <div class="card grid2">
+            <div class="field">
+              <label class="switch">
+                <input id="alwaysOnTop" type="checkbox" />
+                <span class="track"><span class="knob"></span></span>
+                <span class="switch-label">Her zaman üstte kal</span>
+              </label>
+            </div>
+            <div class="field">
+              <label class="switch">
+                <input id="autoCopy" type="checkbox" />
+                <span class="track"><span class="knob"></span></span>
+                <span class="switch-label">Sonucu otomatik kopyala</span>
+              </label>
+            </div>
+            <div class="field">
+              <label class="switch">
+                <input id="launchAtStartup" type="checkbox" />
+                <span class="track"><span class="knob"></span></span>
+                <span class="switch-label">Windows ile başlat</span>
+              </label>
+            </div>
+            <div class="field">
+              <label for="historyLimit">Geçmiş kaydı sınırı</label>
+              <input id="historyLimit" type="number" min="10" max="2000" step="10" />
+            </div>
+            <div class="field">
+              <label for="opacity">Küre saydamlığı — <span id="opacityVal"></span></label>
+              <input id="opacity" type="range" min="0.4" max="1" step="0.05" />
+            </div>
+          </div>
+
+          <h2>Kısayollar</h2>
+          <div class="card grid2">
+            <div class="field">
+              <label for="scToggle">Paneli aç / kapat</label>
+              <input id="scToggle" class="accel" data-key="toggle" readonly />
+            </div>
+            <div class="field">
+              <label for="scClip">Panodaki metinden üret</label>
+              <input id="scClip" class="accel" data-key="fromClipboard" readonly />
+            </div>
+            <div class="field">
+              <label for="scCopy">Son sonucu kopyala</label>
+              <input id="scCopy" class="accel" data-key="copyLast" readonly />
+            </div>
+            <div class="field">
+              <p class="hint">Kutuya tıklayıp tuş kombinasyonuna basın. Temizlemek için Backspace.</p>
+              <p class="result warn" id="scErrors" hidden></p>
+            </div>
+          </div>
+
+          <div class="footer-actions">
+            <button id="btnReset" class="btn danger">Ayarları sıfırla</button>
+            <span id="savedTag" class="saved" hidden>kaydedildi</span>
+          </div>
+        </section>
+
+        <!-- ---------------------------------------------------------- -->
+        <section id="tab-history" class="pane">
+          <div class="hist-head">
+            <input id="search" placeholder="Geçmişte ara…" spellcheck="false" />
+            <button id="btnExportMd" class="btn">.md dışa aktar</button>
+            <button id="btnExportJson" class="btn">.json dışa aktar</button>
+            <button id="btnClear" class="btn danger">Temizle</button>
+          </div>
+          <div id="histList" class="hist-list"></div>
+        </section>
+
+        <!-- ---------------------------------------------------------- -->
+        <section id="tab-about" class="pane">
+          <h2>Sparky AI</h2>
+          <div class="card">
+            <p>Yüzen prompt asistanı. Girdiğiniz metni, konuyu ve bağlamı bozmadan kullanıma hazır bir prompt'a çevirir.</p>
+            <dl id="aboutList" class="about"></dl>
+            <div class="inline">
+              <button id="btnOpenData" class="btn">Veri klasörünü aç</button>
+            </div>
+          </div>
+          <h2>Kısayol özeti</h2>
+          <div class="card">
+            <ul class="keys">
+              <li><b>Küreye tık</b> — paneli aç</li>
+              <li><b>Küreye çift tık</b> veya <b>orta tık</b> — panodaki metni doğrudan prompt'a çevir</li>
+              <li><b>Ctrl + küreye tık</b> — son sonucu kopyala</li>
+              <li><b>Küreye sağ tık</b> — hızlı menü</li>
+              <li><b>Baloncuğa tık</b> — hazır sonucu kopyala</li>
+              <li><b>Ctrl + Enter</b> — üret</li>
+              <li><b>Esc</b> — üretimi durdur / paneli küçült</li>
+            </ul>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="panel.js"></script>
+  </body>
+</html>
