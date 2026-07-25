@@ -486,7 +486,20 @@ select:focus,
 .toolbar {
   display: flex;
   align-items: center;
-  gap: 7px;
+  flex-wrap: wrap;
+  gap: 6px 7px;
+  min-height: 32px;
+}
+
+.toolbar .grow {
+  flex: 1 1 0px;
+  min-width: 0;
+}
+
+.toolbar #btnGen,
+.toolbar #btnStop {
+  margin-left: auto;
+  flex: 0 0 auto;
 }
 
 select {
@@ -494,6 +507,20 @@ select {
   padding: 0 8px;
   font-size: 12px;
   cursor: pointer;
+  max-width: 140px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  flex: 0 1 auto;
+}
+
+.chip-select {
+  border-radius: 999px;
+  background: var(--field);
+  color: var(--txt-dim);
+  border: 1px solid var(--line);
+  max-width: 130px;
+  flex: 0 1 auto;
 }
 
 select option {
@@ -509,6 +536,8 @@ select option {
   color: var(--txt-dim);
   font-size: 12px;
   cursor: pointer;
+  white-space: nowrap;
+  flex: 0 0 auto;
 }
 
 .chip[aria-pressed="true"] {

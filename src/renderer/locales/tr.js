@@ -53,7 +53,10 @@ const tr = {
     menuTitle: 'Menü (sağ tık)',
     collapseTitle: 'Küçült (Esc)',
     hideTitle: 'Tepsiye gizle',
-    noTextOrImage: 'Önce bir metin veya resim girin'
+    noTextOrImage: 'Önce bir metin veya resim girin',
+    invalidImageFormat: 'Yalnızca desteklenen resim dosyalarını yükleyebilirsiniz (PNG, JPG, WEBP, GIF).',
+    imageSizeTooLarge: 'Görsel boyutu çok büyük (Maksimum 10 MB).',
+    imageReadError: 'Görsel yüklenirken bir hata oluştu.'
   },
   provider: {
     customLabel: 'Özel (OpenAI uyumlu)',

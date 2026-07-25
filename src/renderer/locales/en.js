@@ -53,7 +53,10 @@ const en = {
     menuTitle: 'Menu (right click)',
     collapseTitle: 'Collapse (Esc)',
     hideTitle: 'Hide to tray',
-    noTextOrImage: 'Please enter text or upload an image first'
+    noTextOrImage: 'Please enter text or upload an image first',
+    invalidImageFormat: 'Only supported image files can be uploaded (PNG, JPG, WEBP, GIF).',
+    imageSizeTooLarge: 'Image file size is too large (Max 10 MB).',
+    imageReadError: 'An error occurred while loading the image.'
   },
   provider: {
     customLabel: 'Custom (OpenAI compatible)',

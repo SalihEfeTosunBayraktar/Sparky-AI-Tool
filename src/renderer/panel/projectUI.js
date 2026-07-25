@@ -67,6 +67,17 @@ class ProjectUI {
     fileInp?.addEventListener('change', (e) => {
       if (!this.activeEditingId || !e.target.files?.length) return;
       const file = e.target.files[0];
+      const mime = (file.type || '').toLowerCase();
+      if (!mime.startsWith('image/')) {
+        alert(this.i18n.t('card.invalidImageFormat'));
+        fileInp.value = '';
+        return;
+      }
+      if (file.size > 10 * 1024 * 1024) {
+        alert(this.i18n.t('card.imageSizeTooLarge'));
+        fileInp.value = '';
+        return;
+      }
       const r = new FileReader();
       r.onload = async () => {
         const m = r.result.match(/^data:(image\/[a-zA-Z+-]+);base64,(.+)$/);

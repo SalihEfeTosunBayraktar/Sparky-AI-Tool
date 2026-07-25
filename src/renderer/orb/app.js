@@ -29,11 +29,15 @@ const imageHandler = new ImageHandler({
   imgEl: $('imgPreview'),
   removeBtn: $('btnRemoveImg'),
   dropTarget: $('card'),
+  pasteTarget: window,
   onImageChanged: (img) => {
     if (img && styleSel.value !== 'ui_design') {
       styleSel.value = 'ui_design';
       api.settings.patch({ style: 'ui_design' });
     }
+  },
+  onError: (msg) => {
+    setStatus({ text: msg, kind: 'error' });
   }
 });
 
