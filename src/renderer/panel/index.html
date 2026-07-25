@@ -13,54 +13,54 @@
       </span>
       <span class="title">Sparky AI</span>
       <span class="grow"></span>
-      <button class="win" data-win="minimize" title="Küçült">─</button>
-      <button class="win" data-win="maximize" title="Büyüt">▢</button>
-      <button class="win close" data-win="close" title="Kapat">✕</button>
+      <button class="win" data-win="minimize" title="Küçült" data-i18n-title="panel.winMinimize">─</button>
+      <button class="win" data-win="maximize" title="Büyüt" data-i18n-title="panel.winMaximize">▢</button>
+      <button class="win close" data-win="close" title="Kapat" data-i18n-title="panel.winClose">✕</button>
     </header>
 
     <div class="shell">
       <nav class="side">
-        <button class="tab active" data-tab="settings">Ayarlar</button>
-        <button class="tab" data-tab="history">Geçmiş</button>
-        <button class="tab" data-tab="about">Hakkında</button>
+        <button class="tab active" data-tab="settings" data-i18n="panel.tabs.settings">Ayarlar</button>
+        <button class="tab" data-tab="history" data-i18n="panel.tabs.history">Geçmiş</button>
+        <button class="tab" data-tab="about" data-i18n="panel.tabs.about">Hakkında</button>
       </nav>
 
       <main class="content">
         <!-- ---------------------------------------------------------- -->
         <section id="tab-settings" class="pane active">
-          <h2>Sağlayıcı ve model</h2>
+          <h2 data-i18n="panel.sections.providerAndModel">Sağlayıcı ve model</h2>
           <div class="card">
             <div class="field">
-              <label for="provider">Sağlayıcı</label>
+              <label for="provider" data-i18n="panel.fields.provider">Sağlayıcı</label>
               <div class="inline">
                 <select id="provider"></select>
-                <button id="btnProbe" class="btn">Yerel sunucuları tara</button>
+                <button id="btnProbe" class="btn" data-i18n="panel.fields.btnProbe">Yerel sunucuları tara</button>
               </div>
               <p class="hint" id="providerHint"></p>
             </div>
 
             <div class="field">
-              <label for="endpoint">Sunucu adresi</label>
+              <label for="endpoint" data-i18n="panel.fields.endpoint">Sunucu adresi</label>
               <div class="inline">
                 <input id="endpoint" spellcheck="false" />
-                <button id="btnTest" class="btn">Bağlantıyı test et</button>
+                <button id="btnTest" class="btn" data-i18n="panel.fields.btnTest">Bağlantıyı test et</button>
               </div>
               <p class="hint" id="endpointHint"></p>
               <p class="result" id="testResult" hidden></p>
             </div>
 
             <div class="field">
-              <label for="model">Model</label>
+              <label for="model" data-i18n="panel.fields.model">Model</label>
               <div class="inline">
                 <select id="model"></select>
-                <button id="btnModels" class="btn">Listeyi yenile</button>
+                <button id="btnModels" class="btn" data-i18n="panel.fields.btnModelsRefresh">Listeyi yenile</button>
               </div>
-              <p class="hint">Model listede yoksa aşağıya elle yazabilirsiniz.</p>
-              <input id="modelManual" placeholder="Elle model adı (opsiyonel)" spellcheck="false" />
+              <p class="hint" data-i18n="panel.fields.modelManualHint">Model listede yoksa aşağıya elle yazabilirsiniz.</p>
+              <input id="modelManual" placeholder="Elle model adı (opsiyonel)" spellcheck="false" data-i18n-placeholder="panel.fields.modelManualPlaceholder" />
             </div>
           </div>
 
-          <h2>API anahtarları</h2>
+          <h2 data-i18n="panel.sections.apiKeys">API anahtarları</h2>
           <div class="card">
             <p class="hint" id="cryptoNote"></p>
             <div id="keys"></div>
@@ -166,19 +166,19 @@
           <h2 data-i18n="panel.sections.shortcuts">Kısayollar</h2>
           <div class="card grid2">
             <div class="field">
-              <label for="scToggle">Paneli aç / kapat</label>
+              <label for="scToggle" data-i18n="panel.fields.scToggle">Paneli aç / kapat</label>
               <input id="scToggle" class="accel" data-key="toggle" readonly />
             </div>
             <div class="field">
-              <label for="scClip">Panodaki metinden üret</label>
+              <label for="scClip" data-i18n="panel.fields.scClip">Panodaki metinden üret</label>
               <input id="scClip" class="accel" data-key="fromClipboard" readonly />
             </div>
             <div class="field">
-              <label for="scCopy">Son sonucu kopyala</label>
+              <label for="scCopy" data-i18n="panel.fields.scCopy">Son sonucu kopyala</label>
               <input id="scCopy" class="accel" data-key="copyLast" readonly />
             </div>
             <div class="field">
-              <p class="hint">Kutuya tıklayıp tuş kombinasyonuna basın. Temizlemek için Backspace.</p>
+              <p class="hint" data-i18n="panel.fields.shortcutsHint">Kutuya tıklayıp tuş kombinasyonuna basın. Temizlemek için Backspace.</p>
               <p class="result warn" id="scErrors" hidden></p>
             </div>
           </div>
@@ -192,7 +192,7 @@
         <!-- ---------------------------------------------------------- -->
         <section id="tab-history" class="pane">
           <div class="hist-head">
-            <input id="search" placeholder="Geçmişte ara…" spellcheck="false" data-i18n="panel.history.searchPlaceholder" data-i18n-attr="placeholder" />
+            <input id="search" placeholder="Geçmişte ara…" spellcheck="false" data-i18n-placeholder="panel.history.searchPlaceholder" />
             <button id="btnExportMd" class="btn" data-i18n="panel.history.exportMd">.md dışa aktar</button>
             <button id="btnExportJson" class="btn" data-i18n="panel.history.exportJson">.json dışa aktar</button>
             <button id="btnClear" class="btn danger" data-i18n="panel.history.clear">Temizle</button>
@@ -213,13 +213,13 @@
           <h2 data-i18n="panel.about.shortcutsSummaryTitle">Kısayol özeti</h2>
           <div class="card">
             <ul class="keys">
-              <li><b>Küreye tık</b> — paneli aç</li>
-              <li><b>Küreye çift tık</b> veya <b>orta tık</b> — panodaki metni doğrudan prompt'a çevir</li>
-              <li><b>Ctrl + küreye tık</b> — son sonucu kopyala</li>
-              <li><b>Küreye sağ tık</b> — hızlı menü</li>
-              <li><b>Baloncuğa tık</b> — hazır sonucu kopyala</li>
-              <li><b>Ctrl + Enter</b> — üret</li>
-              <li><b>Esc</b> — üretimi durdur / paneli küçült</li>
+              <li data-i18n="panel.about.clickOrb"><b>Küreye tık</b> — paneli aç</li>
+              <li data-i18n="panel.about.doubleClickOrb"><b>Küreye çift tık</b> veya <b>orta tık</b> — panodaki metni doğrudan prompt'a çevir</li>
+              <li data-i18n="panel.about.ctrlClickOrb"><b>Ctrl + küreye tık</b> — son sonucu kopyala</li>
+              <li data-i18n="panel.about.rightClickOrb"><b>Küreye sağ tık</b> — hızlı menü</li>
+              <li data-i18n="panel.about.clickBubble"><b>Baloncuğa tık</b> — hazır sonucu kopyala</li>
+              <li data-i18n="panel.about.ctrlEnter"><b>Ctrl + Enter</b> — üret</li>
+              <li data-i18n="panel.about.esc"><b>Esc</b> — üretimi durdur / paneli küçült</li>
             </ul>
           </div>
         </section>

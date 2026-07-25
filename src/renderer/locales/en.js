@@ -117,6 +117,9 @@ const en = {
       connectionFailed: 'Connection failed',
       localNotFound: 'No running local server found. Are Ollama or LM Studio running?',
       probeFound: 'Found: {{names}}',
+      scToggle: 'Toggle panel',
+      scClip: 'Generate from clipboard',
+      scCopy: 'Copy last result',
       shortcutsHint: 'Click input and press key combination. Press Backspace to clear.',
       shortcutsError: 'The following shortcuts are used by system and could not be registered:'
     },
@@ -140,6 +143,25 @@ const en = {
       ctrlEnter: 'Ctrl + Enter — generate',
       esc: 'Esc — stop generation / collapse panel'
     }
+  },
+  styles: {
+    detailed: { label: 'Detailed', hint: 'Role + context + requirements + output format' },
+    concise: { label: 'Concise & Direct', hint: 'Single tight paragraph' },
+    system: { label: 'System Prompt', hint: 'To configure an AI assistant' },
+    image: { label: 'Image Generation', hint: 'For visual generation models' },
+    code: { label: 'Code / Technical', hint: 'For software engineering tasks' },
+    research: { label: 'Deep Research', hint: 'For structured research & reports' },
+    ui_design: { label: 'UI/UX Design', hint: 'Convert UI screenshot into design spec prompt' }
+  },
+  languages: {
+    auto: 'Automatic (same as input)',
+    tr: 'Turkish',
+    en: 'English',
+    de: 'German',
+    fr: 'French',
+    es: 'Spanish',
+    ar: 'Arabic',
+    ru: 'Russian'
   }
 };
 

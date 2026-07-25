@@ -525,6 +525,20 @@ function renderMeta() {
   metaEl.textContent = s.model ? `${label} · ${s.model}` : `${label} · ${selectModelTxt}`;
 }
 
+function populateStyles() {
+  if (!state.styles) return;
+  const current = styleSel.value;
+  styleSel.innerHTML = '';
+  for (const s of state.styles) {
+    const opt = document.createElement('option');
+    opt.value = s.id;
+    opt.textContent = i18n.t(`styles.${s.id}.label`) || s.label;
+    opt.title = i18n.t(`styles.${s.id}.hint`) || s.hint;
+    styleSel.appendChild(opt);
+  }
+  if (current) styleSel.value = current;
+}
+
 function applySettings(s) {
   state.settings = s;
   if (typeof i18n !== 'undefined' && s.appLanguage) {
@@ -532,6 +546,7 @@ function applySettings(s) {
     i18n.setLanguage(s.appLanguage);
     i18n.translateDOM();
   }
+  populateStyles();
   if (styleSel.value !== s.style) styleSel.value = s.style;
   deepBtn.setAttribute('aria-pressed', String(!!s.deepMode));
   clarifyBtn.setAttribute('aria-pressed', String(!!s.clarify));
@@ -622,17 +637,9 @@ api.on.settingsChanged((s) => applySettings(s));
   ]);
 
   state.providers = providers;
-
-  styleSel.innerHTML = '';
-  for (const s of styles) {
-    const opt = document.createElement('option');
-    opt.value = s.id;
-    opt.textContent = s.label;
-    opt.title = s.hint;
-    styleSel.appendChild(opt);
-  }
+  state.styles = styles;
 
   applySettings(settings);
   renderEmpty();
-  setStatus({ text: settings.model ? 'Hazır' : 'Model seçin', kind: settings.model ? 'idle' : 'info' });
+  setStatus({ text: settings.model ? i18n.t('app.ready') : i18n.t('app.selectModel'), kind: settings.model ? 'idle' : 'info' });
 })();

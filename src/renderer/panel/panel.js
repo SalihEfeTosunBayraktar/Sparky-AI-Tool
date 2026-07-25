@@ -509,19 +509,95 @@ async function renderAbout() {
     : i18n.t('panel.fields.cryptoNoteUnavailable');
 }
 
+let metaStyles = [];
+let metaLangs = [];
+
+function populateStyleAndLangSelects() {
+  const styleSel = $('style');
+  if (styleSel && metaStyles.length) {
+    const curStyle = styleSel.value;
+    styleSel.innerHTML = '';
+    for (const st of metaStyles) {
+      const o = document.createElement('option');
+      o.value = st.id;
+      const label = (typeof i18n !== 'undefined' ? i18n.t(`styles.${st.id}.label`) : null) || st.label;
+      const hint = (typeof i18n !== 'undefined' ? i18n.t(`styles.${st.id}.hint`) : null) || st.hint;
+      o.textContent = `${label} — ${hint}`;
+      styleSel.appendChild(o);
+    }
+    if (curStyle) styleSel.value = curStyle;
+  }
+
+  const langSel = $('language');
+  if (langSel && metaLangs.length) {
+    const curLang = langSel.value;
+    langSel.innerHTML = '';
+    for (const l of metaLangs) {
+      const o = document.createElement('option');
+      o.value = l.id;
+      o.textContent = (typeof i18n !== 'undefined' ? i18n.t(`languages.${l.id}`) : null) || l.label;
+      langSel.appendChild(o);
+    }
+    if (curLang) langSel.value = curLang;
+  }
+}
+
+$('style').addEventListener('change', () => save({ style: $('style').value }));
+$('language').addEventListener('change', () => save({ outputLanguage: $('language').value }));
+$('appLanguage').addEventListener('change', async () => {
+  const lang = $('appLanguage').value;
+  if (typeof i18n !== 'undefined') {
+    i18n.setLanguage(lang);
+    i18n.translateDOM();
+    populateStyleAndLangSelects();
+    renderProviderFields();
+    renderKeys();
+    renderAbout();
+  }
+  await save({ appLanguage: lang });
+});
+$('effort').addEventListener('change', () => save({ effort: $('effort').value }));
+
+$('temperature').addEventListener('input', () => {
+  $('temperatureVal').textContent = Number($('temperature').value).toFixed(2);
+});
+$('temperature').addEventListener('change', () => save({ temperature: Number($('temperature').value) }));
+
+$('opacity').addEventListener('input', () => {
+  $('opacityVal').textContent = `%${Math.round(Number($('opacity').value) * 100)}`;
+});
+$('opacity').addEventListener('change', () => save({ opacity: Number($('opacity').value) }));
+
+bindCheck('deepMode', 'deepMode');
+bindCheck('clarify', 'clarify');
+bindCheck('suggestions', 'suggestions');
+bindCheck('alwaysOnTop', 'alwaysOnTop');
+bindCheck('autoCopy', 'autoCopy');
+bindCheck('launchAtStartup', 'launchAtStartup');
+bindNumber('maxTokens', 'maxTokens', { min: 256, max: 32000 });
+bindNumber('historyLimit', 'historyLimit', { min: 10, max: 2000 });
+
+$('btnReset').addEventListener('click', async () => {
+  settings = await api.settings.reset();
+  providers = await api.providers.catalog();
+  renderAll();
+});
+
 /* ------------------------------------------------------------------ */
 /* Başlangıç                                                           */
 /* ------------------------------------------------------------------ */
 
 function renderAll() {
+  if (typeof i18n !== 'undefined') {
+    i18n.init(settings.appLanguage || 'tr');
+    i18n.translateDOM();
+    populateStyleAndLangSelects();
+  }
+
   renderProviderFields();
   renderKeys();
 
   if ($('appLanguage')) $('appLanguage').value = settings.appLanguage || 'tr';
-  if (typeof i18n !== 'undefined') {
-    i18n.init(settings.appLanguage || 'tr');
-    i18n.translateDOM();
-  }
 
   $('style').value = settings.style;
   $('language').value = settings.outputLanguage;
@@ -566,6 +642,8 @@ api.on.secretsChanged(async () => {
 
   settings = s;
   providers = cat;
+  metaStyles = styles;
+  metaLangs = langs;
 
   const provSel = $('provider');
   provSel.innerHTML = '';
@@ -574,24 +652,6 @@ api.on.secretsChanged(async () => {
     o.value = p.id;
     o.textContent = p.label;
     provSel.appendChild(o);
-  }
-
-  const styleSel = $('style');
-  styleSel.innerHTML = '';
-  for (const st of styles) {
-    const o = document.createElement('option');
-    o.value = st.id;
-    o.textContent = `${st.label} — ${st.hint}`;
-    styleSel.appendChild(o);
-  }
-
-  const langSel = $('language');
-  langSel.innerHTML = '';
-  for (const l of langs) {
-    const o = document.createElement('option');
-    o.value = l.id;
-    o.textContent = l.label;
-    langSel.appendChild(o);
   }
 
   renderAll();

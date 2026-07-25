@@ -117,6 +117,9 @@ const tr = {
       connectionFailed: 'Bağlantı başarısız',
       localNotFound: 'Çalışan yerel sunucu bulunamadı. Ollama veya LM Studio açık mı?',
       probeFound: 'Bulundu: {{names}}',
+      scToggle: 'Paneli aç / kapat',
+      scClip: 'Panodaki metinden üret',
+      scCopy: 'Son sonucu kopyala',
       shortcutsHint: 'Kutuya tıklayıp tuş kombinasyonuna basın. Temizlemek için Backspace.',
       shortcutsError: 'Şu kısayollar sistem tarafından kullanılıyor, atanamadı:'
     },
@@ -140,6 +143,25 @@ const tr = {
       ctrlEnter: 'Ctrl + Enter — üret',
       esc: 'Esc — üretimi durdur / paneli küçült'
     }
+  },
+  styles: {
+    detailed: { label: 'Detaylı', hint: 'Rol + bağlam + gereksinim + çıktı formatı' },
+    concise: { label: 'Kısa & Net', hint: 'Tek paragraf, doğrudan' },
+    system: { label: 'Sistem Promptu', hint: 'Bir asistanı yapılandırmak için' },
+    image: { label: 'Görsel Prompt', hint: 'Görsel üretim modelleri için' },
+    code: { label: 'Kod / Teknik', hint: 'Geliştirme görevleri için' },
+    research: { label: 'Araştırma', hint: 'Derin araştırma görevleri için' },
+    ui_design: { label: 'UI/UX Tasarımı', hint: 'Ekran görüntüsü / UI görselini prompt\'a dönüştür' }
+  },
+  languages: {
+    auto: 'Otomatik (girdiyle aynı)',
+    tr: 'Türkçe',
+    en: 'İngilizce',
+    de: 'Almanca',
+    fr: 'Fransızca',
+    es: 'İspanyolca',
+    ar: 'Arapça',
+    ru: 'Rusça'
   }
 };
 

@@ -15,6 +15,7 @@
           class="orb hit"
           aria-label="Sparky AI"
           title="Tık: paneli aç · Çift tık / orta tık: panodaki metni prompt yap · Ctrl+tık: son sonucu kopyala · Sağ tık: menü"
+          data-i18n-title="app.orbTooltip"
         >
           <span class="ring" aria-hidden="true"></span>
           <svg class="spark" viewBox="0 0 24 24" aria-hidden="true">
@@ -26,7 +27,7 @@
         </button>
         <div id="bubble" class="bubble hit" hidden>
           <span id="bubbleText"></span>
-          <button id="btnBubbleCopy" class="bubble-copy" title="Sonucu panoya kopyala" hidden>📋</button>
+          <button id="btnBubbleCopy" class="bubble-copy" title="Sonucu panoya kopyala" data-i18n-title="card.btnCopy" hidden>📋</button>
         </div>
       </div>
 
@@ -38,44 +39,43 @@
           </span>
           <span class="brand">Sparky<span class="brand-dim"> AI</span></span>
           <span id="statusPill" class="status" data-kind="idle">
-            <i class="dot" aria-hidden="true"></i><span id="statusText">Hazır</span>
+            <i class="dot" aria-hidden="true"></i><span id="statusText" data-i18n="app.ready">Hazır</span>
           </span>
           <span class="grow"></span>
-          <button id="btnMenu" class="icon" title="Menü (sağ tık)">⋯</button>
-          <button id="btnCollapse" class="icon" title="Küçült (Esc)">‹</button>
-          <button id="btnHide" class="icon" title="Tepsiye gizle">✕</button>
+          <button id="btnMenu" class="icon" title="Menü (sağ tık)" data-i18n-title="card.menuTitle">⋯</button>
+          <button id="btnCollapse" class="icon" title="Küçült (Esc)" data-i18n-title="card.collapseTitle">‹</button>
+          <button id="btnHide" class="icon" title="Tepsiye gizle" data-i18n-title="card.hideTitle">✕</button>
         </header>
 
         <div class="body">
           <div class="row-label">
             <label for="input" data-i18n="card.inputLabel">Metniniz veya UI Tasarımı</label>
-            <button id="btnPaste" class="link" title="Panodaki metni yapıştır" data-i18n="card.pasteFromClipboard">panodan al</button>
+            <button id="btnPaste" class="link" title="Panodaki metni yapıştır" data-i18n="card.pasteFromClipboard" data-i18n-title="card.pasteFromClipboard">panodan al</button>
           </div>
 
           <div id="imgPreviewContainer" class="img-preview-container" hidden>
             <img id="imgPreview" class="img-preview" alt="Yüklenen UI Tasarımı" />
             <span class="img-info" data-i18n="card.uiImageAttached">UI Tasarımı Ekli</span>
-            <button id="btnRemoveImg" class="btn-remove-img" title="Görseli kaldır" data-i18n="card.removeImage" data-i18n-attr="title">✕</button>
+            <button id="btnRemoveImg" class="btn-remove-img" title="Görseli kaldır" data-i18n-title="card.removeImage">✕</button>
           </div>
 
           <textarea
             id="input"
             spellcheck="false"
             placeholder="Ne istediğinizi yazın veya UI tasarım görseli yükleyin.&#10;Ctrl+Enter → üret"
-            data-i18n="card.inputPlaceholder"
-            data-i18n-attr="placeholder"
+            data-i18n-placeholder="card.inputPlaceholder"
           ></textarea>
 
           <div class="toolbar">
             <input type="file" id="imgFileInput" accept="image/*" hidden />
-            <button id="btnAttachImg" class="chip icon-chip" title="UI Görseli / Ekran görüntüsü yükle" data-i18n="card.btnAttachImage">
+            <button id="btnAttachImg" class="chip icon-chip" title="UI Görseli / Ekran görüntüsü yükle" data-i18n="card.btnAttachImage" data-i18n-title="card.btnAttachImage">
               📷 Görsel
             </button>
             <select id="style" title="Prompt biçimi"></select>
-            <button id="deep" class="chip" title="Analiz → yaz → cilala (3 aşama, daha yavaş ama daha iyi)" data-i18n="card.deepMode">
+            <button id="deep" class="chip" title="Analiz → yaz → cilala (3 aşama, daha yavaş ama daha iyi)" data-i18n="card.deepMode" data-i18n-title="card.deepModeTitle">
               Derin mod
             </button>
-            <button id="clarify" class="chip" title="Belirsiz noktalar için önce sana soru sorsun" data-i18n="card.askQuestions">
+            <button id="clarify" class="chip" title="Belirsiz noktalar için önce sana soru sorsun" data-i18n="card.askQuestions" data-i18n-title="card.askQuestionsTitle">
               Soru sor
             </button>
             <span class="grow"></span>
