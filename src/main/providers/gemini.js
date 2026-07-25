@@ -68,10 +68,13 @@ async function chat({ endpoint, apiKey, model, system, messages, image, temperat
 
   let text = '';
   let blockReason = null;
+  let finishReason = null;
   await readSSE(res, (obj) => {
     if (obj.error) throw new LlmError(obj.error.message || String(obj.error), { provider: 'gemini' });
     blockReason = obj?.promptFeedback?.blockReason || blockReason;
-    const parts = obj?.candidates?.[0]?.content?.parts || [];
+    const cand = obj?.candidates?.[0];
+    if (cand?.finishReason) finishReason = cand.finishReason;
+    const parts = cand?.content?.parts || [];
     for (const p of parts) {
       if (p.text) {
         text += p.text;
@@ -87,7 +90,8 @@ async function chat({ endpoint, apiKey, model, system, messages, image, temperat
     });
   }
 
-  return { text };
+  // MAX_TOKENS → maxOutputTokens sınırına çarpıldı, yanıt yarım.
+  return { text, truncated: finishReason === 'MAX_TOKENS' };
 }
 
 module.exports = { listModels, chat, DEFAULT_BASE };

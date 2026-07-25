@@ -4,6 +4,7 @@
 const { settings } = require('./store');
 const secrets = require('./secrets');
 const { LlmError, trimSlash } = require('./providers/http');
+const { getRotator, classifyKeyError } = require('./apiKeyRotator');
 
 const ollama = require('./providers/ollama');
 const openaiCompat = require('./providers/openaiCompat');
@@ -73,17 +74,57 @@ function meta(providerId) {
   return p;
 }
 
-function resolve(providerId) {
+/** Anahtar hariç sağlayıcı çözümlemesi — anahtarı döngü mekanizması verir. */
+function resolveBase(providerId) {
   const p = meta(providerId);
   const cfg = settings.all();
   const endpoint = trimSlash(cfg.endpoints?.[providerId] ?? '') || p.defaultEndpoint;
+  return { ...p, endpoint, impl: IMPL[p.kind] };
+}
+
+function resolve(providerId) {
+  const base = resolveBase(providerId);
   const apiKey = secrets.getKey(providerId);
-  if (p.needsKey && !apiKey) {
-    throw new LlmError(`${p.label} için API anahtarı gerekiyor. Ayarlar → API Anahtarları bölümünden ekleyin.`, {
+  if (base.needsKey && !apiKey) {
+    throw new LlmError(`${base.label} için API anahtarı gerekiyor. Ayarlar → API Anahtarları bölümünden ekleyin.`, {
       provider: providerId
     });
   }
-  return { ...p, endpoint, apiKey, impl: IMPL[p.kind] };
+  return { ...base, apiKey };
+}
+
+/* ------------------------------------------------------------------ */
+/* Anahtar döngüsü ve otomatik yeniden deneme                          */
+/* ------------------------------------------------------------------ */
+
+// Hata sınıflandırması ve döngü politikası apiKeyRotator.js'de — burası
+// yalnızca sağlayıcı çağrısını o politikaya bağlayan uyarlayıcı katman.
+
+/**
+ * İstek gövdesini anahtar döngüsüyle sarmalar: limit/geçersizlik hatasında
+ * anahtarı işaretler, sıradakine geçer ve isteği şeffaf biçimde tekrarlar.
+ *
+ * @param {string} providerId
+ * @param {(apiKey: string, keyId: string|null) => Promise<any>} run
+ * @param {object} [opts]
+ * @param {(info: object) => void} [opts.onRotate] Geçiş bildirimi (arayüz için).
+ */
+async function withKeyRotation(providerId, run, { onRotate } = {}) {
+  const p = meta(providerId);
+  const total = secrets.count(providerId);
+
+  // Yerel sağlayıcılar ve anahtarsız kurulumlar: döngüye gerek yok.
+  if (total === 0) {
+    if (p.needsKey) {
+      throw new LlmError(`${p.label} için API anahtarı gerekiyor. Ayarlar → API Anahtarları bölümünden ekleyin.`, {
+        provider: providerId
+      });
+    }
+    return run('', null);
+  }
+
+  // Döngü/yeniden deneme politikası rotator'da; burası yalnızca uyarlayıcı.
+  return getRotator().run(providerId, run, { classify: classifyKeyError, onRotate });
 }
 
 function catalog() {
@@ -104,26 +145,66 @@ function catalog() {
 }
 
 async function listModels(providerId, { signal } = {}) {
-  const r = resolve(providerId);
-  return r.impl.listModels({ endpoint: r.endpoint, apiKey: r.apiKey, signal, providerId });
+  const r = resolveBase(providerId);
+  return withKeyRotation(providerId, (apiKey) =>
+    r.impl.listModels({ endpoint: r.endpoint, apiKey, signal, providerId })
+  );
 }
 
-async function chat({ providerId, model, system, messages, image, temperature, maxTokens, effort, signal, onToken }) {
-  const r = resolve(providerId);
-  return r.impl.chat({
-    endpoint: r.endpoint,
-    apiKey: r.apiKey,
+async function chat({
+  providerId,
+  model,
+  system,
+  messages,
+  image,
+  temperature,
+  maxTokens,
+  effort,
+  cacheSystem,
+  signal,
+  onToken,
+  onRotate
+}) {
+  const r = resolveBase(providerId);
+
+  // Akış sırasında hata gelirse bir kısım token arayüze çoktan yazılmış
+  // olabilir. Yeniden denemeden önce çağırana "çıktıyı sıfırla" diyebilmek
+  // için ilk token'ı takip ediyoruz.
+  let streamed = false;
+  const wrappedOnToken = onToken
+    ? (chunk) => {
+        streamed = true;
+        onToken(chunk);
+      }
+    : undefined;
+
+  return withKeyRotation(
     providerId,
-    model,
-    system,
-    messages,
-    image,
-    temperature,
-    maxTokens,
-    effort,
-    signal,
-    onToken
-  });
+    (apiKey) => {
+      streamed = false;
+      return r.impl.chat({
+        endpoint: r.endpoint,
+        apiKey,
+        providerId,
+        model,
+        system,
+        messages,
+        image,
+        temperature,
+        maxTokens,
+        effort,
+        // Sistem öneki önbelleğe alınabilir mi? Şimdilik yalnızca Anthropic
+        // sağlayıcısı bunu açıkça işaretliyor; diğerlerinde önek önbelleği
+        // sunucu tarafında otomatik çalışır, ek bir bayrak gerekmez.
+        cacheSystem,
+        signal,
+        onToken: wrappedOnToken
+      });
+    },
+    {
+      onRotate: (info) => onRotate?.({ ...info, streamed })
+    }
+  );
 }
 
 // Yerel sunucuları yokla — ilk kurulumda otomatik seçim için.
@@ -149,4 +230,4 @@ async function probeLocal() {
   return out;
 }
 
-module.exports = { PROVIDERS, catalog, listModels, chat, probeLocal, meta };
+module.exports = { PROVIDERS, catalog, listModels, chat, probeLocal, meta, classifyKeyError, withKeyRotation };

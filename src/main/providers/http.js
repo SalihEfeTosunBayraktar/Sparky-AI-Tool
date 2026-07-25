@@ -17,13 +17,24 @@ function withV1(url) {
 }
 
 class LlmError extends Error {
-  constructor(message, { status, provider, cause } = {}) {
+  constructor(message, { status, provider, cause, retryAfterMs } = {}) {
     super(message);
     this.name = 'LlmError';
     this.status = status;
     this.provider = provider;
     this.cause = cause;
+    // 429 yanıtlarındaki Retry-After — anahtar döngüsü bekleme süresini bundan alır.
+    this.retryAfterMs = retryAfterMs;
   }
+}
+
+/** `Retry-After` başlığı: saniye sayısı ya da HTTP tarihi olabilir. */
+function parseRetryAfter(raw) {
+  if (!raw) return undefined;
+  const secs = Number(raw);
+  if (Number.isFinite(secs)) return Math.max(0, secs * 1000);
+  const when = Date.parse(raw);
+  return Number.isFinite(when) ? Math.max(0, when - Date.now()) : undefined;
 }
 
 function friendlyNetworkError(err, { provider, url }) {
@@ -74,7 +85,8 @@ async function request(url, { method = 'GET', headers = {}, body, signal, timeou
       const detail = await readErrorBody(res);
       throw new LlmError(`${res.status} ${res.statusText}${detail ? ` — ${String(detail).slice(0, 500)}` : ''}`, {
         status: res.status,
-        provider
+        provider,
+        retryAfterMs: parseRetryAfter(res.headers.get('retry-after'))
       });
     }
     return res;
@@ -142,4 +154,4 @@ async function readNdjson(res, onData) {
   }
 }
 
-module.exports = { trimSlash, withV1, request, getJson, readSSE, readNdjson, LlmError, DEFAULT_TIMEOUT };
+module.exports = { trimSlash, withV1, request, getJson, readSSE, readNdjson, LlmError, parseRetryAfter, DEFAULT_TIMEOUT };

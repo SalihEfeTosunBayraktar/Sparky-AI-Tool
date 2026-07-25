@@ -43,9 +43,12 @@ function wrap(err) {
     });
   }
   if (status === 429) {
+    // SDK hata nesnesi Retry-After basligini tasir; donguye aktar.
+    const ra = err?.headers?.['retry-after'] ?? err?.headers?.get?.('retry-after');
     return new LlmError('Anthropic hız sınırına takıldı (429). Biraz bekleyip tekrar deneyin.', {
       status,
-      provider: 'anthropic'
+      provider: 'anthropic',
+      retryAfterMs: ra ? Math.max(0, Number(ra) * 1000) || undefined : undefined
     });
   }
   return new LlmError(msg, { status, provider: 'anthropic', cause: err });
@@ -85,7 +88,7 @@ function formatAnthropicMessages(messages, image) {
   return list;
 }
 
-function buildParams({ model, system, messages, image, temperature, maxTokens, effort }) {
+function buildParams({ model, system, messages, image, temperature, maxTokens, effort, cacheSystem }) {
   const modern = MODERN.test(model);
   const want = Math.max(512, Number(maxTokens) || 2048);
 
@@ -96,7 +99,13 @@ function buildParams({ model, system, messages, image, temperature, maxTokens, e
     max_tokens: modern ? want + 8192 : want,
     messages: formatAnthropicMessages(messages, image)
   };
-  if (system) params.system = system;
+  if (system) {
+    // Proje bağlamı sistem isteminin başında ve oturum boyunca sabit. İşaretli
+    // önek Anthropic'te ~%10 fiyata okunur; asıl token tasarrufu buradan gelir.
+    params.system = cacheSystem
+      ? [{ type: 'text', text: system, cache_control: { type: 'ephemeral' } }]
+      : system;
+  }
 
   if (modern) {
     params.thinking = { type: 'adaptive' };
@@ -127,12 +136,14 @@ async function consume(stream, onToken) {
       { provider: 'anthropic' }
     );
   }
-  if (final?.stop_reason === 'max_tokens' && !text.trim()) {
+  const truncated = final?.stop_reason === 'max_tokens';
+  if (truncated && !text.trim()) {
     throw new LlmError('Yanıt token bütçesi tükendi. Ayarlardan "Maks. token" değerini artırın.', {
       provider: 'anthropic'
     });
   }
-  return { text };
+  // Metin varsa hata verme — üst katman kaldığı yerden devam ettirecek.
+  return { text, truncated };
 }
 
 function isBetaRejection(err) {
@@ -140,13 +151,13 @@ function isBetaRejection(err) {
   return err?.status === 400 && /fallback|beta|unexpected|unsupported|unrecognized/i.test(msg);
 }
 
-async function chat({ apiKey, endpoint, model, system, messages, image, temperature, maxTokens, effort, signal, onToken }) {
+async function chat({ apiKey, endpoint, model, system, messages, image, temperature, maxTokens, effort, cacheSystem, signal, onToken }) {
   const client = makeClient(apiKey, endpoint);
   if (!model) {
     throw new LlmError('Model seçilmedi. Ayarlar → Model bölümünden bir model seçin.', { provider: 'anthropic' });
   }
 
-  const params = buildParams({ model, system, messages, image, temperature, maxTokens, effort });
+  const params = buildParams({ model, system, messages, image, temperature, maxTokens, effort, cacheSystem });
 
   // Sunucu tarafı yedek yalnızca yeni modellerde ve beta uç mevcutsa anlamlı.
   const canFallback = MODERN.test(model) && typeof client.beta?.messages?.stream === 'function';

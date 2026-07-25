@@ -204,65 +204,169 @@ $('btnProbe').addEventListener('click', async () => {
 /* API anahtarları                                                     */
 /* ------------------------------------------------------------------ */
 
-function renderKeys() {
-  const host = $('keys');
-  host.innerHTML = '';
+const T = (key, fallback, params) =>
+  typeof i18n !== 'undefined' ? i18n.t(key, params) : fallback;
+
+// Anahtar durumu -> rozet metni + CSS sınıfı. apiKeyRotator.js'deki STATE
+// değerleriyle birebir eşleşir ('active' | 'rate_limited' | 'invalid').
+function keyStateBadge(k) {
+  if (k.state === 'rate_limited') {
+    const secs = Math.ceil((k.cooldownMs || 0) / 1000);
+    return { text: T('panel.fields.keyStateLimited', 'Limit aşımında', { secs }), cls: 'warn' };
+  }
+  if (k.state === 'invalid') {
+    return { text: T('panel.fields.keyStateInvalid', 'Geçersiz'), cls: 'bad' };
+  }
+  return { text: T('panel.fields.keyStateActive', 'Aktif'), cls: 'ok' };
+}
+
+// renderKeys() her mutasyonda İKİ yerden tetikleniyordu: hem tıklama
+// olayının kendisinden, hem de main sürecin yaydığı 'secrets:changed'
+// olayından. İkisi de bağımsız async çağrılar olduğu için ilki hâlâ bir
+// `await` üstünde asılıyken ikincisi başlayıp #keys'i temizliyor, sonra
+// ilki uyanıp KENDİ bölümlerini de ekliyordu — sonuç: her sağlayıcı iki kez
+// render ediliyordu. Kalıcı çözüm iki parçalı:
+//   1) DOM'a yazmadan ÖNCE tüm veriyi bekle, tek seferde temizle+ekle
+//      (bu, yarı-boş DOM aralığını ortadan kaldırır)
+//   2) Sıra numarası (token) koruması: bir çağrı beklerken üzerine yeni bir
+//      çağrı başlarsa, ESKİ çağrı bitince DOM'a hiç dokunmaz.
+// Ayrıca her mutasyon zaten 'secrets:changed' yayınladığı için tıklama
+// olaylarındaki doğrudan renderKeys() çağrıları kaldırıldı — çifte tetikleme
+// kaynağın kendisinde kesiliyor, token koruması yalnızca güvenlik ağı.
+let renderKeysToken = 0;
+
+function buildKeySection(p, keys, rotator) {
+  const providerLabel = p.id === 'custom' ? T('provider.customLabel', p.label) : p.label;
+  const providerKeyHint = p.id === 'custom' ? T('provider.customKeyHint', p.keyHint || '') : p.keyHint || '';
+  const cooldownById = new Map((rotator?.keys || []).map((k) => [k.id, k]));
+
+  const section = document.createElement('div');
+  section.className = 'keygroup';
+
+  const head = document.createElement('div');
+  head.className = 'keygroup-head';
+  const title = document.createElement('span');
+  title.className = 'name';
+  title.textContent = providerLabel;
+  title.title = providerKeyHint;
+  head.appendChild(title);
+
+  if (keys.length > 1) {
+    const countTag = document.createElement('span');
+    countTag.className = 'keycount';
+    countTag.textContent = T('panel.fields.keyCount', '{n} anahtar', { n: keys.length });
+    head.appendChild(countTag);
+
+    const rotateBtn = document.createElement('button');
+    rotateBtn.className = 'btn ghost';
+    rotateBtn.textContent = T('panel.fields.btnRotateNext', 'Sıradakine geç');
+    rotateBtn.title = T('panel.fields.btnRotateNextHint', 'Aktif anahtarı listedeki bir sonrakiyle değiştir');
+    rotateBtn.addEventListener('click', async () => {
+      const r = await api.secrets.rotateNext(p.id);
+      if (!r.ok) showResult($('testResult'), r.error, 'bad');
+      // renderKeys() burada YOK — 'secrets:changed' zaten tetikleyecek.
+    });
+    head.appendChild(rotateBtn);
+  }
+  section.appendChild(head);
+
+  if (keys.length) {
+    const list = document.createElement('div');
+    list.className = 'keylist';
+    for (const k of keys) {
+      const live = cooldownById.get(k.id) || {};
+      const row = document.createElement('div');
+      row.className = `keyrow${k.active ? ' is-active' : ''}`;
+
+      const dot = document.createElement('span');
+      dot.className = `keydot ${keyStateBadge(live.state ? live : k).cls}`;
+      row.appendChild(dot);
+
+      const label = document.createElement('button');
+      label.type = 'button';
+      label.className = 'keylabel';
+      label.textContent = `${k.label} • ****${k.hint}`;
+      label.title = k.active
+        ? T('panel.fields.keyIsActive', 'Şu an kullanılan anahtar')
+        : T('panel.fields.btnMakeActive', 'Aktif yap');
+      label.disabled = k.active;
+      label.addEventListener('click', async () => {
+        await api.secrets.setActive(p.id, k.id);
+      });
+      row.appendChild(label);
+
+      const badge = keyStateBadge(live.state ? live : k);
+      const state = document.createElement('span');
+      state.className = `state ${badge.cls}`;
+      state.textContent = badge.text;
+      row.appendChild(state);
+
+      const del = document.createElement('button');
+      del.className = 'btn danger sm';
+      del.textContent = T('panel.fields.btnDeleteKey', 'Sil');
+      del.addEventListener('click', async () => {
+        await api.secrets.remove(p.id, k.id);
+      });
+      row.appendChild(del);
+
+      list.appendChild(row);
+    }
+    section.appendChild(list);
+  } else {
+    const empty = document.createElement('p');
+    empty.className = 'hint';
+    empty.textContent = T('panel.fields.noKeysYet', 'Henüz anahtar eklenmedi.');
+    section.appendChild(empty);
+  }
+
+  const addRow = document.createElement('div');
+  addRow.className = 'keyrow keyadd';
+
+  const input = document.createElement('input');
+  input.type = 'password';
+  input.placeholder = providerKeyHint || 'API key';
+  input.autocomplete = 'off';
+
+  const addBtn = document.createElement('button');
+  addBtn.className = 'btn';
+  addBtn.textContent = T('panel.fields.btnAddKey', 'Ekle');
+  const doAdd = async () => {
+    const v = input.value.trim();
+    if (!v) return;
+    const r = await api.secrets.add(p.id, v);
+    if (!r.ok && r.error === 'duplicate') {
+      showResult($('testResult'), T('panel.fields.keyDuplicate', 'Bu anahtar zaten kayıtlı.'), 'bad');
+    }
+    input.value = '';
+    // secrets:changed zaten providers'ı ve listeyi tazeleyecek.
+  };
+  addBtn.addEventListener('click', doAdd);
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') doAdd();
+  });
+
+  addRow.append(input, addBtn);
+  section.appendChild(addRow);
+
+  return section;
+}
+
+async function renderKeys() {
+  const token = ++renderKeysToken;
   const rows = providers.filter((p) => p.needsKey || p.id === 'custom');
 
+  const built = [];
   for (const p of rows) {
-    const row = document.createElement('div');
-    row.className = 'keyrow';
-
-    const providerLabel = p.id === 'custom' && typeof i18n !== 'undefined' ? i18n.t('provider.customLabel') : p.label;
-    const providerKeyHint = p.id === 'custom' && typeof i18n !== 'undefined' ? i18n.t('provider.customKeyHint') : (p.keyHint || '');
-
-    const name = document.createElement('div');
-    name.className = 'name';
-    name.textContent = providerLabel;
-    name.title = providerKeyHint;
-
-    const regTxt = typeof i18n !== 'undefined' ? i18n.t('panel.fields.registered') : 'kayıtlı';
-    const notRegTxt = typeof i18n !== 'undefined' ? i18n.t('panel.fields.notRegistered') : 'yok';
-    const saveTxt = typeof i18n !== 'undefined' ? i18n.t('panel.fields.btnSaveKey') : 'Kaydet';
-    const deleteTxt = typeof i18n !== 'undefined' ? i18n.t('panel.fields.btnDeleteKey') : 'Sil';
-
-    const input = document.createElement('input');
-    input.type = 'password';
-    input.placeholder = p.hasKey ? `${regTxt} • ****${p.keyMask}` : (providerKeyHint || 'API key');
-    input.autocomplete = 'off';
-
-    const saveBtn = document.createElement('button');
-    saveBtn.className = 'btn';
-    saveBtn.textContent = saveTxt;
-    saveBtn.addEventListener('click', async () => {
-      const v = input.value.trim();
-      if (!v) return;
-      await api.secrets.set(p.id, v);
-      input.value = '';
-      providers = await api.providers.catalog();
-      renderKeys();
-    });
-
-    const state = document.createElement('span');
-    state.className = `state${p.hasKey ? ' on' : ''}`;
-    state.textContent = p.hasKey ? regTxt : notRegTxt;
-
-    if (p.hasKey) {
-      const del = document.createElement('button');
-      del.className = 'btn danger';
-      del.textContent = deleteTxt;
-      del.addEventListener('click', async () => {
-        await api.secrets.set(p.id, '');
-        providers = await api.providers.catalog();
-        renderKeys();
-      });
-      row.append(name, input, saveBtn, del);
-    } else {
-      row.append(name, input, saveBtn, state);
-    }
-
-    host.appendChild(row);
+    // eslint-disable-next-line no-await-in-loop -- sıralı render, sağlayıcı sayısı küçük
+    const [keys, rotator] = await Promise.all([api.secrets.list(p.id), api.secrets.rotatorStatus(p.id)]);
+    if (token !== renderKeysToken) return; // üzerimize yeni bir render başladı — bas geç
+    built.push(buildKeySection(p, keys, rotator));
   }
+
+  if (token !== renderKeysToken) return; // son kontrol: hâlâ en güncel çağrı mıyız
+  const host = $('keys');
+  host.innerHTML = '';
+  for (const section of built) host.appendChild(section);
 }
 
 /* ------------------------------------------------------------------ */
@@ -320,6 +424,7 @@ bindCheck('launchAtStartup', 'launchAtStartup');
 bindCheck('enableNotifications', 'enableNotifications');
 bindCheck('enableSound', 'enableSound');
 bindCheck('notifyOnlyWhenBackground', 'notifyOnlyWhenBackground');
+$('notifyLevel')?.addEventListener('change', () => save({ notifyLevel: $('notifyLevel').value }));
 bindNumber('maxTokens', 'maxTokens', { min: 256, max: 32000 });
 bindNumber('historyLimit', 'historyLimit', { min: 10, max: 2000 });
 
@@ -659,6 +764,7 @@ function renderAll() {
   if ($('enableNotifications')) $('enableNotifications').checked = !!settings.enableNotifications;
   if ($('enableSound')) $('enableSound').checked = !!settings.enableSound;
   if ($('notifyOnlyWhenBackground')) $('notifyOnlyWhenBackground').checked = !!settings.notifyOnlyWhenBackground;
+  if ($('notifyLevel')) $('notifyLevel').value = settings.notifyLevel || 'normal';
 
   const sc = settings.shortcuts || {};
   document.querySelectorAll('.accel').forEach((i) => {

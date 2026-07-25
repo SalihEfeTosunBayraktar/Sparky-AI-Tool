@@ -27,6 +27,8 @@
         </button>
         <div id="bubble" class="bubble hit" hidden>
           <span id="bubbleText"></span>
+          <!-- Kuyrukta bekleyen bildirim sayısı — "boğulmadan" haberdar etme. -->
+          <span id="bubbleQueueCount" class="bubble-queue-count" hidden></span>
           <button id="btnBubbleCopy" class="bubble-copy" title="Sonucu panoya kopyala" data-i18n-title="card.btnCopy" hidden>📋</button>
         </div>
       </div>
@@ -138,6 +140,7 @@
     <script src="../i18n.js"></script>
     <script src="../audioFeedback.js"></script>
     <script src="imageHandler.js"></script>
+    <script src="notificationQueue.js"></script>
     <script src="app.js"></script>
   </body>
 </html>

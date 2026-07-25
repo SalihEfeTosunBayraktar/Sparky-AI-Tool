@@ -131,6 +131,23 @@ en fazla 3 soru sorar — her biri kısa bir gerekçe, hazır seçenek rozetleri
 *bağlayıcı* bilgi olarak işlenir. Metin zaten açıksa soru sormadan devam eder,
 akış hiç kesilmez. Panelde *Sormadan üret* ile her zaman atlayabilirsiniz.
 
+### Yarım kalan yanıtlar
+
+Model token sınırına takıldığında yanıt sessizce kesiliyordu — "eksik prompt"
+sorununun kaynağı buydu. Artık:
+
+- Dört sağlayıcı da kesilme sinyalini okur (`done_reason` / `finish_reason` /
+  `finishReason` / `stop_reason`).
+- Kesilme algılanırsa uygulama **kaldığı yerden en fazla 3 tur devam ettirir**;
+  parça birleştirilirken modelin son cümleyi tekrarlaması veya baştan başlaması
+  otomatik temizlenir.
+- Biçime göre taban token bütçesi uygulanır (ör. UI/UX 6144, Araştırma/Kod 4096).
+  `max_tokens` bir tavan olduğu ve model erken bitirdiğinde maliyet doğurmadığı
+  için bu güvenlidir.
+- Derin modun cilalama aşaması taslağın tamamını yeniden yazdığı için bütçesi
+  taslak uzunluğuna göre ölçeklenir.
+- Üç tur sonunda hâlâ kesikse durum çubuğunda açık bir uyarı çıkar.
+
 ### İyileştirme önerileri (varsayılan: açık)
 
 Sonuç geldikten sonra ayrı ve engellemeyen bir turda 2–4 öneri üretilir

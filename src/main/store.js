@@ -28,7 +28,9 @@ const DEFAULTS = {
   // Sonuç geldikten sonra iyileştirme önerileri üretilsin mi?
   suggestions: true,
   temperature: 0.4,
-  maxTokens: 2048,
+  // max_tokens bir tavandır; model erken bitirirse maliyet doğurmaz. Düşük
+  // tutmak uzun biçimlerde promptun yarıda kesilmesine yol açıyordu.
+  maxTokens: 4096,
   effort: 'medium',
   autoCopy: false,
   alwaysOnTop: true,
@@ -37,6 +39,13 @@ const DEFAULTS = {
   enableNotifications: true,
   enableSound: true,
   notifyOnlyWhenBackground: true,
+  // Küredeki bilgi baloncuğu kuyruğunun önem eşiği. 'minimal' yalnızca
+  // yüksek/kritik olayları (sonuç, hata, anahtar döngüsü) gösterir;
+  // 'normal' aşama bilgilerini de ekler; 'all' düşük öncelikli tikleri
+  // (Hazırlanıyor/Düşünüyor gibi) bile kuyruğa alır. Masaüstü bildirimi
+  // (enableNotifications) ve bu ikisi bağımsız — biri OS bildirimi, biri
+  // kürenin kendi baloncuğu.
+  notifyLevel: 'normal',
   historyLimit: 200,
   shortcuts: {
     toggle: 'Control+Shift+Space',

@@ -4,6 +4,8 @@
 // Yönergeler İngilizce yazıldı (modeller İngilizce talimatlara daha sadık),
 // üretilen prompt'un dili ise ayardan belirlenir.
 
+const projectContext = require('./projectContext');
+
 const STYLES = {
   detailed: {
     label: 'Detaylı',
@@ -230,6 +232,111 @@ function auxCall(cfg, signal) {
   };
 }
 
+/* ------------------------------------------------------------------ */
+/* Token bütçesi ve kesilen yanıtı devam ettirme                       */
+/* ------------------------------------------------------------------ */
+
+// Bazı biçimler doğası gereği uzun çıktı ister. max_tokens bir tavandır —
+// model erken bitirirse fazladan maliyet doğurmaz — bu yüzden cömert taban
+// değerler güvenlidir ve "eksik prompt" riskini baştan azaltır.
+const STYLE_MIN_TOKENS = {
+  ui_design: 6144,
+  research: 4096,
+  code: 4096,
+  detailed: 3072,
+  system: 3072,
+  concise: 1024,
+  image: 1024
+};
+
+function craftBudget(cfg) {
+  const base = Math.max(512, Number(cfg.maxTokens) || 4096);
+  return Math.max(base, STYLE_MIN_TOKENS[cfg.style] ?? 2048);
+}
+
+// Kaba token tahmini. Türkçe İngilizceden daha kötü tokenize olduğundan
+// karakter/3 ile temkinli davranıyoruz.
+function estimateTokens(s) {
+  return Math.ceil(String(s || '').length / 3);
+}
+
+const MAX_CONTINUATIONS = 3;
+
+function tailOf(s, n = 1600) {
+  const str = String(s || '');
+  return str.length <= n ? str : `…${str.slice(-n)}`;
+}
+
+function continuationPrompt(tail) {
+  return `Your previous output stopped mid-way because it hit the token limit. This is exactly what you produced so far:
+
+<<<PARTIAL
+${tail}
+PARTIAL
+
+Continue from the exact point where it stopped. Do NOT repeat anything you already produced, do NOT restart from the beginning, do NOT add a preamble, heading, apology or closing remark. Output only the continuation.`;
+}
+
+/**
+ * Devam parçasını ana metne ekler. Modeller iki şekilde hata yapabiliyor:
+ * son cümleyi tekrarlamak (sınırda örtüşme) veya baştan başlamak.
+ */
+function joinContinuation(base, piece) {
+  if (!base) return piece;
+  if (!piece) return base;
+
+  // 1) Model baştan başlamış: parça, metnin başlangıcıyla açılıyor.
+  const head = base.slice(0, Math.min(200, base.length));
+  if (head.length >= 40 && piece.startsWith(head)) {
+    return piece.length >= base.length ? piece : base;
+  }
+
+  // 2) Sınırda örtüşme: parçanın başı metnin sonuyla aynı.
+  const max = Math.min(400, base.length, piece.length);
+  for (let n = max; n >= 12; n -= 1) {
+    if (piece.slice(0, n) === base.slice(-n)) return base + piece.slice(n);
+  }
+
+  return base + piece;
+}
+
+/**
+ * chat() çağrısını yapar; yanıt token sınırına takıldıysa kaldığı yerden
+ * devam ettirir. "Eksik prompt" sorununun asıl çözümü burasıdır — eskiden
+ * kesilen yanıt sessizce tamamlanmış sayılıyordu.
+ *
+ * @returns {Promise<{text: string, truncated: boolean, rounds: number}>}
+ */
+async function chatComplete({ chat, params, onToken, onStatus }) {
+  const first = await chat({ ...params, onToken });
+  let text = String(first.text || '');
+  let truncated = !!first.truncated;
+  let rounds = 0;
+
+  while (truncated && rounds < MAX_CONTINUATIONS) {
+    rounds += 1;
+    onStatus?.({
+      key: 'status.continuing',
+      params: { n: rounds, max: MAX_CONTINUATIONS },
+      text: `Yanıt kesildi, devam ettiriliyor (${rounds}/${MAX_CONTINUATIONS})…`,
+      kind: 'thinking'
+    });
+
+    const cont = await chat({
+      ...params,
+      messages: [...params.messages, { role: 'user', content: continuationPrompt(tailOf(text)) }],
+      onToken
+    });
+
+    const piece = String(cont.text || '');
+    if (!piece.trim()) break;
+    text = joinContinuation(text, piece);
+    truncated = !!cont.truncated;
+  }
+
+  return { text, truncated, rounds };
+}
+
 /**
  * Belirsiz noktalar için kullanıcıya sorulacak soruları üretir.
  * Not açıksa boş dizi döner ve akış hiç kesilmez.
@@ -338,7 +445,9 @@ function validateRefinedPrompt(draft, refined) {
  * @param {'create'|'refine'} o.mode
  * @param {string} [o.previous]       refine modunda önceki prompt
  * @param {string} [o.instruction]    refine modunda kullanıcının düzeltmesi
+ * @param {boolean} [o.forceDeep]     oto mod DEEP_MODE dediyse derin modu zorla
  * @param {object} o.settings
+ * @returns {Promise<{text: string, truncated: boolean}>}
  * @param {Function} o.chat           llm.chat
  * @param {Function} [o.onStatus]     ({text, kind}) durum baloncuğu
  * @param {Function} [o.onStage]      () yeni aşama — çıktıyı sıfırla
@@ -353,12 +462,12 @@ async function run({
   previous = '',
   instruction = '',
   answers = [],
+  forceDeep = false,
   settings: cfg,
   chat,
   onStatus,
   onStage,
   onToken,
-  onAutoDecision,
   signal
 }) {
   let note = String(raw || '').trim();
@@ -376,69 +485,93 @@ async function run({
   }
   if (!note && mode === 'create') throw new Error('Önce bir metin veya resim girin.');
 
-  let projectBlock = '';
-  if (project) {
-    const parts = [`PROJECT CONTEXT / BACKGROUND:\nName: ${project.name}`];
-    if (project.description) parts.push(`Description: ${project.description}`);
-    if (Array.isArray(project.texts) && project.texts.length > 0) {
-      const notes = project.texts.map((t) => `- [${t.title}]: ${t.content}`).join('\n');
-      parts.push(`Project Notes & Specifications:\n${notes}`);
-    }
-    projectBlock = parts.join('\n');
-  }
+  // Proje bağlamı oturum belleğinden alınır. Blok her seferinde yeniden
+  // kurulmaz; proje/model/içerik değişmedikçe BAYT BAYT AYNI string döner.
+  const ctx = projectContext.acquire(project, cfg);
+  const projectBlock = ctx.block;
 
-  const system = buildSystem(cfg.style, cfg.outputLanguage);
+  // Blok, kullanıcı mesajının değil SİSTEM İSTEMİNİN EN BAŞINA konur.
+  // Kullanıcı mesajı her istekte değişir ve asla önbelleğe alınmaz; sistem
+  // isteminin sabit öneki ise alınır. Proje bloğunu en öne almak, kullanıcı
+  // biçim (style) değiştirse bile önbelleğe alınan öneki korur.
+  const withProject = (sys) => (projectBlock ? `${projectBlock}\n\n---\n\n${sys}` : sys);
+
+  const system = withProject(buildSystem(cfg.style, cfg.outputLanguage));
+  const budget = craftBudget(cfg);
   const common = {
     providerId: cfg.provider,
     model: cfg.model,
     temperature: cfg.temperature,
-    maxTokens: cfg.maxTokens,
+    maxTokens: budget,
     effort: cfg.effort,
+    // Anthropic'te sistem önekini cache_control ile işaretler.
+    cacheSystem: !!projectBlock,
     signal
   };
 
+  // Görseller en pahalı girdidir (bir ekran görüntüsü ~1-4k token). Derin modda
+  // hem analiz hem yazım aşamasına göndermek maliyeti ikiye katlıyordu.
+  // Analize yalnızca not boşsa, yani girdi tamamen görselse gönderiyoruz.
+  const noteIsImageOnly = !String(raw || '').trim() && !!imagePayload;
+  const analysisImage = noteIsImageOnly ? imagePayload : null;
+
   if (mode === 'refine') {
-    onStatus?.({ text: 'Düzeltme uygulanıyor…', kind: 'thinking' });
+    onStatus?.({ key: 'status.refining', text: 'Düzeltme uygulanıyor…', kind: 'thinking' });
     onStage?.();
-    const user = `RAW NOTE:\n${note || '(değişmedi)'}\n\n${projectBlock ? `${projectBlock}\n\n` : ''}CURRENT PROMPT:\n${previous}\n\nUSER'S EDIT REQUEST:\n${instruction}\n\nApply the edit request to the current prompt. Keep everything else intact. Output only the updated prompt.`;
-    const { text } = await chat({ ...common, image: imagePayload, system, messages: [{ role: 'user', content: user }], onToken });
-    return clean(text);
+    // Proje bloğu artık sistem isteminde (önbelleğe alınabilir önek); kullanıcı
+    // mesajına tekrar koymuyoruz.
+    const user = `RAW NOTE:\n${note || '(değişmedi)'}\n\nCURRENT PROMPT:\n${previous}\n\nUSER'S EDIT REQUEST:\n${instruction}\n\nApply the edit request to the current prompt. Keep everything else intact. Output only the updated prompt.`;
+    // Düzeltilen prompt en az mevcut prompt kadar uzun olacağı için bütçeyi ona göre aç.
+    const refineBudget = Math.max(budget, Math.ceil(estimateTokens(previous) * 1.6) + 512);
+    const res = await chatComplete({
+      chat,
+      params: {
+        ...common,
+        maxTokens: refineBudget,
+        image: imagePayload,
+        system,
+        messages: [{ role: 'user', content: user }]
+      },
+      onToken,
+      onStatus
+    });
+    return { text: clean(res.text), truncated: res.truncated };
   }
 
-  let effectiveDeepMode = !!cfg.deepMode;
-
-  if (cfg.autoMode && mode === 'create') {
-    onStatus?.({ text: 'İstek analiz ediliyor (Oto mod)…', kind: 'thinking' });
-    const autoRes = await analyzeAutoMode({ raw: note, project, settings: cfg, chat, signal });
-    if (typeof onAutoDecision === 'function') {
-      onAutoDecision(autoRes);
-    }
-    if (autoRes.decision === 'DEEP_MODE') {
-      effectiveDeepMode = true;
-    }
-  }
+  // Oto mod kararı main tarafında, netleştirme kapısından önce alınır ve
+  // buraya forceDeep olarak gelir; burada tekrar model çağrısı yapmıyoruz.
+  const effectiveDeepMode = !!cfg.deepMode || !!forceDeep;
 
   let analysis = null;
 
   if (effectiveDeepMode) {
-    onStatus?.({ text: 'Niyet çözümleniyor…', kind: 'thinking' });
-    const userContent = projectBlock ? `${projectBlock}\n\nRAW NOTE:\n${note}` : note;
+    onStatus?.({ key: 'status.analyzingIntent', text: 'Niyet çözümleniyor…', kind: 'thinking' });
     const { text } = await chat({
       ...common,
-      image: imagePayload,
-      system: ANALYSIS_SYSTEM,
-      messages: [{ role: 'user', content: userContent }],
-      maxTokens: Math.min(Number(cfg.maxTokens) || 1024, 1024)
+      // Görsel yalnızca girdi tamamen görselse; aksi hâlde yazım aşamasında
+      // bir kez gönderilir (eskiden iki aşamada da gidiyordu).
+      image: analysisImage,
+      system: withProject(ANALYSIS_SYSTEM),
+      messages: [{ role: 'user', content: `RAW NOTE:\n${note}` }],
+      // 1024 karmaşık notlarda JSON'u yarıda kesiyordu; kesilen JSON sessizce
+      // ayrıştırılamıyor ve derin mod normal moda düşüyordu.
+      maxTokens: Math.max(1536, Math.min(budget, 2048))
     });
     analysis = extractJson(text);
+    if (!analysis) {
+      console.warn('[promptEngine] Analiz JSON ayrıştırılamadı; derin mod analiz aşamasız devam ediyor.');
+    }
   }
 
-  onStatus?.({ text: effectiveDeepMode ? 'Prompt yazılıyor…' : 'Düşünüyor…', kind: 'thinking' });
+  onStatus?.({
+    key: effectiveDeepMode ? 'status.writing' : 'status.thinking',
+    text: effectiveDeepMode ? 'Prompt yazılıyor…' : 'Düşünüyor…',
+    kind: 'thinking'
+  });
   onStage?.();
 
-  const userParts = [];
-  if (projectBlock) userParts.push(projectBlock);
-  userParts.push(`RAW NOTE:\n${note}`);
+  // Proje bloğu sistem isteminde; kullanıcı mesajı yalnızca değişen kısmı taşır.
+  const userParts = [`RAW NOTE:\n${note}`];
   if (analysis) {
     userParts.push(
       `ANALYSIS (use it, but the raw note always wins if they disagree):\n${JSON.stringify(analysis, null, 2)}`
@@ -448,35 +581,56 @@ async function run({
   if (clarifications) userParts.push(clarifications);
   userParts.push('Write the finished prompt now.');
 
-  const first = await chat({
-    ...common,
-    image: imagePayload,
-    system,
-    messages: [{ role: 'user', content: userParts.join('\n\n') }],
-    onToken
+  const first = await chatComplete({
+    chat,
+    params: {
+      ...common,
+      image: imagePayload,
+      system,
+      messages: [{ role: 'user', content: userParts.join('\n\n') }]
+    },
+    onToken,
+    onStatus
   });
 
   let output = clean(first.text);
+  let truncated = first.truncated;
 
   if (effectiveDeepMode && output) {
-    onStatus?.({ text: 'Cilalanıyor…', kind: 'thinking' });
+    onStatus?.({ key: 'status.polishing', text: 'Cilalanıyor…', kind: 'thinking' });
     onStage?.();
-    const refined = await chat({
-      ...common,
-      system: REFINE_SYSTEM,
-      messages: [{ role: 'user', content: `RAW NOTE:\n${note}\n\nDRAFT PROMPT:\n${output}` }],
-      onToken
+    // Cilalama taslağın TAMAMINI yeniden yazar; bütçe taslaktan küçük kalırsa
+    // bu aşama kaçınılmaz olarak yarım çıktı üretir.
+    const polishBudget = Math.max(budget, Math.ceil(estimateTokens(output) * 1.6) + 512);
+    const refined = await chatComplete({
+      chat,
+      params: {
+        ...common,
+        maxTokens: polishBudget,
+        // Cilalama yalnızca taslaktan çalışır; proje bloğuna ihtiyacı yok.
+        cacheSystem: false,
+        system: REFINE_SYSTEM,
+        messages: [{ role: 'user', content: `RAW NOTE:\n${note}\n\nDRAFT PROMPT:\n${output}` }]
+      },
+      onToken,
+      onStatus
     });
     const cleaned = clean(refined.text);
     if (cleaned && validateRefinedPrompt(output, cleaned)) {
       output = cleaned;
+      truncated = refined.truncated;
     } else if (cleaned) {
-      console.info('[promptEngine] Deep Mode polishing rejected due to data loss. Retaining Stage 2 draft prompt.');
+      console.info('[promptEngine] Cilalama veri kaybı nedeniyle reddedildi; 2. aşama taslağı korunuyor.');
+      onStatus?.({
+        key: 'status.polishRejected',
+        text: 'Cilalama reddedildi — ayrıntılı taslak korundu',
+        kind: 'info'
+      });
     }
   }
 
   if (!output) throw new Error('Model boş yanıt döndürdü. Modeli veya "Maks. token" ayarını kontrol edin.');
-  return output;
+  return { text: output, truncated };
 }
 
-module.exports = { run, askQuestions, suggest, analyzeAutoMode, styleList, languageList, STYLES, LANGUAGE_LABELS, clean, validateRefinedPrompt };
+module.exports = { run, askQuestions, suggest, analyzeAutoMode, projectContext, styleList, languageList, STYLES, LANGUAGE_LABELS, clean, validateRefinedPrompt };

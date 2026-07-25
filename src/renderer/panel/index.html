@@ -151,6 +151,18 @@
                 <span class="switch-label" data-i18n="panel.fields.notifyOnlyWhenBackground">Yalnızca arka plandayken bildir</span>
               </label>
             </div>
+            <div class="field">
+              <label for="notifyLevel" data-i18n="panel.fields.notifyLevel">Baloncuk sıklığı / önemi</label>
+              <select id="notifyLevel">
+                <option value="minimal" data-i18n="panel.fields.notifyLevelMinimal">Sadece önemli (sonuç, hata, anahtar değişimi)</option>
+                <option value="normal" data-i18n="panel.fields.notifyLevelNormal">Normal (+ aşama bilgileri)</option>
+                <option value="all" data-i18n="panel.fields.notifyLevelAll">Tümü (her adımı göster)</option>
+              </select>
+              <p class="hint" data-i18n="panel.fields.notifyLevelHint">
+                Küredeki bilgi baloncuğunun ne sıklıkla göründüğünü belirler. Önemli olaylar (sonuç, hata,
+                anahtar değişimi) bu ayardan bağımsız her zaman gösterilir.
+              </p>
+            </div>
           </div>
         </section>
 

@@ -36,7 +36,16 @@ contextBridge.exposeInMainWorld('sparky', {
 
   secrets: {
     status: () => ipcRenderer.invoke('secrets:status'),
-    set: (provider, value) => ipcRenderer.invoke('secrets:set', { provider, value })
+    // Geriye dönük uyumlu tek-anahtar akışı — mevcut listeyi temizler.
+    set: (provider, value) => ipcRenderer.invoke('secrets:set', { provider, value }),
+    // Çoklu anahtar yönetimi
+    list: (provider) => ipcRenderer.invoke('secrets:list', provider),
+    add: (provider, value, label) => ipcRenderer.invoke('secrets:add', { provider, value, label }),
+    remove: (provider, id) => ipcRenderer.invoke('secrets:remove', { provider, id }),
+    rename: (provider, id, label) => ipcRenderer.invoke('secrets:rename', { provider, id, label }),
+    setActive: (provider, id) => ipcRenderer.invoke('secrets:setActive', { provider, id }),
+    rotateNext: (provider) => ipcRenderer.invoke('secrets:rotateNext', provider),
+    rotatorStatus: (provider) => ipcRenderer.invoke('secrets:rotatorStatus', provider)
   },
 
   gen: {

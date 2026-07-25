@@ -7,6 +7,7 @@ const root = $('root');
 const orbEl = $('orb');
 const bubble = $('bubble');
 const bubbleText = $('bubbleText');
+const bubbleQueueCountEl = $('bubbleQueueCount');
 const badge = $('badge');
 const statusPill = $('statusPill');
 const statusText = $('statusText');
@@ -71,9 +72,87 @@ const state = {
   hasResult: false
 };
 
-let bubbleTimer = null;
 let ignoringMouse = true;
 let dragging = false;
+let bubbleExitTimer = null;
+
+/* ------------------------------------------------------------------ */
+/* Bildirim kuyruğu — bkz. notificationQueue.js için tasarım gerekçesi */
+/* ------------------------------------------------------------------ */
+
+// notifyLevel eşiği: eşiğin altındaki öncelikler kuyruğa hiç girmez.
+// 'high'/'critical' (başarı, hata, anahtar döngüsü) HER zaman geçer —
+// minimal ayarda bile 3 eşiği high(3)/critical(4) için her zaman sağlanır.
+// Yalnızca 'low'/'normal' (aşama tikleri, bilgi notları) filtrelenir.
+function notifyThreshold(level) {
+  return { minimal: 3, normal: 2, all: 1 }[level] ?? 2;
+}
+
+const bubbleQueue = new NotificationQueue({
+  onShow(item, meta) {
+    renderBubbleItem(item, meta);
+    if (item.kind === 'success') setBadge('ok');
+    if (item.kind === 'error') setBadge('error');
+  },
+  onHide() {
+    if (bubbleExitTimer) clearTimeout(bubbleExitTimer);
+    bubble.classList.remove('anim-enter', 'anim-pulse');
+    bubble.classList.add('anim-exit');
+    // Ani kesilme olmasın diye çıkış animasyonu bitene kadar bekleyip gizle.
+    bubbleExitTimer = setTimeout(() => {
+      bubble.hidden = true;
+      bubble.classList.remove('anim-exit');
+    }, 150);
+  },
+  onQueueChange(pending) {
+    if (!bubbleQueueCountEl) return;
+    bubbleQueueCountEl.hidden = pending <= 0;
+    if (pending > 0) bubbleQueueCountEl.textContent = `+${pending}`;
+  }
+});
+
+// "Düşünüyor…" / "Yazılıyor..." → "Düşünüyor" / "Yazılıyor"
+// Tek nokta (cümle sonu) korunur; yalnızca üç nokta veya … kırpılır. CSS'teki
+// döngüsel nokta animasyonuyla (::after, data-kind="thinking") çakışmasın diye.
+function stripTrailingEllipsis(text) {
+  return String(text || '').replace(/\s*(?:…|\.{2,})\s*$/, '');
+}
+
+function renderBubbleItem(item, meta) {
+  if (bubbleExitTimer) {
+    clearTimeout(bubbleExitTimer);
+    bubbleExitTimer = null;
+  }
+  const animated = item.kind === 'thinking';
+  bubbleText.textContent = animated ? stripTrailingEllipsis(item.text) : item.text;
+  bubble.dataset.kind = item.kind;
+  bubble.dataset.priority = item.priority;
+  bubble.hidden = false;
+  if (btnBubbleCopy) btnBubbleCopy.hidden = !state.output;
+
+  // Giriş/güncelleme animasyonunu her seferinde yeniden tetikle — CSS
+  // `animation`'ı sınıf zaten varsa tekrar çalıştırmaz, bu yüzden önce
+  // kaldırıp reflow zorluyoruz (imageHandler.js'deki desenle tutarlı: küçük
+  // ama yaygın bir CSS-yeniden-tetikleme tekniği).
+  bubble.classList.remove('anim-enter', 'anim-pulse', 'anim-exit');
+  void bubble.offsetWidth; // eslint-disable-line no-unused-expressions
+  bubble.classList.add(meta.coalesced ? 'anim-pulse' : 'anim-enter');
+}
+
+/**
+ * Bir olayı baloncuk kuyruğuna ekler — notifyLevel eşiğinin altındaysa
+ * sessizce yok sayılır (kuyruğa hiç girmez, "boğulma" burada önlenir).
+ *
+ * @param {string} text
+ * @param {string} kind idle|thinking|prep|info|success|error
+ * @param {{priority?: string, dedupeKey?: string}} [extra]
+ */
+function queueBubble(text, kind, extra = {}) {
+  const priority = extra.priority || KIND_PRIORITY[kind] || 'normal';
+  const level = (state.settings && state.settings.notifyLevel) || 'normal';
+  if (PRIORITY[priority] < notifyThreshold(level)) return;
+  bubbleQueue.push({ text, kind, priority, dedupeKey: extra.dedupeKey || null });
+}
 
 /* ------------------------------------------------------------------ */
 /* Fare geçirgenliği — şeffaf boşluk altındaki pencereleri engellemesin */
@@ -181,6 +260,21 @@ bubble.addEventListener('click', () => {
 /* Genişlet / küçült                                                   */
 /* ------------------------------------------------------------------ */
 
+// Panel açılırken kuyruğu sessizce temizle: .orb-layer zaten CSS ile
+// solduruluyor, çıkış animasyonu gereksiz. Eski/düşük öncelikli bekleyen
+// bildirimler (ör. bir aşama tiki) panel tekrar kapandığında aniden
+// belirmesin diye bırakılmaz.
+function resetBubbleUI() {
+  bubbleQueue.reset();
+  if (bubbleExitTimer) {
+    clearTimeout(bubbleExitTimer);
+    bubbleExitTimer = null;
+  }
+  bubble.classList.remove('anim-enter', 'anim-pulse', 'anim-exit');
+  bubble.hidden = true;
+  if (bubbleQueueCountEl) bubbleQueueCountEl.hidden = true;
+}
+
 function setExpanded(next, focus = false) {
   state.expanded = next;
   root.classList.toggle('expanded', next);
@@ -188,7 +282,7 @@ function setExpanded(next, focus = false) {
   api.ui.setExpanded(next);
   if (next) {
     clearBadge();
-    hideBubble();
+    resetBubbleUI();
     if (focus) setTimeout(() => inputEl.focus(), 60);
   }
 }
@@ -202,27 +296,24 @@ $('btnHistory').addEventListener('click', () => api.ui.openPanel('history'));
 /* Durum / baloncuk                                                    */
 /* ------------------------------------------------------------------ */
 
-function setStatus({ text, kind = 'idle' }) {
+// `key`/`dedupeKey` main.js'den geliyorsa (bkz. gen:status payload'ı):
+// açık bir dedupeKey verilmediyse ama olay yerelleştirilmiş bir `key`
+// taşıyorsa (aşama tikleri: hazırlanıyor→düşünüyor→yazılıyor→cilalanıyor,
+// devam ettirme sayaçları…) bunları tek bir "şu an ne oluyor" bilgisine
+// bağlıyoruz — sonuç/hata gibi tekil olaylar asla bu gruba girmez.
+function deriveDedupeKey({ kind, key, dedupeKey }) {
+  if (dedupeKey) return dedupeKey;
+  if (key && kind !== 'error' && kind !== 'success') return 'stage';
+  return null;
+}
+
+function setStatus({ text, kind = 'idle', key, priority, dedupeKey }) {
   statusText.textContent = text;
   statusPill.dataset.kind = kind;
 
   if (!state.expanded) {
-    const sticky = kind === 'thinking' || kind === 'prep';
-    showBubble(text, kind, sticky ? 0 : 4200);
+    queueBubble(text, kind, { priority, dedupeKey: deriveDedupeKey({ kind, key, dedupeKey }) });
   }
-  if (kind === 'success') setBadge('ok');
-  if (kind === 'error') setBadge('error');
-}
-
-function showBubble(text, kind, autoHideMs) {
-  bubbleText.textContent = text;
-  bubble.dataset.kind = kind;
-  bubble.hidden = false;
-  if (btnBubbleCopy) {
-    btnBubbleCopy.hidden = !state.output;
-  }
-  if (bubbleTimer) clearTimeout(bubbleTimer);
-  if (autoHideMs) bubbleTimer = setTimeout(hideBubble, autoHideMs);
 }
 
 if (btnBubbleCopy) {
@@ -230,12 +321,6 @@ if (btnBubbleCopy) {
     e.stopPropagation();
     copyOutput('Panoya kopyalandı');
   });
-}
-
-function hideBubble() {
-  bubble.hidden = true;
-  if (bubbleTimer) clearTimeout(bubbleTimer);
-  bubbleTimer = null;
 }
 
 function setBadge(kind) {
@@ -606,10 +691,13 @@ api.on.busy((v) => setBusy(v));
 
 api.on.autoDecision((res) => {
   if (!res || !res.decision) return;
+  // priority: 'normal' açıkça veriliyor — kind='thinking' yalnızca görsel
+  // nokta animasyonu için, öncelik olarak 'low'a düşmesin diye (bu mesaj
+  // sıradan bir aşama tiki değil, kullanıcının bilmesi gereken bir karar).
   if (res.decision === 'DEEP_MODE') {
-    showBubble(i18n.t('card.autoDecisionDeep'), 'thinking', 6000);
+    queueBubble(i18n.t('card.autoDecisionDeep'), 'thinking', { priority: 'normal' });
   } else if (res.decision === 'CLARIFICATION') {
-    showBubble(i18n.t('card.autoDecisionClarify'), 'info', 6000);
+    queueBubble(i18n.t('card.autoDecisionClarify'), 'info', { priority: 'normal' });
   }
 });
 
@@ -623,9 +711,10 @@ api.on.suggestions(renderSuggestions);
 
 api.on.done(({ output, copied }) => {
   setOutput(output);
+  // Rozet artık bubbleQueue.onShow içinde ayarlanıyor — bu öğe fiilen
+  // gösterildiği anda (kesme/kuyruk nedeniyle hemen olmayabilir).
   if (!state.expanded) {
-    showBubble(copied ? i18n.t('app.bubbleCopied') : i18n.t('app.bubbleReady'), 'success', 7000);
-    setBadge('ok');
+    queueBubble(copied ? i18n.t('app.bubbleCopied') : i18n.t('app.bubbleReady'), 'success');
   }
 });
 
@@ -642,7 +731,7 @@ api.on.error(({ message }) => {
     d.textContent = message;
     outputEl.appendChild(d);
   }
-  showBubble(message.split('\n')[0], 'error', 8000);
+  queueBubble(message.split('\n')[0], 'error');
 });
 
 api.on.playSound((type) => {
@@ -657,7 +746,7 @@ api.on.expanded((v) => {
   root.classList.toggle('collapsed', !v);
   if (v) {
     clearBadge();
-    hideBubble();
+    resetBubbleUI();
   }
 });
 

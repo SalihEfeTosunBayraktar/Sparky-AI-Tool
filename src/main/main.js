@@ -20,6 +20,9 @@ const { settings, history } = require('./store');
 const secrets = require('./secrets');
 const llm = require('./llm');
 const engine = require('./promptEngine');
+const S = require('./strings');
+const projectContext = require('./projectContext');
+const { getRotator } = require('./apiKeyRotator');
 const projects = require('./projects');
 const notifier = require('./notifier');
 
@@ -34,6 +37,9 @@ let dragTimer = null;
 let dragOffset = null;
 let activeRun = null;
 let lastOutput = '';
+// Oto mod DEEP_MODE dedikten sonra sorular sorulursa, cevap turunda kararın
+// kaybolmaması için burada tutulur.
+let pendingAutoDeep = false;
 let shortcutErrors = [];
 
 const ICON = path.join(__dirname, '..', '..', 'build', 'icon.png');
@@ -197,6 +203,33 @@ function broadcast(channel, payload) {
 /* Üretim akışı                                                        */
 /* ------------------------------------------------------------------ */
 
+// llm.chat'i sarmalar: anahtar döngüsü devreye girdiğinde kullanıcıya
+// durum çubuğunda kısa bir bildirim gösterir. Kesintiyi hissettirmez —
+// isteğin kendisi zaten aynı çağrı içinde şeffafça tamamlanır.
+function chatWithRotationNotice(params) {
+  return llm.chat({
+    ...params,
+    onRotate: (info) => {
+      const providerLabel = llm.PROVIDERS[info.provider]?.label || info.provider;
+      const text =
+        info.reason === 'rate_limit'
+          ? S.t('status.keyRotatedRateLimit', { provider: providerLabel })
+          : S.t('status.keyRotatedInvalid', { provider: providerLabel });
+      // dedupeKey sağlayıcıya bağlı: aynı sağlayıcı için art arda birden
+      // fazla anahtar tükenirse baloncuk kuyruğu bunları tek satırda
+      // günceller, art arda 3-4 ayrı baloncuk kuyruklamaz. priority 'high':
+      // kullanıcı bu olayı kaçırmamalı ama hata kadar acil de değil.
+      send('gen:status', {
+        text,
+        kind: 'info',
+        priority: 'high',
+        dedupeKey: `key-rotate:${info.provider}`
+      });
+      send('secrets:changed');
+    }
+  });
+}
+
 async function runGeneration(payload) {
   if (activeRun) activeRun.abort();
   const controller = new AbortController();
@@ -207,32 +240,62 @@ async function runGeneration(payload) {
 
   const mode = payload.mode || 'create';
   const answers = Array.isArray(payload.answers) ? payload.answers : [];
+  const activeProject = projects.getActive();
 
   send('gen:busy', true);
-  send('gen:status', { text: 'Hazırlanıyor…', kind: 'prep' });
+  send('gen:status', { text: S.t('status.preparing'), kind: 'prep' });
 
   try {
-    // 1) Netleştirme turu — açıksa ve bu ilk deneme ise.
-    if (cfg.clarify && mode === 'create' && !payload.skipQuestions) {
-      send('gen:status', { text: 'Belirsizlikler taranıyor…', kind: 'thinking' });
+    // 0) Oto mod kararı — netleştirme kapısından ÖNCE alınmalı. Eskiden karar
+    //    engine.run içinde, yani kapıdan sonra alınıyordu; bu yüzden
+    //    CLARIFICATION kararı hiçbir zaman soru sorduramıyordu.
+    let forceDeep = false;
+    let forceClarify = false;
+
+    if (cfg.autoMode && mode === 'create' && !payload.skipQuestions) {
+      send('gen:status', { text: S.t('status.autoAnalyzing'), kind: 'thinking' });
+      const auto = await engine.analyzeAutoMode({
+        raw: payload.raw,
+        project: activeProject,
+        settings: cfg,
+        chat: chatWithRotationNotice,
+        signal: controller.signal
+      });
+      send('gen:autoDecision', auto);
+      if (auto.decision === 'DEEP_MODE') {
+        forceDeep = true;
+        send('gen:playSound', 'success');
+      } else if (auto.decision === 'CLARIFICATION') {
+        forceClarify = true;
+        send('gen:playSound', 'success');
+      }
+    } else if (payload.skipQuestions) {
+      // Sorular cevaplandıktan sonraki turda kararı yeniden sormuyoruz.
+      forceDeep = pendingAutoDeep;
+      pendingAutoDeep = false;
+    }
+
+    // 1) Netleştirme turu — ayardan açıksa VEYA oto mod öyle karar verdiyse.
+    if ((cfg.clarify || forceClarify) && mode === 'create' && !payload.skipQuestions) {
+      send('gen:status', { text: S.t('status.scanningAmbiguity'), kind: 'thinking' });
       const questions = await engine.askQuestions({
         raw: payload.raw,
         settings: cfg,
-        chat: llm.chat,
+        chat: chatWithRotationNotice,
         signal: controller.signal
       });
       if (questions.length) {
         // Üretimi burada durdurup topu kullanıcıya atıyoruz; cevaplar
         // gelince aynı akış skipQuestions ile yeniden çağrılacak.
+        pendingAutoDeep = forceDeep;
         send('gen:questions', { questions, raw: payload.raw });
-        send('gen:status', { text: `${questions.length} sorum var`, kind: 'info' });
+        send('gen:status', { text: S.t('status.haveQuestions', { count: questions.length }), kind: 'info' });
         return { ok: true, questions: true };
       }
     }
 
     // 2) Asıl üretim
-    const activeProject = projects.getActive();
-    const output = await engine.run({
+    const result = await engine.run({
       raw: payload.raw,
       image: payload.image || null,
       project: activeProject,
@@ -240,19 +303,21 @@ async function runGeneration(payload) {
       previous: payload.previous || '',
       instruction: payload.instruction || '',
       answers,
+      forceDeep,
       settings: cfg,
-      chat: llm.chat,
-      onStatus: (s) => send('gen:status', s),
+      chat: chatWithRotationNotice,
+      // `key` de gönderiliyor — renderer'daki baloncuk kuyruğu, yerelleştirilmiş
+      // metni ayrıştırmadan güvenilir bir dedupeKey kurabilsin diye (ör.
+      // "devam ettiriliyor (1/3)…" → "(2/3)…" gibi patlamaları birleştirmek).
+      onStatus: (s) =>
+        send('gen:status', { text: s.key ? S.t(s.key, s.params) : s.text, kind: s.kind, key: s.key || null }),
       onStage: () => send('gen:stage'),
       onToken: (t) => send('gen:token', t),
-      onAutoDecision: (res) => {
-        send('gen:autoDecision', res);
-        if (res.decision === 'DEEP_MODE' || res.decision === 'CLARIFICATION') {
-          send('gen:playSound', 'success');
-        }
-      },
       signal: controller.signal
     });
+
+    const output = result.text;
+    const truncated = !!result.truncated;
 
     lastOutput = output;
     if (cfg.autoCopy) clipboard.writeText(output);
@@ -264,18 +329,28 @@ async function runGeneration(payload) {
       style: cfg.style,
       provider: cfg.provider,
       model: cfg.model,
-      deep: !!cfg.deepMode,
+      deep: !!cfg.deepMode || forceDeep,
+      truncated,
       language: cfg.outputLanguage,
       mode,
       ms: Date.now() - started
     });
 
     // Önce durum, sonra sonuç: baloncukta son sözü "done" mesajı söylesin.
-    send('gen:status', { text: cfg.autoCopy ? 'Hazır — panoya kopyalandı' : 'Prompt hazır', kind: 'success' });
-    send('gen:done', { output, id: entry.id, copied: !!cfg.autoCopy });
+    send('gen:status', { text: S.t(cfg.autoCopy ? 'status.readyCopied' : 'status.ready'), kind: 'success' });
+    send('gen:done', { output, id: entry.id, copied: !!cfg.autoCopy, truncated });
+
+    // Devam turlarına rağmen hâlâ kesikse kullanıcı bunu bilmeli — sessizce
+    // eksik prompt teslim etmek en kötü sonuç.
+    if (truncated) {
+      send('gen:status', {
+        text: S.t('status.truncated'),
+        kind: 'error'
+      });
+    }
     send('gen:playSound', 'success');
     notifier.notifySuccess({
-      title: 'Sparky AI — Prompt Hazır ✨',
+      title: S.t('notify.readyTitle'),
       body: output.slice(0, 120) + (output.length > 120 ? '…' : ''),
       targetWindow: orb
     });
@@ -290,7 +365,7 @@ async function runGeneration(payload) {
           raw: payload.raw,
           prompt: output,
           settings: cfg,
-          chat: llm.chat,
+          chat: chatWithRotationNotice,
           signal: controller.signal
         });
         send('gen:suggestions', { pending: false, items });
@@ -302,10 +377,13 @@ async function runGeneration(payload) {
 
     return { ok: true, output };
   } catch (err) {
+    // Üretim başarısızsa proje bağlamını "kurulu" saymayalım; bir sonraki
+    // istek bloğu yeniden kursun.
+    projectContext.invalidate('generation-failed');
     const aborted = controller.signal.aborted;
     const message = aborted ? 'Durduruldu.' : err?.message || String(err);
     send('gen:error', { message, aborted });
-    send('gen:status', { text: aborted ? 'Durduruldu' : 'Hata', kind: aborted ? 'info' : 'error' });
+    send('gen:status', { text: S.t(aborted ? 'status.stopped' : 'status.error'), kind: aborted ? 'info' : 'error' });
     if (!aborted) {
       send('gen:playSound', 'error');
       notifier.notifyError({
@@ -349,11 +427,11 @@ function registerShortcuts() {
 
   bind(sc.copyLast, 'Son sonucu kopyala', () => {
     if (!lastOutput) {
-      send('gen:status', { text: 'Kopyalanacak sonuç yok', kind: 'info' });
+      send('gen:status', { text: S.t('status.nothingToCopy'), kind: 'info' });
       return;
     }
     clipboard.writeText(lastOutput);
-    send('gen:status', { text: 'Panoya kopyalandı', kind: 'success' });
+    send('gen:status', { text: S.t('status.copied'), kind: 'success' });
   });
 
   return shortcutErrors;
@@ -368,40 +446,9 @@ function trayIcon() {
   }
 }
 
+// Metinler src/main/strings.js içinde tek kaynakta toplandı.
 function getMenuLabels() {
-  const lang = settings.get('appLanguage') || 'tr';
-  if (lang === 'en') {
-    return {
-      showHide: 'Show / Hide',
-      runClipboard: 'Generate prompt from clipboard',
-      settings: 'Settings…',
-      history: 'History…',
-      about: 'About…',
-      exit: 'Exit',
-      collapse: 'Collapse',
-      expand: 'Expand',
-      copyLast: 'Copy last result',
-      alwaysOnTop: 'Always on top',
-      hideToTray: 'Hide to tray',
-      copiedToClipboard: 'Copied to clipboard',
-      noResultToCopy: 'No result to copy'
-    };
-  }
-  return {
-    showHide: 'Göster / Gizle',
-    runClipboard: 'Panodaki metinden prompt üret',
-    settings: 'Ayarlar…',
-    history: 'Geçmiş…',
-    about: 'Hakkında…',
-    exit: 'Çıkış',
-    collapse: 'Küçült',
-    expand: 'Genişlet',
-    copyLast: 'Son sonucu kopyala',
-    alwaysOnTop: 'Her zaman üstte kal',
-    hideToTray: 'Gizle (tepsiye)',
-    copiedToClipboard: 'Panoya kopyalandı',
-    noResultToCopy: 'Kopyalanacak sonuç yok'
-  };
+  return S.menuLabels();
 }
 
 function buildTray() {
@@ -450,7 +497,7 @@ function generateFromClipboard() {
   if (!orb || orb.isDestroyed()) return;
   if (!orb.isVisible()) orb.show();
   if (!text) {
-    send('gen:status', { text: 'Pano boş', kind: 'info' });
+    send('gen:status', { text: S.t('status.clipboardEmpty'), kind: 'info' });
     return;
   }
   send('ui:fillInput', text);
@@ -560,6 +607,8 @@ function registerIpc() {
   ipcMain.handle('settings:reset', () => {
     const next = settings.reset();
     registerShortcuts();
+    // Sağlayıcı/model varsayılana döndü — bağlam öneki artık geçersiz.
+    projectContext.reset('settings-reset');
     broadcast('settings:changed', next);
     return next;
   });
@@ -586,10 +635,53 @@ function registerIpc() {
   // --- anahtarlar (açık değer asla geri dönmez)
   ipcMain.handle('secrets:status', () => secrets.status());
   ipcMain.handle('secrets:set', (_e, { provider, value }) => {
+    // Geriye dönük uyumluluk: tek anahtar akışı. Mevcut listeyi temizleyip
+    // tek anahtar yazar — çoklu anahtar akışı secrets:add kullanır.
     const r = secrets.setKey(provider, value);
+    getRotator().reset(provider);
     broadcast('secrets:changed');
     return r;
   });
+
+  // --- çoklu anahtar yönetimi
+  ipcMain.handle('secrets:list', (_e, provider) => secrets.list(provider));
+  ipcMain.handle('secrets:add', (_e, { provider, value, label }) => {
+    const r = secrets.add(provider, value, label);
+    if (r.ok) {
+      getRotator().reset(provider);
+      broadcast('secrets:changed');
+    }
+    return r;
+  });
+  ipcMain.handle('secrets:remove', (_e, { provider, id }) => {
+    const r = secrets.remove(provider, id);
+    if (r.ok) {
+      getRotator().reset(provider);
+      broadcast('secrets:changed');
+    }
+    return r;
+  });
+  ipcMain.handle('secrets:rename', (_e, { provider, id, label }) => {
+    const r = secrets.rename(provider, id, label);
+    if (r.ok) broadcast('secrets:changed');
+    return r;
+  });
+  ipcMain.handle('secrets:setActive', (_e, { provider, id }) => {
+    const r = secrets.setActive(provider, id);
+    if (r.ok) broadcast('secrets:changed');
+    return r;
+  });
+  // Manuel döngü: kullanıcı "sıradaki anahtara geç" der.
+  ipcMain.handle('secrets:rotateNext', (_e, provider) => {
+    try {
+      const next = getRotator().rotate(provider);
+      broadcast('secrets:changed');
+      return { ok: true, keyId: next.keyId };
+    } catch (err) {
+      return { ok: false, error: err.message, code: err.code };
+    }
+  });
+  ipcMain.handle('secrets:rotatorStatus', (_e, provider) => getRotator().snapshot(provider));
 
   // --- üretim
   ipcMain.handle('gen:start', (_e, payload) => runGeneration(payload || {}));
@@ -623,6 +715,8 @@ function registerIpc() {
   });
   ipcMain.handle('history:clear', () => {
     history.clear();
+    // "Yeni oturum" davranışı: bağlam durumu tamamen sıfırlanır.
+    projectContext.reset('history-cleared');
     broadcast('history:changed');
     return true;
   });

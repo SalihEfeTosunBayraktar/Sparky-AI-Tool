@@ -63,17 +63,21 @@ async function chat({ endpoint, apiKey, model, system, messages, image, temperat
   });
 
   let text = '';
+  let finishReason = null;
   await readSSE(res, (obj) => {
     if (obj.error) throw new LlmError(obj.error.message || String(obj.error), { provider: providerId });
-    const piece = obj?.choices?.[0]?.delta?.content;
+    const choice = obj?.choices?.[0];
+    const piece = choice?.delta?.content;
     if (piece) {
       text += piece;
       onToken?.(piece);
     }
+    if (choice?.finish_reason) finishReason = choice.finish_reason;
     return true;
   });
 
-  return { text };
+  // finish_reason === 'length' → max_tokens'a çarpıldı, yanıt yarım.
+  return { text, truncated: finishReason === 'length' };
 }
 
 module.exports = { listModels, chat };
