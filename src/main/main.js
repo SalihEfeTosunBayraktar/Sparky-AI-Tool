@@ -30,6 +30,11 @@ const modeManager = new ModeManager(settings);
 const TokenTracker = require('./tokenTracker');
 const tokenTracker = new TokenTracker();
 
+// Windows görev çubuğunda ikonun doğru eşleşmesi için (AppUserModelId)
+if (process.platform === 'win32') {
+  app.setAppUserModelId('com.sparkyai.app');
+}
+
 const COLLAPSED = { width: 340, height: 152 };
 const EXPANDED = { width: 480, height: 664 };
 
@@ -46,7 +51,9 @@ let lastOutput = '';
 let pendingAutoDeep = false;
 let shortcutErrors = [];
 
-const ICON = path.join(__dirname, '..', '..', 'build', 'icon.png');
+const ICON_ICO = path.join(__dirname, '..', '..', 'build', 'icon.ico');
+const ICON_PNG = path.join(__dirname, '..', '..', 'build', 'icon.png');
+const ICON = process.platform === 'win32' && fs.existsSync(ICON_ICO) ? ICON_ICO : ICON_PNG;
 
 /* ------------------------------------------------------------------ */
 /* Pencereler                                                          */
@@ -82,6 +89,8 @@ function createOrb() {
     fullscreenable: false,
     show: false,
     backgroundColor: '#00000000',
+    title: 'Sparky AI',
+    icon: ICON,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
