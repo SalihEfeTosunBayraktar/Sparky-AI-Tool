@@ -123,7 +123,7 @@ let lastOrbClickAt = 0;
 function onOrbClick(ev) {
   // Ctrl + tık → sonucu hemen kopyala, paneli açma.
   if ((ev.ctrlKey || ev.metaKey) && state.output) {
-    copyOutput('Panoya kopyalandı');
+    copyOutput(i18n.t('app.copiedToClipboard'));
     return;
   }
 
@@ -146,7 +146,7 @@ function onOrbClick(ev) {
 async function runFromClipboard() {
   const text = (await api.clipboard.read()).trim();
   if (!text) {
-    setStatus({ text: 'Pano boş', kind: 'info' });
+    setStatus({ text: i18n.t('app.clipboardEmpty'), kind: 'info' });
     return;
   }
   inputEl.value = text;
@@ -158,7 +158,7 @@ async function runFromClipboard() {
 }
 
 bubble.addEventListener('click', () => {
-  if (state.hasResult && state.output) copyOutput('Panoya kopyalandı');
+  if (state.hasResult && state.output) copyOutput(i18n.t('app.copiedToClipboard'));
   else setExpanded(true, true);
 });
 
@@ -273,10 +273,11 @@ function setOutput(text) {
   }
 }
 
-async function copyOutput(msg = 'Kopyalandı') {
+async function copyOutput(msg) {
   if (!state.output) return;
+  const text = msg || i18n.t('app.copiedToClipboard');
   await api.clipboard.write(state.output);
-  setStatus({ text: msg, kind: 'success' });
+  setStatus({ text, kind: 'success' });
 }
 
 /* ------------------------------------------------------------------ */
@@ -381,7 +382,7 @@ function renderSuggestions({ pending, items }) {
     suggestsEl.hidden = false;
     const lead = document.createElement('span');
     lead.className = 'lead';
-    lead.textContent = 'öneriler hazırlanıyor…';
+    lead.textContent = i18n.t('card.suggestionsPending');
     suggestsEl.appendChild(lead);
     return;
   }
@@ -394,7 +395,7 @@ function renderSuggestions({ pending, items }) {
   suggestsEl.hidden = false;
   const lead = document.createElement('span');
   lead.className = 'lead';
-  lead.textContent = 'öneri:';
+  lead.textContent = i18n.t('card.suggestionsLead');
   suggestsEl.appendChild(lead);
 
   for (const it of items) {
@@ -436,7 +437,7 @@ async function generate() {
   const raw = inputEl.value.trim();
   const image = imageHandler.getImage();
   if (!raw && !image) {
-    setStatus({ text: 'Önce bir metin veya resim girin', kind: 'info' });
+    setStatus({ text: i18n.t('card.noTextOrImage'), kind: 'info' });
     inputEl.focus();
     return;
   }
@@ -466,7 +467,7 @@ $('btnRefine').addEventListener('click', applyRefine);
 $('btnPaste').addEventListener('click', async () => {
   const text = await api.clipboard.read();
   if (!text.trim()) {
-    setStatus({ text: 'Pano boş', kind: 'info' });
+    setStatus({ text: i18n.t('app.clipboardEmpty'), kind: 'info' });
     return;
   }
   inputEl.value = text.trim();
@@ -520,7 +521,8 @@ function renderMeta() {
   if (!s) return;
   const prov = state.providers.find((p) => p.id === s.provider);
   const label = prov ? prov.label.replace(/\s*\(.*\)$/, '') : s.provider;
-  metaEl.textContent = s.model ? `${label} · ${s.model}` : `${label} · model seçilmedi`;
+  const selectModelTxt = i18n.t('app.selectModel');
+  metaEl.textContent = s.model ? `${label} · ${s.model}` : `${label} · ${selectModelTxt}`;
 }
 
 function applySettings(s) {
@@ -559,7 +561,7 @@ api.on.suggestions(renderSuggestions);
 api.on.done(({ output, copied }) => {
   setOutput(output);
   if (!state.expanded) {
-    showBubble(copied ? 'Prompt hazır — panoya kopyalandı' : 'Prompt hazır — kopyalamak için tıkla', 'success', 7000);
+    showBubble(copied ? i18n.t('app.bubbleCopied') : i18n.t('app.bubbleReady'), 'success', 7000);
     setBadge('ok');
   }
 });
@@ -603,7 +605,7 @@ api.on.loadEntry((item) => {
   inputEl.value = item.input || '';
   state.lastInput = item.input || '';
   setOutput(item.output || '');
-  setStatus({ text: 'Geçmişten yüklendi', kind: 'info' });
+  setStatus({ text: i18n.t('app.loadedFromHistory'), kind: 'info' });
 });
 
 api.on.settingsChanged((s) => applySettings(s));

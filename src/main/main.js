@@ -341,27 +341,67 @@ function trayIcon() {
   }
 }
 
+function getMenuLabels() {
+  const lang = settings.get('appLanguage') || 'tr';
+  if (lang === 'en') {
+    return {
+      showHide: 'Show / Hide',
+      runClipboard: 'Generate prompt from clipboard',
+      settings: 'Settings…',
+      history: 'History…',
+      about: 'About…',
+      exit: 'Exit',
+      collapse: 'Collapse',
+      expand: 'Expand',
+      copyLast: 'Copy last result',
+      alwaysOnTop: 'Always on top',
+      hideToTray: 'Hide to tray',
+      copiedToClipboard: 'Copied to clipboard',
+      noResultToCopy: 'No result to copy'
+    };
+  }
+  return {
+    showHide: 'Göster / Gizle',
+    runClipboard: 'Panodaki metinden prompt üret',
+    settings: 'Ayarlar…',
+    history: 'Geçmiş…',
+    about: 'Hakkında…',
+    exit: 'Çıkış',
+    collapse: 'Küçült',
+    expand: 'Genişlet',
+    copyLast: 'Son sonucu kopyala',
+    alwaysOnTop: 'Her zaman üstte kal',
+    hideToTray: 'Gizle (tepsiye)',
+    copiedToClipboard: 'Panoya kopyalandı',
+    noResultToCopy: 'Kopyalanacak sonuç yok'
+  };
+}
+
 function buildTray() {
+  if (tray) {
+    try { tray.destroy(); } catch {}
+  }
   tray = new Tray(trayIcon());
   tray.setToolTip('Sparky AI');
+  const L = getMenuLabels();
   const menu = Menu.buildFromTemplate([
     { label: 'Sparky AI', enabled: false },
     { type: 'separator' },
     {
-      label: 'Göster / Gizle',
+      label: L.showHide,
       click: () => {
         if (!orb || orb.isDestroyed()) return;
         if (orb.isVisible()) orb.hide();
         else orb.show();
       }
     },
-    { label: 'Panodaki metinden prompt üret', click: () => generateFromClipboard() },
+    { label: L.runClipboard, click: () => generateFromClipboard() },
     { type: 'separator' },
-    { label: 'Ayarlar…', click: () => createPanel('settings') },
-    { label: 'Geçmiş…', click: () => createPanel('history') },
+    { label: L.settings, click: () => createPanel('settings') },
+    { label: L.history, click: () => createPanel('history') },
     { type: 'separator' },
     {
-      label: 'Çıkış',
+      label: L.exit,
       click: () => {
         app.isQuitting = true;
         app.quit();
@@ -438,23 +478,25 @@ function registerIpc() {
   });
 
   ipcMain.on('ui:orbMenu', () => {
+    const L = getMenuLabels();
     const menu = Menu.buildFromTemplate([
-      { label: expanded ? 'Küçült' : 'Genişlet', click: () => setExpanded(!expanded, { focusInput: true }) },
+      { label: expanded ? L.collapse : L.expand, click: () => setExpanded(!expanded, { focusInput: true }) },
       {
-        label: 'Son sonucu kopyala',
+        label: L.copyLast,
         enabled: !!lastOutput,
         click: () => {
           clipboard.writeText(lastOutput);
-          send('gen:status', { text: 'Panoya kopyalandı', kind: 'success' });
+          send('gen:status', { text: L.copiedToClipboard, kind: 'success' });
         }
       },
-      { label: 'Panodaki metinden üret', click: generateFromClipboard },
+      { label: L.runClipboard, click: generateFromClipboard },
       { type: 'separator' },
-      { label: 'Ayarlar…', click: () => createPanel('settings') },
-      { label: 'Geçmiş…', click: () => createPanel('history') },
+      { label: L.settings, click: () => createPanel('settings') },
+      { label: L.history, click: () => createPanel('history') },
+      { label: L.about, click: () => createPanel('about') },
       { type: 'separator' },
       {
-        label: 'Her zaman üstte',
+        label: L.alwaysOnTop,
         type: 'checkbox',
         checked: !!settings.get('alwaysOnTop'),
         click: (item) => {
@@ -462,9 +504,9 @@ function registerIpc() {
           orb.setAlwaysOnTop(item.checked, 'screen-saver');
         }
       },
-      { label: 'Gizle (tepsiye)', click: () => orb.hide() },
+      { label: L.hideToTray, click: () => orb.hide() },
       {
-        label: 'Çıkış',
+        label: L.exit,
         click: () => {
           app.isQuitting = true;
           app.quit();
@@ -478,6 +520,7 @@ function registerIpc() {
   ipcMain.handle('settings:get', () => settings.all());
   ipcMain.handle('settings:patch', (_e, partial) => {
     const next = settings.patch(partial || {});
+    if ('appLanguage' in (partial || {})) buildTray();
     if ('alwaysOnTop' in (partial || {}) && orb) orb.setAlwaysOnTop(!!next.alwaysOnTop, 'screen-saver');
     if ('opacity' in (partial || {}) && orb) orb.setOpacity(Number(next.opacity) || 1);
     if ('launchAtStartup' in (partial || {})) {

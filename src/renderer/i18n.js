@@ -101,21 +101,29 @@ class I18nManager {
   }
 
   /**
-   * Automatically updates DOM elements with data-i18n attribute.
+   * Automatically updates DOM elements with data-i18n, data-i18n-title, data-i18n-placeholder.
    * @param {HTMLElement|Document} [root]
    */
   translateDOM(root = document) {
-    const elements = root.querySelectorAll('[data-i18n]');
-    elements.forEach((el) => {
+    root.querySelectorAll('[data-i18n]').forEach((el) => {
       const key = el.getAttribute('data-i18n');
       const attr = el.getAttribute('data-i18n-attr');
       const translated = this.t(key);
-
       if (attr) {
         el.setAttribute(attr, translated);
       } else {
         el.textContent = translated;
       }
+    });
+
+    root.querySelectorAll('[data-i18n-title]').forEach((el) => {
+      const key = el.getAttribute('data-i18n-title');
+      el.title = this.t(key);
+    });
+
+    root.querySelectorAll('[data-i18n-placeholder]').forEach((el) => {
+      const key = el.getAttribute('data-i18n-placeholder');
+      el.placeholder = this.t(key);
     });
   }
 }

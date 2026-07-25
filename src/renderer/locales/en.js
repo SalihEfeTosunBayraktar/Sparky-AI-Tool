@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * English translation dictionary for Sparky AI.
+ * Comprehensive English translation dictionary for Sparky AI.
  * İngilizce çeviri sözlüğü.
  */
 const en = {
@@ -11,12 +11,17 @@ const en = {
     ready: 'Ready',
     thinking: 'Thinking…',
     preparing: 'Preparing…',
+    analyzing: 'Analyzing intent…',
+    writing: 'Writing prompt…',
+    polishing: 'Polishing…',
+    clarifying: 'Scanning ambiguities…',
     selectModel: 'Select model',
     orbTooltip: 'Click: open panel · Double click / middle click: prompt from clipboard · Ctrl+click: copy result · Right click: menu',
     bubbleCopied: 'Prompt ready — copied to clipboard',
     bubbleReady: 'Prompt ready — click to copy',
     clipboardEmpty: 'Clipboard empty',
     copiedToClipboard: 'Copied to clipboard',
+    noResultToCopy: 'No result to copy',
     loadedFromHistory: 'Loaded from history'
   },
   card: {
@@ -44,9 +49,17 @@ const en = {
     btnRegen: 'Regenerate',
     btnHistory: 'History',
     refinePlaceholder: 'Request edit: “make it shorter”, “in English”, “add JSON format”…',
-    btnApplyRefine: 'Apply'
+    btnApplyRefine: 'Apply',
+    menuTitle: 'Menu (right click)',
+    collapseTitle: 'Collapse (Esc)',
+    hideTitle: 'Hide to tray',
+    noTextOrImage: 'Please enter text or upload an image first'
   },
   panel: {
+    title: 'Sparky AI — Settings',
+    winMinimize: 'Minimize',
+    winMaximize: 'Maximize',
+    winClose: 'Close',
     tabs: {
       settings: 'Settings',
       history: 'History',
@@ -54,7 +67,7 @@ const en = {
     },
     sections: {
       providerAndModel: 'Provider & Model',
-      appInterface: 'Application Language',
+      appInterface: 'App Language',
       apiKeys: 'API Keys',
       generation: 'Generation',
       behavior: 'Behavior',
@@ -81,26 +94,51 @@ const en = {
         high: 'High — best quality'
       },
       deepModeLabel: 'Deep mode (analyze → write → polish)',
+      deepModeHint: 'Three stage pipeline. Slower, noticeable improvement on smaller local models.',
       clarifyLabel: 'Ask clarifying questions',
+      clarifyHint: 'If note is ambiguous, asks up to 3 questions before generating; your answers shape the prompt.',
       suggestionsLabel: 'Generate improvement suggestions',
+      suggestionsHint: 'Shows one-click actionable suggestion badges below the result.',
       alwaysOnTop: 'Always on top',
       autoCopy: 'Auto copy result',
       launchAtStartup: 'Launch with Windows',
       historyLimit: 'History limit',
       opacity: 'Orb opacity',
       btnReset: 'Reset settings',
-      savedTag: 'saved'
+      savedTag: 'saved',
+      cryptoNoteAvailable: 'API keys are encrypted using Windows DPAPI and stored securely for this user account only.',
+      cryptoNoteUnavailable: 'WARNING: Encryption unavailable on this system; keys are stored in plain text (base64).',
+      registered: 'saved',
+      notRegistered: 'none',
+      btnSaveKey: 'Save',
+      btnDeleteKey: 'Delete',
+      testingConnection: 'Connecting…',
+      connectionSuccess: 'Connection successful. {{count}} models found.',
+      connectionFailed: 'Connection failed',
+      localNotFound: 'No running local server found. Are Ollama or LM Studio running?',
+      probeFound: 'Found: {{names}}',
+      shortcutsHint: 'Click input and press key combination. Press Backspace to clear.',
+      shortcutsError: 'The following shortcuts are used by system and could not be registered:'
     },
     history: {
       searchPlaceholder: 'Search history…',
       exportMd: 'Export .md',
       exportJson: 'Export .json',
-      clear: 'Clear'
+      clear: 'Clear',
+      noEntries: 'No history entries yet.',
+      noSearchResults: 'No entries match your search.'
     },
     about: {
       description: 'Floating prompt assistant. Converts your note into a ready-to-use prompt while preserving context and intent.',
       openDataDir: 'Open data directory',
-      shortcutsSummaryTitle: 'Shortcuts Summary'
+      shortcutsSummaryTitle: 'Shortcuts Summary',
+      clickOrb: 'Click orb — open panel',
+      doubleClickOrb: 'Double click or middle click orb — prompt from clipboard directly',
+      ctrlClickOrb: 'Ctrl + click orb — copy last result',
+      rightClickOrb: 'Right click orb — quick menu',
+      clickBubble: 'Click bubble — copy ready result',
+      ctrlEnter: 'Ctrl + Enter — generate',
+      esc: 'Esc — stop generation / collapse panel'
     }
   }
 };

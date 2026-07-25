@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * Turkish translation dictionary for Sparky AI.
+ * Comprehensive Turkish translation dictionary for Sparky AI.
  * Türkçe çeviri sözlüğü.
  */
 const tr = {
@@ -11,12 +11,17 @@ const tr = {
     ready: 'Hazır',
     thinking: 'Düşünüyor…',
     preparing: 'Hazırlanıyor…',
+    analyzing: 'Niyet çözümleniyor…',
+    writing: 'Prompt yazılıyor…',
+    polishing: 'Cilalanıyor…',
+    clarifying: 'Belirsizlikler taranıyor…',
     selectModel: 'Model seçin',
     orbTooltip: 'Tık: paneli aç · Çift tık / orta tık: panodaki metni prompt yap · Ctrl+tık: son sonucu kopyala · Sağ tık: menü',
     bubbleCopied: 'Prompt hazır — panoya kopyalandı',
     bubbleReady: 'Prompt hazır — kopyalamak için tıkla',
     clipboardEmpty: 'Pano boş',
     copiedToClipboard: 'Panoya kopyalandı',
+    noResultToCopy: 'Kopyalanacak sonuç yok',
     loadedFromHistory: 'Geçmişten yüklendi'
   },
   card: {
@@ -44,9 +49,17 @@ const tr = {
     btnRegen: 'Yeniden',
     btnHistory: 'Geçmiş',
     refinePlaceholder: 'Düzeltme iste: “daha kısa”, “İngilizce olsun”, “JSON çıktı ekle”…',
-    btnApplyRefine: 'Uygula'
+    btnApplyRefine: 'Uygula',
+    menuTitle: 'Menü (sağ tık)',
+    collapseTitle: 'Küçült (Esc)',
+    hideTitle: 'Tepsiye gizle',
+    noTextOrImage: 'Önce bir metin veya resim girin'
   },
   panel: {
+    title: 'Sparky AI — Ayarlar',
+    winMinimize: 'Küçült',
+    winMaximize: 'Büyüt',
+    winClose: 'Kapat',
     tabs: {
       settings: 'Ayarlar',
       history: 'Geçmiş',
@@ -54,7 +67,7 @@ const tr = {
     },
     sections: {
       providerAndModel: 'Sağlayıcı ve model',
-      appInterface: 'Uygulama ve Arayüz Dili',
+      appInterface: 'Arayüz Dili (App Language)',
       apiKeys: 'API anahtarları',
       generation: 'Üretim',
       behavior: 'Davranış',
@@ -81,26 +94,51 @@ const tr = {
         high: 'Yüksek — en iyi'
       },
       deepModeLabel: 'Derin mod (analiz → yaz → cilala)',
+      deepModeHint: 'Üç aşamalı hat. Daha yavaş, küçük yerel modellerde belirgin fark yaratır.',
       clarifyLabel: 'Netleştirme soruları sor',
+      clarifyHint: 'Metin belirsizse model üretimden önce en fazla 3 soru sorar; cevaplarınız prompt\'a işlenir.',
       suggestionsLabel: 'İyileştirme önerileri üret',
+      suggestionsHint: 'Sonucun altında tek tıkla uygulanabilir öneri rozetleri gösterilir.',
       alwaysOnTop: 'Her zaman üstte kal',
       autoCopy: 'Sonucu otomatik kopyala',
       launchAtStartup: 'Windows ile başlat',
       historyLimit: 'Geçmiş kaydı sınırı',
       opacity: 'Küre saydamlığı',
       btnReset: 'Ayarları sıfırla',
-      savedTag: 'kaydedildi'
+      savedTag: 'kaydedildi',
+      cryptoNoteAvailable: 'Anahtarlar Windows DPAPI ile şifrelenip yalnızca bu kullanıcı hesabında çözülebilecek şekilde saklanır.',
+      cryptoNoteUnavailable: 'UYARI: Bu sistemde şifreleme kullanılamıyor; anahtarlar diskte düz metne yakın saklanır.',
+      registered: 'kayıtlı',
+      notRegistered: 'yok',
+      btnSaveKey: 'Kaydet',
+      btnDeleteKey: 'Sil',
+      testingConnection: 'Bağlanılıyor…',
+      connectionSuccess: 'Bağlantı başarılı. {{count}} model bulundu.',
+      connectionFailed: 'Bağlantı başarısız',
+      localNotFound: 'Çalışan yerel sunucu bulunamadı. Ollama veya LM Studio açık mı?',
+      probeFound: 'Bulundu: {{names}}',
+      shortcutsHint: 'Kutuya tıklayıp tuş kombinasyonuna basın. Temizlemek için Backspace.',
+      shortcutsError: 'Şu kısayollar sistem tarafından kullanılıyor, atanamadı:'
     },
     history: {
       searchPlaceholder: 'Geçmişte ara…',
       exportMd: '.md dışa aktar',
       exportJson: '.json dışa aktar',
-      clear: 'Temizle'
+      clear: 'Temizle',
+      noEntries: 'Henüz kayıt yok.',
+      noSearchResults: 'Aramayla eşleşen kayıt yok.'
     },
     about: {
       description: 'Yüzen prompt asistanı. Girdiğiniz metni, konuyu ve bağlamı bozmadan kullanıma hazır bir prompt\'a çevirir.',
       openDataDir: 'Veri klasörünü aç',
-      shortcutsSummaryTitle: 'Kısayol özeti'
+      shortcutsSummaryTitle: 'Kısayol özeti',
+      clickOrb: 'Küreye tık — paneli aç',
+      doubleClickOrb: 'Küreye çift tık veya orta tık — panodaki metni doğrudan prompt\'a çevir',
+      ctrlClickOrb: 'Ctrl + küreye tık — son sonucu kopyala',
+      rightClickOrb: 'Küreye sağ tık — hızlı menü',
+      clickBubble: 'Baloncuğa tık — hazır sonucu kopyala',
+      ctrlEnter: 'Ctrl + Enter — üret',
+      esc: 'Esc — üretimi durdur / paneli küçült'
     }
   }
 };

@@ -66,8 +66,8 @@ function renderProviderFields() {
   $('endpoint').disabled = false;
   $('endpointHint').textContent = p.endpointHint || '';
   $('providerHint').textContent = p.needsKey
-    ? 'Bu sağlayıcı için API anahtarı gerekiyor (aşağıdaki bölüm).'
-    : 'Yerel sunucu — API anahtarı gerekmez.';
+    ? (typeof i18n !== 'undefined' ? i18n.t('panel.fields.modelManualHint') : 'Bu sağlayıcı için API anahtarı gerekiyor.')
+    : (typeof i18n !== 'undefined' ? i18n.t('panel.fields.modelManualHint') : 'Yerel sunucu — API anahtarı gerekmez.');
   $('testResult').hidden = true;
 }
 
@@ -75,7 +75,7 @@ async function loadModels({ silent = false } = {}) {
   const sel = $('model');
   sel.innerHTML = '';
   const loading = document.createElement('option');
-  loading.textContent = 'yükleniyor…';
+  loading.textContent = typeof i18n !== 'undefined' ? i18n.t('panel.fields.testingConnection') : 'yükleniyor…';
   sel.appendChild(loading);
   sel.disabled = true;
 
@@ -141,12 +141,10 @@ $('modelManual').addEventListener('change', async () => {
   if (!v) return;
   await save({ model: v, modelByProvider: { [settings.provider]: v } });
   const sel = $('model');
-  if (![...sel.options].some((o) => o.value === v)) {
-    const opt = document.createElement('option');
-    opt.value = v;
-    opt.textContent = `${v} (elle)`;
-    sel.appendChild(opt);
-  }
+  const opt = document.createElement('option');
+  opt.value = v;
+  opt.textContent = v;
+  sel.appendChild(opt);
   sel.value = v;
   $('modelManual').value = '';
 });
@@ -155,21 +153,28 @@ $('btnModels').addEventListener('click', () => loadModels());
 
 $('btnTest').addEventListener('click', async () => {
   const el = $('testResult');
-  showResult(el, 'Bağlanılıyor…', 'warn');
+  const testingMsg = typeof i18n !== 'undefined' ? i18n.t('panel.fields.testingConnection') : 'Bağlanılıyor…';
+  showResult(el, testingMsg, 'warn');
   const res = await api.providers.test(settings.provider);
-  if (res.ok) showResult(el, `Bağlantı başarılı. ${res.count} model bulundu.\n${res.sample.join(', ')}`, 'ok');
-  else showResult(el, res.error, 'bad');
+  if (res.ok) {
+    const successMsg = typeof i18n !== 'undefined' ? i18n.t('panel.fields.connectionSuccess', { count: res.count }) : `Bağlantı başarılı. ${res.count} model bulundu.`;
+    showResult(el, `${successMsg}\n${res.sample.join(', ')}`, 'ok');
+  } else {
+    showResult(el, res.error, 'bad');
+  }
 });
 
 $('btnProbe').addEventListener('click', async () => {
   const found = await api.providers.probe();
   const el = $('testResult');
   if (!found.length) {
-    showResult(el, 'Çalışan yerel sunucu bulunamadı. Ollama veya LM Studio açık mı?', 'warn');
+    const notFoundMsg = typeof i18n !== 'undefined' ? i18n.t('panel.fields.localNotFound') : 'Çalışan yerel sunucu bulunamadı.';
+    showResult(el, notFoundMsg, 'warn');
     return;
   }
   const names = found.map((f) => providers.find((p) => p.id === f)?.label || f);
-  showResult(el, `Bulundu: ${names.join(', ')}`, 'ok');
+  const foundMsg = typeof i18n !== 'undefined' ? i18n.t('panel.fields.probeFound', { names: names.join(', ') }) : `Bulundu: ${names.join(', ')}`;
+  showResult(el, foundMsg, 'ok');
   if (!found.includes(settings.provider)) {
     await save({ provider: found[0] });
     renderProviderFields();
@@ -196,14 +201,19 @@ function renderKeys() {
     name.textContent = p.label;
     name.title = p.keyHint || '';
 
+    const regTxt = typeof i18n !== 'undefined' ? i18n.t('panel.fields.registered') : 'kayıtlı';
+    const notRegTxt = typeof i18n !== 'undefined' ? i18n.t('panel.fields.notRegistered') : 'yok';
+    const saveTxt = typeof i18n !== 'undefined' ? i18n.t('panel.fields.btnSaveKey') : 'Kaydet';
+    const deleteTxt = typeof i18n !== 'undefined' ? i18n.t('panel.fields.btnDeleteKey') : 'Sil';
+
     const input = document.createElement('input');
     input.type = 'password';
-    input.placeholder = p.hasKey ? `kayıtlı • ****${p.keyMask}` : p.keyHint || 'API anahtarı';
+    input.placeholder = p.hasKey ? `${regTxt} • ****${p.keyMask}` : p.keyHint || 'API key';
     input.autocomplete = 'off';
 
     const saveBtn = document.createElement('button');
     saveBtn.className = 'btn';
-    saveBtn.textContent = 'Kaydet';
+    saveBtn.textContent = saveTxt;
     saveBtn.addEventListener('click', async () => {
       const v = input.value.trim();
       if (!v) return;
@@ -215,12 +225,12 @@ function renderKeys() {
 
     const state = document.createElement('span');
     state.className = `state${p.hasKey ? ' on' : ''}`;
-    state.textContent = p.hasKey ? 'kayıtlı' : 'yok';
+    state.textContent = p.hasKey ? regTxt : notRegTxt;
 
     if (p.hasKey) {
       const del = document.createElement('button');
       del.className = 'btn danger';
-      del.textContent = 'Sil';
+      del.textContent = deleteTxt;
       del.addEventListener('click', async () => {
         await api.secrets.set(p.id, '');
         providers = await api.providers.catalog();
@@ -395,7 +405,7 @@ function renderHistory() {
   if (!items.length) {
     const p = document.createElement('p');
     p.className = 'empty-note';
-    p.textContent = historyItems.length ? 'Aramayla eşleşen kayıt yok.' : 'Henüz kayıt yok.';
+    p.textContent = historyItems.length ? i18n.t('panel.history.noSearchResults') : i18n.t('panel.history.noEntries');
     host.appendChild(p);
     return;
   }
@@ -433,17 +443,23 @@ function renderHistory() {
       return b;
     };
 
-    mk('Kopyala', 'primary', () => api.clipboard.write(item.output));
-    mk('Panele yükle', '', () => api.history.reuse(item.id));
-    mk('Tamamını göster', '', (e) => {
+    const copyTxt = i18n.t('card.btnCopy');
+    const reuseTxt = typeof i18n !== 'undefined' ? (i18n.currentLang === 'en' ? 'Load in panel' : 'Panele yükle') : 'Panele yükle';
+    const showAllTxt = typeof i18n !== 'undefined' ? (i18n.currentLang === 'en' ? 'Show all' : 'Tamamını göster') : 'Tamamını göster';
+    const collapseTxt = typeof i18n !== 'undefined' ? (i18n.currentLang === 'en' ? 'Collapse' : 'Daralt') : 'Daralt';
+    const deleteTxt = typeof i18n !== 'undefined' ? (i18n.currentLang === 'en' ? 'Delete' : 'Sil') : 'Sil';
+
+    mk(copyTxt, 'primary', () => api.clipboard.write(item.output));
+    mk(reuseTxt, '', () => api.history.reuse(item.id));
+    mk(showAllTxt, '', (e) => {
       out.classList.toggle('open');
-      e.target.textContent = out.classList.contains('open') ? 'Daralt' : 'Tamamını göster';
+      e.target.textContent = out.classList.contains('open') ? collapseTxt : showAllTxt;
     });
-    mk(item.favorite ? '★ Favori' : '☆ Favori', '', async () => {
+    mk(item.favorite ? '★ Favorite' : '☆ Favorite', '', async () => {
       await api.history.update(item.id, { favorite: !item.favorite });
       loadHistory();
     });
-    mk('Sil', 'danger', async () => {
+    mk(deleteTxt, 'danger', async () => {
       await api.history.remove(item.id);
       loadHistory();
     });
@@ -474,11 +490,12 @@ async function renderAbout() {
   const info = await api.meta.app();
   const dl = $('aboutList');
   dl.innerHTML = '';
+  const isEn = typeof i18n !== 'undefined' && i18n.currentLang === 'en';
   const rows = [
-    ['Sürüm', info.version],
+    [isEn ? 'Version' : 'Sürüm', info.version],
     ['Electron', info.electron],
-    ['Veri klasörü', info.userData],
-    ['Anahtar şifrelemesi', info.encryptionAvailable ? 'Etkin (Windows DPAPI)' : 'Kullanılamıyor']
+    [isEn ? 'Data directory' : 'Veri klasörü', info.userData],
+    [isEn ? 'Key encryption' : 'Anahtar şifrelemesi', info.encryptionAvailable ? (isEn ? 'Active (Windows DPAPI)' : 'Etkin (Windows DPAPI)') : (isEn ? 'Unavailable' : 'Kullanılamıyor')]
   ];
   for (const [k, v] of rows) {
     const dt = document.createElement('dt');
@@ -488,8 +505,8 @@ async function renderAbout() {
     dl.append(dt, dd);
   }
   $('cryptoNote').textContent = info.encryptionAvailable
-    ? 'Anahtarlar Windows DPAPI ile şifrelenip yalnızca bu kullanıcı hesabında çözülebilecek şekilde saklanır.'
-    : 'UYARI: Bu sistemde şifreleme kullanılamıyor; anahtarlar diskte düz metne yakın (base64) saklanır.';
+    ? i18n.t('panel.fields.cryptoNoteAvailable')
+    : i18n.t('panel.fields.cryptoNoteUnavailable');
 }
 
 /* ------------------------------------------------------------------ */
