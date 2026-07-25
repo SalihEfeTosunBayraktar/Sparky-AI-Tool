@@ -159,13 +159,20 @@ Rules:
 - Only propose changes that would genuinely improve the output. Never suggest rewording for its own sake.
 - Do not rewrite the prompt yourself.`;
 
-const REFINE_SYSTEM = `You are a prompt editor. You are given a raw note and a draft prompt written from it.
-Improve the draft:
-- Remove any drift: anything not grounded in the note must go, unless it is a clearly-labelled standard assumption.
-- Remove any meta-text, preamble, sign-off, or markdown code fence.
-- Tighten wording; delete filler; keep every concrete requirement.
-- Keep the draft's language and overall structure.
-Output ONLY the final prompt. No commentary.`;
+const REFINE_SYSTEM = `You are a prompt editor and polisher. You are given a raw note and a draft prompt written from it.
+Your goal is to polish the DRAFT PROMPT for clarity, grammar, and flow WITHOUT losing any details.
+
+STRICT RETENTION RULES (ZERO INFORMATION LOSS):
+- NEVER remove, omit, abbreviate, condense, or summarize ANY technical requirement, constraint, section, heading, bullet point, <slot> placeholder, code snippet, or spec from the DRAFT PROMPT.
+- NEVER combine multiple detailed bullet points into a single vague summary line.
+- Keep all sections, language, formatting, and overall structure intact.
+
+ALLOWED EDITS ONLY:
+- Fix spelling and grammatical errors.
+- Smooth out awkward phrasing for better natural flow.
+- Remove meta-text, preambles (e.g. "Here is your prompt:"), sign-offs, or wrapping markdown code fences.
+
+The polished prompt MUST retain 100% of the substance and detail of the draft prompt. Output ONLY the final polished prompt with no commentary or explanation.`;
 
 function langOf(cfg) {
   return LANGUAGES[cfg.outputLanguage] || LANGUAGES.auto;
@@ -239,6 +246,48 @@ function answersBlock(answers) {
   return `CLARIFICATIONS — the user answered these. Treat every answer as authoritative and fold it into the prompt:\n${rows
     .map((a) => `- Q: ${a.q}\n  A: ${String(a.a).trim()}`)
     .join('\n')}`;
+}
+
+/**
+ * Validates that the polished prompt (Stage 3) retains the structural integrity and details of the draft prompt (Stage 2).
+ * Veri kaybı veya metin özetleme/kısaltma durumlarında Stage 2 çıktısını korumak için doğrulama yapar.
+ *
+ * @param {string} draft - Stage 2 draft prompt
+ * @param {string} refined - Stage 3 polished prompt
+ * @returns {boolean} True if valid, false if data loss / truncation detected.
+ */
+function validateRefinedPrompt(draft, refined) {
+  if (!draft || typeof draft !== 'string') return true;
+  if (!refined || typeof refined !== 'string') return false;
+
+  const d = draft.trim();
+  const r = refined.trim();
+
+  // 1. Length ratio check: Refined should not drop below 82% of draft length
+  if (r.length < d.length * 0.82) {
+    console.warn(`[promptEngine] Refined prompt rejected: length collapsed from ${d.length} to ${r.length} chars (ratio ${(r.length / d.length).toFixed(2)})`);
+    return false;
+  }
+
+  // 2. Bullet / line item count check: Refined should not lose more than 25% of bullet items
+  const countBullets = (str) => (str.match(/^\s*[-*•\d+.]+\s+/gm) || []).length;
+  const dBullets = countBullets(d);
+  const rBullets = countBullets(r);
+  if (dBullets >= 3 && rBullets < dBullets * 0.75) {
+    console.warn(`[promptEngine] Refined prompt rejected: bullet count dropped from ${dBullets} to ${rBullets}`);
+    return false;
+  }
+
+  // 3. Slot placeholder check: All <slot> placeholders in draft must exist in refined
+  const slots = d.match(/<[^>]{2,40}>/g) || [];
+  for (const slot of slots) {
+    if (!r.includes(slot)) {
+      console.warn(`[promptEngine] Refined prompt rejected: missing slot placeholder "${slot}"`);
+      return false;
+    }
+  }
+
+  return true;
 }
 
 /**
@@ -365,11 +414,15 @@ async function run({
       onToken
     });
     const cleaned = clean(refined.text);
-    if (cleaned) output = cleaned;
+    if (cleaned && validateRefinedPrompt(output, cleaned)) {
+      output = cleaned;
+    } else if (cleaned) {
+      console.info('[promptEngine] Deep Mode polishing rejected due to data loss. Retaining Stage 2 draft prompt.');
+    }
   }
 
   if (!output) throw new Error('Model boş yanıt döndürdü. Modeli veya "Maks. token" ayarını kontrol edin.');
   return output;
 }
 
-module.exports = { run, askQuestions, suggest, styleList, languageList, STYLES, LANGUAGE_LABELS, clean };
+module.exports = { run, askQuestions, suggest, styleList, languageList, STYLES, LANGUAGE_LABELS, clean, validateRefinedPrompt };
