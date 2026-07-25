@@ -59,29 +59,38 @@
             <button id="btnRemoveImg" class="btn-remove-img" title="Görseli kaldır" data-i18n-title="card.removeImage">✕</button>
           </div>
 
-          <textarea
-            id="input"
-            spellcheck="false"
-            placeholder="Ne istediğinizi yazın veya UI tasarım görseli yükleyin.&#10;Ctrl+Enter → üret"
-            data-i18n-placeholder="card.inputPlaceholder"
-          ></textarea>
+          <div class="input-composer" id="inputComposer">
+            <textarea
+              id="input"
+              spellcheck="false"
+              placeholder="Ne istediğinizi yazın veya UI tasarım görseli yükleyin.&#10;Ctrl+Enter → üret"
+              data-i18n-placeholder="card.inputPlaceholder"
+            ></textarea>
 
-          <div class="toolbar">
-            <input type="file" id="imgFileInput" accept="image/*" hidden />
-            <button id="btnAttachImg" class="chip icon-chip" title="UI Görseli / Ekran görüntüsü yükle" data-i18n="card.btnAttachImage" data-i18n-title="card.btnAttachImage">
-              📷 Görsel
-            </button>
-            <select id="projectSelect" class="chip-select" title="Aktif Proje" data-i18n-title="projects.activeBadge"></select>
-            <select id="style" title="Prompt biçimi"></select>
-            <button id="deep" class="chip" title="Analiz → yaz → cilala (3 aşama, daha yavaş ama daha iyi)" data-i18n="card.deepMode" data-i18n-title="card.deepModeTitle">
-              Derin mod
-            </button>
-            <button id="clarify" class="chip" title="Belirsiz noktalar için önce sana soru sorsun" data-i18n="card.askQuestions" data-i18n-title="card.askQuestionsTitle">
-              Soru sor
-            </button>
-            <span class="grow"></span>
-            <button id="btnStop" class="btn danger" hidden data-i18n="card.btnStop">Durdur</button>
-            <button id="btnGen" class="btn primary" data-i18n="card.btnGenerate">Üret</button>
+            <div class="composer-bar">
+              <div class="toolbar">
+                <input type="file" id="imgFileInput" accept="image/*" hidden />
+                <button id="btnAttachImg" class="chip icon-chip" title="UI Görseli / Ekran görüntüsü yükle" data-i18n="card.btnAttachImage" data-i18n-title="card.btnAttachImage">
+                  📷 Görsel
+                </button>
+                <select id="projectSelect" class="chip-select" title="Aktif Proje" data-i18n-title="projects.activeBadge"></select>
+                <select id="style" title="Prompt biçimi"></select>
+                <button id="deep" class="chip" title="Analiz → yaz → cilala (3 aşama, daha yavaş ama daha iyi)" data-i18n="card.deepMode" data-i18n-title="card.deepModeTitle">
+                  Derin mod
+                </button>
+                <button id="clarify" class="chip" title="Belirsiz noktalar için önce sana soru sorsun" data-i18n="card.askQuestions" data-i18n-title="card.askQuestionsTitle">
+                  Soru sor
+                </button>
+              </div>
+
+              <div class="composer-actions">
+                <button id="btnStop" class="btn danger" hidden data-i18n="card.btnStop">Durdur</button>
+                <button id="btnGen" class="btn primary btn-generate">
+                  <span class="btn-gen-spark" aria-hidden="true">✨</span>
+                  <span data-i18n="card.btnGenerate">Üret</span>
+                </button>
+              </div>
+            </div>
           </div>
 
           <div class="row-label out">
