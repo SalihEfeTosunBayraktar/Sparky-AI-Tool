@@ -25,6 +25,7 @@
         <button class="tab active" data-tab="settings" data-i18n="panel.tabs.settings">Genel</button>
         <button class="tab" data-tab="projects" data-i18n="panel.tabs.projects">Projeler</button>
         <button class="tab" data-tab="providers" data-i18n="panel.tabs.providers">Model/API</button>
+        <button class="tab" data-tab="shortcuts" data-i18n="panel.sections.shortcuts">Kısayollar</button>
         <button class="tab" data-tab="history" data-i18n="panel.tabs.history">Geçmiş</button>
         <button class="tab" data-tab="about" data-i18n="panel.tabs.about">Hakkında</button>
       </nav>
@@ -94,7 +95,7 @@
             </div>
           </div>
 
-          <h2 data-i18n="panel.sections.behavior">Davranış</h2>
+          <h2 data-i18n="panel.sections.behavior">Davranış & Arayüz</h2>
           <div class="card">
             <div class="field">
               <label class="switch">
@@ -116,6 +117,14 @@
                 <span class="track"><span class="knob"></span></span>
                 <span class="switch-label" data-i18n="panel.fields.launchAtStartup">Windows ile başlat</span>
               </label>
+            </div>
+            <div class="field">
+              <label for="opacity"><span data-i18n="panel.fields.opacity">Küre saydamlığı</span> — <span id="opacityVal">%100</span></label>
+              <input id="opacity" type="range" min="0.4" max="1" step="0.05" />
+            </div>
+            <div class="field">
+              <label for="historyLimit" data-i18n="panel.fields.historyLimit">Geçmiş kaydı sınırı</label>
+              <input id="historyLimit" type="number" min="10" max="2000" step="10" />
             </div>
           </div>
 
@@ -216,9 +225,32 @@
           </details>
         </section>
 
-        <!-- 4. GEÇMİŞ PANE -->
+        <!-- 4. KISAYOLLAR PANE -->
+        <section id="tab-shortcuts" class="pane">
+          <h2 data-i18n="panel.sections.shortcuts">Kısayollar</h2>
+          <div class="card">
+            <div class="field">
+              <label for="scToggle" data-i18n="panel.fields.scToggle">Paneli aç / kapat</label>
+              <input id="scToggle" class="accel" data-key="toggle" readonly />
+            </div>
+            <div class="field">
+              <label for="scClip" data-i18n="panel.fields.scClip">Panodaki metinden üret</label>
+              <input id="scClip" class="accel" data-key="fromClipboard" readonly />
+            </div>
+            <div class="field">
+              <label for="scCopy" data-i18n="panel.fields.scCopy">Son sonucu kopyala</label>
+              <input id="scCopy" class="accel" data-key="copyLast" readonly />
+            </div>
+            <div class="field">
+              <p class="hint" data-i18n="panel.fields.shortcutsHint">Kutuya tıklayıp tuş kombinasyonuna basın. Temizlemek için Backspace.</p>
+              <p class="result warn" id="scErrors" hidden></p>
+            </div>
+          </div>
+        </section>
+
+        <!-- 5. GEÇMİŞ PANE -->
         <section id="tab-history" class="pane">
-          <div class="bar">
+          <div class="bar" style="display:flex; align-items:center; margin-bottom:8px;">
             <h2 style="margin:0;" data-i18n="panel.tabs.history">Geçmiş</h2>
             <span class="grow"></span>
             <button id="btnClearHistory" class="btn danger" data-i18n="panel.fields.btnClearHistory">Geçmişi temizle</button>
@@ -226,7 +258,7 @@
           <div id="historyList" class="history-list"></div>
         </section>
 
-        <!-- 5. HAKKINDA PANE -->
+        <!-- 6. HAKKINDA PANE -->
         <section id="tab-about" class="pane">
           <div class="card about">
             <span class="orb-icon-lg">✨</span>

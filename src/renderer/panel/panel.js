@@ -270,23 +270,27 @@ function renderKeys() {
 /* ------------------------------------------------------------------ */
 
 function bindCheck(id, key) {
-  $(id).addEventListener('change', () => save({ [key]: $(id).checked }));
+  const el = $(id);
+  if (!el) return;
+  el.addEventListener('change', () => save({ [key]: el.checked }));
 }
 
 function bindNumber(id, key, { min, max } = {}) {
-  $(id).addEventListener('change', () => {
-    let v = Number($(id).value);
+  const el = $(id);
+  if (!el) return;
+  el.addEventListener('change', () => {
+    let v = Number(el.value);
     if (!Number.isFinite(v)) return;
     if (min !== undefined) v = Math.max(min, v);
     if (max !== undefined) v = Math.min(max, v);
-    $(id).value = v;
+    el.value = v;
     save({ [key]: v });
   });
 }
 
-$('style').addEventListener('change', () => save({ style: $('style').value }));
-$('language').addEventListener('change', () => save({ outputLanguage: $('language').value }));
-$('appLanguage').addEventListener('change', () => {
+$('style')?.addEventListener('change', () => save({ style: $('style').value }));
+$('language')?.addEventListener('change', () => save({ outputLanguage: $('language').value }));
+$('appLanguage')?.addEventListener('change', () => {
   const lang = $('appLanguage').value;
   if (typeof i18n !== 'undefined') {
     i18n.setLanguage(lang);
@@ -294,17 +298,17 @@ $('appLanguage').addEventListener('change', () => {
   }
   save({ appLanguage: lang });
 });
-$('effort').addEventListener('change', () => save({ effort: $('effort').value }));
+$('effort')?.addEventListener('change', () => save({ effort: $('effort').value }));
 
-$('temperature').addEventListener('input', () => {
-  $('temperatureVal').textContent = Number($('temperature').value).toFixed(2);
+$('temperature')?.addEventListener('input', () => {
+  if ($('temperatureVal')) $('temperatureVal').textContent = Number($('temperature').value).toFixed(2);
 });
-$('temperature').addEventListener('change', () => save({ temperature: Number($('temperature').value) }));
+$('temperature')?.addEventListener('change', () => save({ temperature: Number($('temperature').value) }));
 
-$('opacity').addEventListener('input', () => {
-  $('opacityVal').textContent = `%${Math.round(Number($('opacity').value) * 100)}`;
+$('opacity')?.addEventListener('input', () => {
+  if ($('opacityVal')) $('opacityVal').textContent = `%${Math.round(Number($('opacity').value) * 100)}`;
 });
-$('opacity').addEventListener('change', () => save({ opacity: Number($('opacity').value) }));
+$('opacity')?.addEventListener('change', () => save({ opacity: Number($('opacity').value) }));
 
 bindCheck('deepMode', 'deepMode');
 bindCheck('autoMode', 'autoMode');
@@ -637,24 +641,23 @@ function renderAll() {
   renderKeys();
 
   if ($('appLanguage')) $('appLanguage').value = settings.appLanguage || 'tr';
+  if ($('style')) $('style').value = settings.style;
+  if ($('language')) $('language').value = settings.outputLanguage;
+  if ($('effort')) $('effort').value = settings.effort || 'medium';
+  if ($('temperature')) $('temperature').value = settings.temperature;
+  if ($('temperatureVal')) $('temperatureVal').textContent = Number(settings.temperature).toFixed(2);
+  if ($('maxTokens')) $('maxTokens').value = settings.maxTokens;
+  if ($('opacity')) $('opacity').value = settings.opacity;
+  if ($('opacityVal')) $('opacityVal').textContent = `%${Math.round(Number(settings.opacity) * 100)}`;
+  if ($('historyLimit')) $('historyLimit').value = settings.historyLimit;
 
-  $('style').value = settings.style;
-  $('language').value = settings.outputLanguage;
-  $('effort').value = settings.effort || 'medium';
-  $('temperature').value = settings.temperature;
-  $('temperatureVal').textContent = Number(settings.temperature).toFixed(2);
-  $('maxTokens').value = settings.maxTokens;
-  $('opacity').value = settings.opacity;
-  $('opacityVal').textContent = `%${Math.round(Number(settings.opacity) * 100)}`;
-  $('historyLimit').value = settings.historyLimit;
-
-  $('deepMode').checked = !!settings.deepMode;
+  if ($('deepMode')) $('deepMode').checked = !!settings.deepMode;
   if ($('autoMode')) $('autoMode').checked = !!settings.autoMode;
-  $('clarify').checked = !!settings.clarify;
-  $('suggestions').checked = !!settings.suggestions;
-  $('alwaysOnTop').checked = !!settings.alwaysOnTop;
-  $('autoCopy').checked = !!settings.autoCopy;
-  $('launchAtStartup').checked = !!settings.launchAtStartup;
+  if ($('clarify')) $('clarify').checked = !!settings.clarify;
+  if ($('suggestions')) $('suggestions').checked = !!settings.suggestions;
+  if ($('alwaysOnTop')) $('alwaysOnTop').checked = !!settings.alwaysOnTop;
+  if ($('autoCopy')) $('autoCopy').checked = !!settings.autoCopy;
+  if ($('launchAtStartup')) $('launchAtStartup').checked = !!settings.launchAtStartup;
   if ($('enableNotifications')) $('enableNotifications').checked = !!settings.enableNotifications;
   if ($('enableSound')) $('enableSound').checked = !!settings.enableSound;
   if ($('notifyOnlyWhenBackground')) $('notifyOnlyWhenBackground').checked = !!settings.notifyOnlyWhenBackground;
