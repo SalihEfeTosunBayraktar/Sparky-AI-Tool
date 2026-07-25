@@ -362,11 +362,18 @@ function appendToken(chunk) {
   outputEl.scrollTop = outputEl.scrollHeight;
 }
 
+const multimodalRenderer = typeof MultimodalRenderer !== 'undefined' ? new MultimodalRenderer() : null;
+
 function setOutput(text) {
   state.output = text;
   state.hasResult = !!text;
-  outputEl.textContent = text || '';
-  if (!text) renderEmpty();
+  if (!text) {
+    renderEmpty();
+  } else if (multimodalRenderer && (text.includes('![')) || (text.includes('data:image/'))) {
+    multimodalRenderer.render(outputEl, text);
+  } else {
+    outputEl.textContent = text;
+  }
   outputEl.scrollTop = 0;
   for (const id of ['btnCopy', 'btnCopyClose', 'btnRegen', 'btnRefine']) {
     $(id).disabled = !text;

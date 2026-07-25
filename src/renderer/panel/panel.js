@@ -32,6 +32,8 @@ function showTab(name) {
 }
 
 document.querySelectorAll('.tab').forEach((t) => t.addEventListener('click', () => showTab(t.dataset.tab)));
+const initialTab = new URLSearchParams(window.location.search).get('tab') || 'settings';
+showTab(initialTab);
 api.on.panelTab((tab) => showTab(tab || 'settings'));
 
 document.addEventListener('keydown', (e) => {

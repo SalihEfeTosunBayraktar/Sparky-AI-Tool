@@ -176,7 +176,7 @@ function createPanel(tab = 'settings') {
     }
   });
 
-  panel.loadFile(path.join(__dirname, '..', 'renderer', 'panel', 'index.html'));
+  panel.loadFile(path.join(__dirname, '..', 'renderer', 'panel', 'index.html'), { query: { tab: tab || 'settings' } });
   panel.once('ready-to-show', () => {
     panel.show();
     panel.webContents.send('panel:tab', tab);
