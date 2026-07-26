@@ -92,7 +92,7 @@ const EN = {
 };
 
 function dict() {
-  return (settings.get('appLanguage') || 'tr') === 'en' ? EN : TR;
+  return (settings.get('appLanguage') || 'en') === 'tr' ? TR : EN;
 }
 
 /**

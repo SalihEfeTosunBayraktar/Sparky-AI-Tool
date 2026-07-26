@@ -161,6 +161,49 @@ korunarak düzenlenir.
 
 ---
 
+## Modlar (Custom Modes)
+
+Ayarlar → **Modlar** sekmesinde, Projeler'e benzer tam bir CRUD yapısı vardır.
+İki yerleşik mod hep vardır ve silinemez — **Normal Sohbet** (doğrudan sohbet)
+ve **Prompt Hazırlayıcı** (bu projenin asıl işi) — ama ikisinin de sistem
+kuralı tamamen düzenlenebilir.
+
+- **Ön modlar (presets)** — yeni bir özel mod oluştururken 10 hazır şablondan
+  seçilir (Boş, Düz, Teknik, Özet, Yaratıcı, Günlük, Proje Danışmanı, Şeffaf
+  Mod, Röportaj Sentezleyici, Biçim Uyarlayıcı); her biri farklı bir değişken
+  grubunu örnekleyerek "bununla neler yapılabilir" sorusuna cevap verir.
+- **Ana Kural** ve **Ek Kurallar** — sözdizimi vurgulamalı, `{{DEĞİŞKEN}}`
+  otomatik tamamlamalı, üzerine gelince açıklama gösteren, genişletilebilir
+  bir IDE editöründe düzenlenir (bkz. `codeEditor.js`).
+- **Değişkenler** — üretim anında gerçek değerle değiştirilen 20 token:
+  `{{LANG}}`, `{{PROJECT}}`, `{{PROJECT_DESC}}`, `{{PROJECT_NOTES}}`,
+  `{{INPUT}}`, `{{ANSWERS}}`, `{{DATE}}`, `{{TIME}}`, `{{YEAR}}`, `{{MONTH}}`,
+  `{{DAY}}`, `{{WEEKDAY}}`, `{{STYLE}}`, `{{STYLE_HINT}}`, `{{MODEL}}`,
+  `{{PROVIDER}}`, `{{TEMPERATURE}}`, `{{EFFORT}}`, `{{DEEP_MODE}}`,
+  `{{GENERATION_MODE}}`.
+- **İçe/dışa aktarma** — modlarınızı `.json` olarak dışa aktarıp başka bir
+  kurulumda içe aktarabilirsiniz; isim çakışması otomatik ayırt edilir.
+
+---
+
+## Bildirim kuyruğu
+
+Küredeki baloncuklar önem derecesine göre sıralanır (kritik/yüksek/normal/
+düşük), aynı olay tekrarlanırsa tek satırda güncellenir (dedupe), ve kuyrukta
+bekleyen varsa asgari süre dolar dolmaz bir sonrakine geçilir — ekran
+boğulmaz. Ayarlar → Bildirimler'den sıklık (Önemli / Normal / Hepsi)
+seçilebilir.
+
+## Çoklu API anahtarı ve otomatik döngü
+
+Her sağlayıcı için birden fazla API anahtarı eklenebilir. Aktif anahtar limit
+aşımına (`rate_limit`) veya geçersizliğe (`invalid`) takılırsa sistem
+otomatik olarak listedeki bir sonraki sağlıklı anahtara geçer; küre bu geçişi
+bir bildirimle bildirir. Anahtar durumları (aktif/limitli/geçersiz) Ayarlar →
+Model/API → API anahtarları altında rozetlerle görünür.
+
+---
+
 ## Mimari
 
 ```
@@ -204,6 +247,27 @@ src/renderer/
 - `settings.json` — ayarlar, pencere konumu
 - `history.json` — girdi/çıktı geçmişi (favoriler limit dolsa da silinmez)
 - `secrets.json` — şifrelenmiş API anahtarları
+- `projects.json` — projeler, metin notları, görseller
+- `modes.json` — yerleşik ve özel modlar
 
 **Hakkında → Veri klasörünü aç** ile doğrudan gidebilirsiniz. Geçmişi `.md` veya
 `.json` olarak dışa aktarabilirsiniz.
+
+---
+
+## Kullanılan açık kaynak bileşenler
+
+| Bileşen | Lisans | Rolü |
+| --- | --- | --- |
+| [Electron](https://www.electronjs.org/) | MIT | Masaüstü çalışma zamanı (Chromium + Node.js) |
+| [@anthropic-ai/sdk](https://github.com/anthropics/anthropic-sdk-typescript) | MIT | Anthropic (Claude) resmî istemci kütüphanesi |
+| [electron-builder](https://www.electron.build/) | MIT | Windows kurulum (NSIS) ve taşınabilir exe paketleme |
+
+Diğer tüm sağlayıcı entegrasyonları (Ollama, LM Studio, OpenAI, Gemini ve
+OpenAI-uyumlu uçlar) ek bir istemci kütüphanesi olmadan, doğrudan `fetch` ile
+konuşur.
+
+## Lisans
+
+[MIT](LICENSE) — dilediğiniz gibi kullanın, değiştirin, dağıtın; tek şart
+lisans metnini korumanız.

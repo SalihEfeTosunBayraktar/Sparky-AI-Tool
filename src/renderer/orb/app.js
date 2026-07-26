@@ -74,6 +74,23 @@ const state = {
 
 let ignoringMouse = true;
 let dragging = false;
+
+// Her "Üret"/"Uygula"/panodan üret/soru-cevaplama çağrısı ayrı bir genId
+// alır. Sorun: gen:suggestions (ve done/error/questions) ana süreçte
+// ÜRETIM BİTTİKTEN SONRA arka planda gelir; kullanıcı sonucu görür görmez
+// hemen yeni bir "Üret" başlatırsa, ESKİ üretimin öneri çipleri az gecikmeli
+// olarak DOM'a düşebilir. Tıklandığında applyInstruction() → mode:'refine'
+// çalışır ve YENİ çıktıyı ESKİ bir düzeltme talimatıyla karıştırır —
+// "bazen prompt düzeltme gibi çalışıyor" şikâyetinin kaynağı buydu. Ana
+// süreç her gen:* olayında aynı genId'yi geri yansıtır; eşleşmeyen olaylar
+// (artık geçersiz/eski üretime ait) sessizce yok sayılır.
+let genSeq = 0;
+
+function startGeneration(payload) {
+  const genId = ++genSeq;
+  return api.gen.start({ ...payload, genId });
+}
+
 let bubbleExitTimer = null;
 
 /* ------------------------------------------------------------------ */
@@ -248,7 +265,7 @@ async function runFromClipboard() {
   hideQuestions();
   hideSuggestions();
   setOutput('');
-  await api.gen.start({ raw: text, mode: 'create' });
+  await startGeneration({ raw: text, mode: 'create' });
 }
 
 bubble.addEventListener('click', () => {
@@ -463,7 +480,7 @@ function collectAnswers() {
 async function continueWithAnswers(answers) {
   hideQuestions();
   setOutput('');
-  await api.gen.start({
+  await startGeneration({
     raw: state.lastInput || inputEl.value.trim(),
     mode: 'create',
     answers,
@@ -520,7 +537,7 @@ function renderSuggestions({ pending, items }) {
 async function applyInstruction(instruction) {
   if (!state.output || !instruction) return;
   hideSuggestions();
-  await api.gen.start({
+  await startGeneration({
     raw: state.lastInput || inputEl.value.trim(),
     mode: 'refine',
     previous: state.output,
@@ -553,7 +570,7 @@ async function generate() {
   hideQuestions();
   hideSuggestions();
   setOutput('');
-  await api.gen.start({ raw, image, mode: 'create' });
+  await startGeneration({ raw, image, mode: 'create' });
 }
 
 async function applyRefine() {
@@ -708,15 +725,28 @@ api.on.autoDecision((res) => {
   }
 });
 
-api.on.questions(({ questions }) => {
+// gen:done/error/questions/suggestions ana süreçten ASENKRON olarak gelir —
+// aralarında kullanıcı YENİ bir üretim başlatmış olabilir. `genId` uyuşmuyorsa
+// bu olay artık geçersiz (eski) bir üretime ait; state.output/DOM'u bozmadan
+// sessizce yok say. Bkz. genSeq/startGeneration tanımının üstündeki not.
+function isStaleGen(genId) {
+  return genId !== undefined && genId !== genSeq;
+}
+
+api.on.questions(({ questions, genId }) => {
+  if (isStaleGen(genId)) return;
   showQuestions(questions);
   // Akış cevap bekliyor; panel kapalıysa kendiliğinden açılmalı.
   if (!state.expanded) setExpanded(true);
 });
 
-api.on.suggestions(renderSuggestions);
+api.on.suggestions((data) => {
+  if (isStaleGen(data.genId)) return;
+  renderSuggestions(data);
+});
 
-api.on.done(({ output, copied }) => {
+api.on.done(({ output, copied, genId }) => {
+  if (isStaleGen(genId)) return;
   setOutput(output);
   // Rozet artık bubbleQueue.onShow içinde ayarlanıyor — bu öğe fiilen
   // gösterildiği anda (kesme/kuyruk nedeniyle hemen olmayabilir).
@@ -725,7 +755,8 @@ api.on.done(({ output, copied }) => {
   }
 });
 
-api.on.error(({ message }) => {
+api.on.error(({ message, genId }) => {
+  if (isStaleGen(genId)) return;
   const partial = state.streaming.trim();
   if (partial) {
     // Yarım kalan metni koru — kullanıcı yine de işine yarayan kısmı alabilir.
@@ -789,7 +820,7 @@ async function populateModes() {
   for (const m of catalog) {
     const opt = document.createElement('option');
     opt.value = m.id;
-    opt.textContent = i18n.t(m.labelKey) || m.id;
+    opt.textContent = m.labelKey ? (i18n.t(m.labelKey) || m.id) : m.name;
     if (m.id === activeMode) opt.selected = true;
     modeSel.appendChild(opt);
   }

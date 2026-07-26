@@ -25,8 +25,7 @@ const projectContext = require('./projectContext');
 const { getRotator } = require('./apiKeyRotator');
 const projects = require('./projects');
 const notifier = require('./notifier');
-const { ModeManager } = require('./modeManager');
-const modeManager = new ModeManager(settings);
+const modes = require('./modes');
 const TokenTracker = require('./tokenTracker');
 const tokenTracker = new TokenTracker();
 
@@ -258,6 +257,11 @@ async function runGeneration(payload) {
   const mode = payload.mode || 'create';
   const answers = Array.isArray(payload.answers) ? payload.answers : [];
   const activeProject = projects.getActive();
+  // Renderer'ın startGeneration() ile atadığı sıra numarası — done/error/
+  // questions/suggestions olaylarında aynen geri yansıtılır ki renderer
+  // kullanıcı bu arada YENİ bir üretim başlattıysa eski olayı yok sayabilsin
+  // (bkz. app.js § isStaleGen).
+  const genId = payload.genId;
 
   send('gen:busy', true);
   send('gen:status', { text: S.t('status.preparing'), kind: 'prep' });
@@ -305,7 +309,7 @@ async function runGeneration(payload) {
         // Üretimi burada durdurup topu kullanıcıya atıyoruz; cevaplar
         // gelince aynı akış skipQuestions ile yeniden çağrılacak.
         pendingAutoDeep = forceDeep;
-        send('gen:questions', { questions, raw: payload.raw });
+        send('gen:questions', { questions, raw: payload.raw, genId });
         send('gen:status', { text: S.t('status.haveQuestions', { count: questions.length }), kind: 'info' });
         return { ok: true, questions: true };
       }
@@ -321,6 +325,7 @@ async function runGeneration(payload) {
       instruction: payload.instruction || '',
       answers,
       forceDeep,
+      modeConfig: modes.getActive(),
       settings: cfg,
       chat: chatWithRotationNotice,
       // `key` de gönderiliyor — renderer'daki baloncuk kuyruğu, yerelleştirilmiş
@@ -362,7 +367,7 @@ async function runGeneration(payload) {
 
     // Önce durum, sonra sonuç: baloncukta son sözü "done" mesajı söylesin.
     send('gen:status', { text: S.t(cfg.autoCopy ? 'status.readyCopied' : 'status.ready'), kind: 'success' });
-    send('gen:done', { output, id: entry.id, copied: !!cfg.autoCopy, truncated });
+    send('gen:done', { output, id: entry.id, copied: !!cfg.autoCopy, truncated, genId });
 
     // Devam turlarına rağmen hâlâ kesikse kullanıcı bunu bilmeli — sessizce
     // eksik prompt teslim etmek en kötü sonuç.
@@ -383,7 +388,7 @@ async function runGeneration(payload) {
     // 3) Öneriler — sonuç zaten teslim edildi, bu tur arayüzü kilitlemesin.
     if (cfg.suggestions) {
       send('gen:busy', false);
-      send('gen:suggestions', { pending: true, items: [] });
+      send('gen:suggestions', { pending: true, items: [], genId });
       try {
         const items = await engine.suggest({
           raw: payload.raw,
@@ -392,10 +397,10 @@ async function runGeneration(payload) {
           chat: chatWithRotationNotice,
           signal: controller.signal
         });
-        send('gen:suggestions', { pending: false, items });
+        send('gen:suggestions', { pending: false, items, genId });
       } catch {
         // Öneri turu başarısız olursa sessizce geç — asıl sonuç elimizde.
-        send('gen:suggestions', { pending: false, items: [] });
+        send('gen:suggestions', { pending: false, items: [], genId });
       }
     }
 
@@ -406,7 +411,7 @@ async function runGeneration(payload) {
     projectContext.invalidate('generation-failed');
     const aborted = controller.signal.aborted;
     const message = aborted ? 'Durduruldu.' : err?.message || String(err);
-    send('gen:error', { message, aborted });
+    send('gen:error', { message, aborted, genId });
     send('gen:status', { text: S.t(aborted ? 'status.stopped' : 'status.error'), kind: aborted ? 'info' : 'error' });
     if (!aborted) {
       send('gen:playSound', 'error');
@@ -462,12 +467,12 @@ function registerShortcuts() {
 }
 
 function trayIcon() {
-  try {
-    const img = nativeImage.createFromPath(ICON);
-    return img.isEmpty() ? nativeImage.createEmpty() : img.resize({ width: 16, height: 16 });
-  } catch {
-    return nativeImage.createEmpty();
-  }
+  // `ICON` zaten yüklenmiş bir nativeImage (bkz. üstteki ICON tanımı) — ona
+  // tekrar createFromPath() çağırmak (eskiden buradaydı) bir path string
+  // yerine nesne verdiği için sessizce boş ikona düşüyordu (try/catch bunu
+  // yutuyordu), tepsi ikonunun hiç görünmemesine yol açıyordu.
+  if (ICON.isEmpty()) return nativeImage.createEmpty();
+  return ICON.resize({ width: 16, height: 16 });
 }
 
 // Metinler src/main/strings.js içinde tek kaynakta toplandı.
@@ -832,13 +837,73 @@ function registerIpc() {
     return actId;
   });
 
-  // --- modlar (modes)
-  ipcMain.handle('modes:catalog', () => modeManager.getCatalog());
-  ipcMain.handle('modes:getActive', () => modeManager.getMode());
-  ipcMain.handle('modes:setActive', (_e, mode) => {
-    const actMode = modeManager.setMode(mode);
-    broadcast('modes:changed', actMode);
-    return actMode;
+  // --- modlar (modes) — projeler ile aynı CRUD deseni (bkz. src/main/modes.js)
+  ipcMain.handle('modes:catalog', () =>
+    modes.list().map((m) => ({ id: m.id, labelKey: m.labelKey || null, name: m.name, builtin: !!m.builtin }))
+  );
+  ipcMain.handle('modes:presets', () => modes.presets());
+  ipcMain.handle('modes:variables', () => modes.variables());
+  ipcMain.handle('modes:getActive', () => modes.getActiveId());
+  ipcMain.handle('modes:setActive', (_e, id) => {
+    const actId = modes.setActive(id);
+    broadcast('modes:changed', actId);
+    return actId;
+  });
+  ipcMain.handle('modes:list', () => modes.list());
+  ipcMain.handle('modes:get', (_e, id) => modes.get(id));
+  ipcMain.handle('modes:create', (_e, payload) => {
+    const item = modes.create(payload || {});
+    broadcast('modes:changed', modes.getActiveId());
+    return item;
+  });
+  ipcMain.handle('modes:update', (_e, { id, partial }) => {
+    const m = modes.update(id, partial || {});
+    broadcast('modes:changed', modes.getActiveId());
+    return m;
+  });
+  ipcMain.handle('modes:remove', (_e, id) => {
+    const actId = modes.remove(id);
+    broadcast('modes:changed', actId);
+    return actId;
+  });
+  ipcMain.handle('modes:resetToDefault', (_e, id) => {
+    const m = modes.resetToDefault(id);
+    broadcast('modes:changed', modes.getActiveId());
+    return m;
+  });
+  ipcMain.handle('modes:export', async () => {
+    const items = modes.exportAll();
+    if (!items.length) return { ok: false, error: 'Aktarılacak mod yok.' };
+    const { canceled, filePath } = await dialog.showSaveDialog(panel || orb, {
+      title: 'Modları dışa aktar',
+      defaultPath: 'sparky-modlar.json',
+      filters: [{ name: 'JSON', extensions: ['json'] }]
+    });
+    if (canceled || !filePath) return { ok: false, canceled: true };
+    try {
+      fs.writeFileSync(filePath, JSON.stringify(items, null, 2), 'utf8');
+      return { ok: true, filePath };
+    } catch (err) {
+      return { ok: false, error: err.message };
+    }
+  });
+  ipcMain.handle('modes:import', async () => {
+    const { canceled, filePaths } = await dialog.showOpenDialog(panel || orb, {
+      title: 'Modları içe aktar',
+      filters: [{ name: 'JSON', extensions: ['json'] }],
+      properties: ['openFile']
+    });
+    if (canceled || !filePaths?.length) return { ok: false, canceled: true };
+    try {
+      const raw = fs.readFileSync(filePaths[0], 'utf8');
+      const parsed = JSON.parse(raw);
+      const list = Array.isArray(parsed) ? parsed : [parsed];
+      const count = modes.importList(list);
+      broadcast('modes:changed', modes.getActiveId());
+      return { ok: true, count };
+    } catch (err) {
+      return { ok: false, error: err.message };
+    }
   });
 
   // --- tokenlar (token counter)

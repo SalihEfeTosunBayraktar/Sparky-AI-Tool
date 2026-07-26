@@ -5,6 +5,7 @@
 // üretilen prompt'un dili ise ayardan belirlenir.
 
 const projectContext = require('./projectContext');
+const { PROVIDERS } = require('./llm');
 
 const STYLES = {
   detailed: {
@@ -107,13 +108,71 @@ function languageList() {
   return Object.keys(LANGUAGES).map((id) => ({ id, label: LANGUAGE_LABELS[id] || id }));
 }
 
-function buildSystem(styleId, languageId, appMode) {
+// `modeConfig` modes.js CRUD deposundan gelen tam mod nesnesi (bkz.
+// src/main/modes.js) — `mainRule` HER modda (yerleşik dahil) tamamen
+// düzenlenebilir ana talimattır; `useStyleGuide` true ise seçili Çıktı
+// biçimi rehberi altına eklenir (Prompt Hazırlayıcı'nın çatısı budur);
+// `additionalRules` tek tek maddeler halinde en sona eklenir. Metindeki her
+// {{TOKEN}}, modes.js'in VARIABLES kataloğuyla birebir eşleşir — yeni bir
+// değişken eklemek isterseniz onu HEM buradaki tokenMap'e HEM modes.js'teki
+// VARIABLES listesine eklemeniz gerekir (biri diğerini otomatik güncellemez).
+function buildSystem({ styleId, languageId, modeConfig, project, raw, cfg, mode, answers }) {
   const lang = LANGUAGES[languageId] || LANGUAGES.auto;
-  if (appMode === 'normal-chat') {
-    return NORMAL_CHAT_BASE_RULES.replace('{{LANG}}', lang);
-  }
   const style = STYLES[styleId] || STYLES.detailed;
-  return `${BASE_RULES.replace('{{LANG}}', lang)}\n\n${style.guide}`;
+  const isTr = languageId === 'tr';
+  const locale = isTr ? 'tr-TR' : 'en-US';
+  const now = new Date();
+  const providerLabel = (cfg && PROVIDERS[cfg.provider]?.label) || (cfg && cfg.provider) || '';
+  const projectNotes = project && Array.isArray(project.texts)
+    ? project.texts.map((t) => `${t.title}: ${t.content}`.trim()).filter(Boolean).join('\n')
+    : '';
+
+  const tokenMap = {
+    LANG: lang,
+    PROJECT: (project && project.name) || '',
+    PROJECT_DESC: (project && project.description) || '',
+    PROJECT_NOTES: projectNotes,
+    INPUT: String(raw || ''),
+    ANSWERS: answersBlock(answers),
+    DATE: now.toLocaleDateString(locale, { year: 'numeric', month: 'long', day: 'numeric' }),
+    TIME: now.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' }),
+    YEAR: String(now.getFullYear()),
+    MONTH: now.toLocaleDateString(locale, { month: 'long' }),
+    DAY: String(now.getDate()),
+    WEEKDAY: now.toLocaleDateString(locale, { weekday: 'long' }),
+    STYLE: style.label,
+    STYLE_HINT: style.hint,
+    MODEL: (cfg && cfg.model) || '',
+    PROVIDER: providerLabel,
+    TEMPERATURE: cfg && cfg.temperature !== undefined ? String(cfg.temperature) : '',
+    EFFORT: (cfg && cfg.effort) || '',
+    DEEP_MODE: cfg && cfg.deepMode ? (isTr ? 'Açık' : 'On') : (isTr ? 'Kapalı' : 'Off'),
+    GENERATION_MODE: mode === 'refine' ? (isTr ? 'Düzeltme' : 'Refine') : (isTr ? 'Oluşturma' : 'Create')
+  };
+
+  // Bilinmeyen {{TOKEN}}'lar OLDUĞU GİBİ bırakılır (değiştirilmez) — hem
+  // modeUI.js'teki "tanımsız değişken" uyarısı hâlâ anlamlı kalsın, hem de
+  // kullanıcı yanlışlıkla {{ }} yazarsa sessizce veri kaybı olmasın diye.
+  const interpolate = (s) =>
+    String(s || '').replace(/\{\{\s*([A-Za-z_][A-Za-z0-9_]*)\s*\}\}/g, (m, key) => {
+      const upper = key.toUpperCase();
+      return Object.prototype.hasOwnProperty.call(tokenMap, upper) ? tokenMap[upper] : m;
+    });
+
+  let sys = interpolate(modeConfig ? modeConfig.mainRule : NORMAL_CHAT_BASE_RULES) || interpolate(NORMAL_CHAT_BASE_RULES);
+
+  if (modeConfig && modeConfig.useStyleGuide) {
+    sys += `\n\n${style.guide}`;
+  }
+
+  const rules = Array.isArray(modeConfig && modeConfig.additionalRules)
+    ? modeConfig.additionalRules.map((r) => interpolate(r).trim()).filter(Boolean)
+    : [];
+  if (rules.length) {
+    sys += `\n\nADDITIONAL RULES\n${rules.map((r, i) => `${i + 1}. ${r}`).join('\n')}`;
+  }
+
+  return sys;
 }
 
 // Model yine de kod bloğu / önsöz eklerse temizle.
@@ -475,6 +534,7 @@ async function run({
   instruction = '',
   answers = [],
   forceDeep = false,
+  modeConfig = null,
   settings: cfg,
   chat,
   onStatus,
@@ -508,7 +568,9 @@ async function run({
   // biçim (style) değiştirse bile önbelleğe alınan öneki korur.
   const withProject = (sys) => (projectBlock ? `${projectBlock}\n\n---\n\n${sys}` : sys);
 
-  const system = withProject(buildSystem(cfg.style, cfg.outputLanguage, cfg.appMode));
+  const system = withProject(
+    buildSystem({ styleId: cfg.style, languageId: cfg.outputLanguage, modeConfig, project, raw: note, cfg, mode, answers })
+  );
   const budget = craftBudget(cfg);
   const common = {
     providerId: cfg.provider,
@@ -645,4 +707,17 @@ async function run({
   return { text: output, truncated };
 }
 
-module.exports = { run, askQuestions, suggest, analyzeAutoMode, projectContext, styleList, languageList, STYLES, LANGUAGE_LABELS, clean, validateRefinedPrompt };
+module.exports = {
+  run,
+  askQuestions,
+  suggest,
+  analyzeAutoMode,
+  styleList,
+  languageList,
+  STYLES,
+  LANGUAGE_LABELS,
+  clean,
+  validateRefinedPrompt,
+  NORMAL_CHAT_BASE_RULES,
+  BASE_RULES
+};

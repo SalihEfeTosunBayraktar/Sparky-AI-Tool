@@ -480,6 +480,252 @@ select option {
   font-weight: 550;
 }
 
+/* CodeEditor — IDE tarzı kural editörü (bkz. codeEditor.js) ------------ */
+.code-editor {
+  position: relative;
+  height: 190px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: #1e202b;
+  overflow: hidden;
+  transition: height 0.25s ease-in-out;
+}
+
+.code-editor-inline {
+  height: 34px;
+}
+
+/* Panelin genel "Universal Form Controls Dark Theme Reset" kuralı TÜM
+   textarea'lara !important ile sabit height/padding/font uyguluyor. Bu,
+   görünmez textarea'yı arkasındaki vurgulanmış <pre> ile piksel piksel
+   çakıştırmamızı bozuyordu (yazı farklı boyutta/konumda render oluyor,
+   tıklanan yer ile imleç eşleşmiyordu) — bu yüzden iki katman da AYNI
+   !important ağırlığıyla, birebir aynı kutu modeliyle tanımlanıyor. */
+.code-editor-backdrop,
+.code-editor-input {
+  position: absolute !important;
+  inset: 0 !important;
+  margin: 0 !important;
+  padding: 8px 34px 8px 10px !important;
+  border: none !important;
+  border-radius: 0 !important;
+  height: auto !important;
+  width: auto !important;
+  font-family: "Fira Code", "JetBrains Mono", ui-monospace, "Cascadia Code", Consolas, monospace !important;
+  font-size: 13px !important;
+  line-height: 1.6 !important;
+  white-space: pre-wrap !important;
+  word-wrap: break-word !important;
+  box-sizing: border-box !important;
+}
+
+.code-editor-backdrop {
+  color: var(--txt);
+  pointer-events: none;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.code-editor-backdrop code {
+  font: inherit;
+  background: none;
+}
+
+.code-editor-input {
+  z-index: 2;
+  background: transparent !important;
+  color: transparent !important;
+  caret-color: var(--accent);
+  resize: none;
+  outline: none !important;
+  box-shadow: none !important;
+  overflow: auto;
+  scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+  scrollbar-width: thin;
+}
+
+.code-editor-input::selection {
+  background: rgba(255, 111, 56, 0.35);
+}
+
+.code-editor-input::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.code-editor-input::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.code-editor-input::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+}
+
+.code-editor-input::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+.var-token {
+  color: #ff6b4a;
+  background: rgba(255, 107, 74, 0.1);
+  border-radius: 3px;
+}
+
+.code-editor-expand-btn {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  z-index: 3;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.35);
+  color: var(--txt-dim);
+  font-size: 11px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.code-editor-expand-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(255, 111, 56, 0.12);
+}
+
+.code-editor.expanded {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(680px, 90vw);
+  height: 60vh;
+  z-index: 201;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+  border-color: var(--accent);
+}
+
+.code-editor-scrim {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 200;
+}
+
+.modal-shell.blur-behind {
+  filter: blur(3px);
+  pointer-events: none;
+}
+
+/* Değişken tooltip'i (hover) ------------------------------------------- */
+.var-tooltip {
+  position: fixed;
+  z-index: 250;
+  background: #1e202b;
+  border: 1px solid rgba(255, 107, 74, 0.4);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 11px;
+  max-width: 260px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  transform: translateY(5px);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  pointer-events: none;
+}
+
+.var-tooltip.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.var-tooltip-key {
+  color: #ff6b4a;
+  font-weight: 700;
+  font-family: "Fira Code", "JetBrains Mono", ui-monospace, Consolas, monospace;
+  margin-right: 6px;
+}
+
+.var-tooltip-type {
+  color: var(--txt-faint);
+  font-size: 9.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.var-tooltip-desc {
+  color: var(--txt-dim);
+  margin-top: 4px;
+  line-height: 1.4;
+}
+
+/* Otomatik tamamlama menüsü ({{ tetikleyicisi) -------------------------- */
+.autocomplete-dropdown {
+  position: fixed;
+  z-index: 250;
+  min-width: 220px;
+  max-width: 320px;
+  max-height: 280px;
+  overflow-y: auto;
+  background: #1e202b;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.5);
+  padding: 4px;
+  scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+  scrollbar-width: thin;
+}
+
+.autocomplete-dropdown::-webkit-scrollbar {
+  width: 8px;
+}
+
+.autocomplete-dropdown::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.autocomplete-dropdown::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+}
+
+.autocomplete-dropdown::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+.autocomplete-item {
+  padding: 6px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 11.5px;
+}
+
+.autocomplete-item.active,
+.autocomplete-item:hover {
+  background: rgba(255, 111, 56, 0.14);
+}
+
+.autocomplete-key {
+  display: block;
+  color: #ff6b4a;
+  font-weight: 650;
+  font-family: "Fira Code", "JetBrains Mono", ui-monospace, Consolas, monospace;
+  font-size: 11.5px;
+}
+
+.autocomplete-desc {
+  display: block;
+  color: var(--txt-faint);
+  font-size: 10px;
+  margin-top: 1px;
+}
+
 /* Akordiyon Yapısı */
 .accordion {
   border: 1px solid var(--line);
@@ -563,6 +809,152 @@ select option {
 
 .keyrow input {
   flex: 1;
+}
+
+.keyrow.is-active {
+  background: rgba(255, 111, 56, 0.06);
+  border-radius: 6px;
+  padding-left: 6px;
+  padding-right: 6px;
+}
+
+.keygroup {
+  margin-bottom: 14px;
+}
+
+.keygroup:last-child {
+  margin-bottom: 0;
+}
+
+.keygroup-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+
+.keygroup-head .name {
+  flex: 1;
+  width: auto;
+  font-weight: 650;
+  font-size: 12px;
+  color: var(--txt);
+}
+
+.keycount {
+  font-size: 9.5px;
+  font-weight: 600;
+  color: var(--txt-faint);
+  background: rgba(255, 255, 255, 0.06);
+  padding: 2px 7px;
+  border-radius: 999px;
+  flex: 0 0 auto;
+}
+
+.keylist {
+  display: flex;
+  flex-direction: column;
+}
+
+.keydot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+}
+
+.keydot.ok {
+  background: var(--ok);
+}
+
+.keydot.warn {
+  background: var(--warn);
+}
+
+.keydot.bad {
+  background: var(--err);
+}
+
+.keylabel {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+  background: none;
+  border: none;
+  color: var(--txt);
+  font-size: 11px;
+  font-family: var(--font);
+  cursor: pointer;
+  padding: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.keylabel:hover:not(:disabled) {
+  color: var(--accent);
+}
+
+.keylabel:disabled {
+  color: var(--accent);
+  font-weight: 650;
+  cursor: default;
+}
+
+.state {
+  font-size: 9.5px;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.state.ok {
+  background: rgba(61, 220, 151, 0.12);
+  color: var(--ok);
+}
+
+.state.warn {
+  background: rgba(255, 176, 32, 0.12);
+  color: var(--warn);
+}
+
+.state.bad {
+  background: rgba(255, 95, 109, 0.12);
+  color: var(--err);
+}
+
+.btn.sm {
+  height: 24px;
+  padding: 0 8px;
+  font-size: 10px;
+}
+
+.keyrow.keyadd {
+  margin-top: 6px;
+  border-bottom: none;
+}
+
+.btn.ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--txt-dim);
+}
+
+.btn.ghost:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--txt);
+}
+
+.icon-chip {
+  width: 26px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Projeler Sekmesi Yerleşimi */
@@ -666,6 +1058,199 @@ select option {
   place-items: center;
 }
 
+.field textarea[readonly] {
+  color: var(--txt-dim);
+  background: rgba(0, 0, 0, 0.2);
+  cursor: default;
+}
+
+/* Modlar sekmesi — Değişkenler (IDE) paneli ------------------------- */
+.mode-vars-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mode-var-row {
+  display: grid;
+  grid-template-columns: 90px 55px 1fr auto;
+  gap: 8px;
+  align-items: center;
+  padding: 5px 8px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--line);
+  font-size: 11px;
+}
+
+.mode-var-key {
+  color: var(--accent);
+  font-weight: 650;
+}
+
+.mode-var-type {
+  color: var(--txt-faint);
+  text-transform: uppercase;
+  font-size: 9.5px;
+}
+
+.mode-var-desc {
+  color: var(--txt-dim);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mode-var-value {
+  color: var(--txt);
+  font-weight: 550;
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mode-var-warning {
+  font-size: 11px;
+  color: var(--warn);
+  background: rgba(255, 176, 32, 0.1);
+  border: 1px solid rgba(255, 176, 32, 0.35);
+  border-radius: 6px;
+  padding: 6px 9px;
+}
+
+/* Modlar sekmesi — Ek Kurallar listesi ------------------------------- */
+.mode-rules-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mode-rule-row {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+
+.mode-rule-row .code-editor {
+  flex: 1;
+  min-width: 0;
+}
+
+.mode-rule-row .btn {
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  flex: 0 0 auto;
+}
+
+.mode-empty-note {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background: rgba(255, 176, 32, 0.08);
+  border: 1px solid rgba(255, 176, 32, 0.3);
+  border-radius: 6px;
+  padding: 6px 9px;
+}
+
+.mode-empty-note .btn {
+  height: 24px;
+  padding: 0 8px;
+  font-size: 10.5px;
+  flex: 0 0 auto;
+}
+
+/* Ön mod seçici — native <select> yerine özel çizilen dropdown (bkz. modeUI.js) */
+.mode-dropdown {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+
+.mode-dropdown-btn {
+  width: 100%;
+  justify-content: space-between;
+  font-weight: 600;
+  text-align: left;
+}
+
+.mode-dropdown-list {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: #181922;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.55);
+  z-index: 30;
+  max-height: 280px;
+  overflow-y: auto;
+  scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+  scrollbar-width: thin;
+}
+
+.mode-dropdown-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.mode-dropdown-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.mode-dropdown-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+}
+
+.mode-dropdown-item {
+  padding: 8px 12px;
+  font-size: 11.5px;
+  color: var(--txt);
+  cursor: pointer;
+}
+
+.mode-dropdown-item:hover {
+  background: rgba(255, 111, 56, 0.14);
+  color: var(--accent);
+}
+
+.preset-item {
+  padding: 7px 12px;
+}
+
+.preset-item-name {
+  font-weight: 600;
+  font-size: 11.5px;
+}
+
+.preset-item-desc {
+  font-size: 10px;
+  color: var(--txt-faint);
+  margin-top: 2px;
+  line-height: 1.35;
+  white-space: normal;
+}
+
+.preset-item:hover .preset-item-desc {
+  color: var(--txt-dim);
+}
+
+.mode-kind-badge {
+  font-size: 10px;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--txt-dim);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 3px 8px;
+  white-space: nowrap;
+}
+
 .empty-note {
   font-size: 11px;
   color: var(--txt-faint);
@@ -696,6 +1281,11 @@ select option {
   border-color: var(--accent);
 }
 
+.history-item.fav {
+  border-color: rgba(255, 111, 56, 0.45);
+  background: linear-gradient(180deg, rgba(255, 111, 56, 0.07), var(--bg-card) 40%);
+}
+
 .about {
   text-align: center;
   align-items: center;
@@ -723,6 +1313,29 @@ select option {
   max-width: 320px;
   line-height: 1.4;
   margin-bottom: 16px;
+}
+
+.about-dl {
+  width: 100%;
+  max-width: 320px;
+  margin: 0 0 16px 0;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 6px 12px;
+  text-align: left;
+  font-size: 11px;
+}
+
+.about-dl dt {
+  color: var(--txt-faint);
+  font-weight: 550;
+}
+
+.about-dl dd {
+  margin: 0;
+  color: var(--txt-dim);
+  overflow-wrap: anywhere;
+  text-align: right;
 }
 
 .about .actions {

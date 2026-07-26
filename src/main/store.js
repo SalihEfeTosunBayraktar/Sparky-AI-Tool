@@ -20,7 +20,7 @@ const DEFAULTS = {
   modelByProvider: {},
   style: 'detailed',
   outputLanguage: 'auto',
-  appLanguage: 'tr',
+  appLanguage: 'en',
   appMode: 'normal-chat',
   deepMode: false,
   autoMode: false,

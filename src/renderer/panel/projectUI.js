@@ -83,14 +83,18 @@ class ProjectUI {
     if (this.initialized) return;
     const $ = (id) => document.getElementById(id);
 
-    $('projectSelect')?.addEventListener('change', (e) => {
+    // Başka bir projeye geçmeden önce ekrandaki taslağı kaydet — aksi halde
+    // henüz "Kaydet"e basılmamış ad/açıklama sessizce kaybolur (bkz.
+    // saveCurrentForm).
+    $('projectSelect')?.addEventListener('change', async (e) => {
+      await this.saveCurrentForm();
       this.activeEditingId = e.target.value;
       this.render();
     });
 
     $('btnNewProject')?.addEventListener('click', async () => {
       const p = await this.api.projects.create({
-        name: this.i18n.t('projects.namePlaceholder') || 'Yeni Proje',
+        name: this.i18n.t('projects.defaultName') || 'Yeni Proje',
         description: ''
       });
       this.activeEditingId = p.id;
@@ -98,16 +102,25 @@ class ProjectUI {
     });
 
     $('btnSaveProject')?.addEventListener('click', async () => {
-      if (!this.activeEditingId) return;
-      await this.api.projects.update(this.activeEditingId, {
-        name: $('projectName').value,
-        description: $('projectDesc').value
-      });
+      await this.saveCurrentForm();
       this.render();
     });
 
+    // Ad/Açıklama alanından odak ayrılınca da kaydet (metin notu satırlarının
+    // zaten yaptığı gibi) — aksi halde ör. "+ Metin Ekle" veya "+ Görsel
+    // Yükle" tıklaması, o an ekranda yazılı ama kaydedilmemiş başlık/açıklamayı
+    // 'projects:changed' tetikleyip render() tüm formu diskten yeniden
+    // çizdiğinde sessizce silerdi.
+    $('projectName')?.addEventListener('change', () => this.saveCurrentForm());
+    $('projectDesc')?.addEventListener('change', () => this.saveCurrentForm());
+
+    // "Aktif Yap" da ekrandaki taslağı kaydeder ve proje zaten aktifken de
+    // TIKLANABİLİR bırakılıyor — devre dışı bırakılırsa kullanıcı bu (görsel
+    // olarak öne çıkan) büyük butona basıp hiçbir şey olmadığını görüyor ve
+    // az önce yazdığı başlığın kaydedilip kaydedilmediğinden emin olamıyordu.
     $('btnSetActiveProject')?.addEventListener('click', async () => {
       if (!this.activeEditingId) return;
+      await this.saveCurrentForm();
       await this.api.projects.setActive(this.activeEditingId);
       this.render();
     });
@@ -169,6 +182,15 @@ class ProjectUI {
     this.initialized = true;
   }
 
+  async saveCurrentForm() {
+    if (!this.activeEditingId) return;
+    const $ = (id) => document.getElementById(id);
+    await this.api.projects.update(this.activeEditingId, {
+      name: $('projectName').value,
+      description: $('projectDesc').value
+    });
+  }
+
   async render() {
     this.ensureSkeleton();
     const $ = (id) => document.getElementById(id);
@@ -213,8 +235,8 @@ class ProjectUI {
 
     const btnAct = $('btnSetActiveProject');
     if (btnAct) {
-      btnAct.textContent = isActive ? (this.i18n.t('projects.activeBadge') || 'Aktif Proje') : (this.i18n.t('projects.setActiveBtn') || 'Aktif Yap');
-      btnAct.disabled = isActive;
+      btnAct.textContent = isActive ? `✓ ${this.i18n.t('projects.activeBadge') || 'Aktif Proje'}` : (this.i18n.t('projects.setActiveBtn') || 'Aktif Yap');
+      btnAct.disabled = false;
     }
 
     this.renderTexts(proj);

@@ -150,9 +150,9 @@ test('düşük öncelikli tikler kuyrukta birikmez — yalnızca en yenisi kalı
   const { q } = makeQueue(t);
 
   q.push({ text: 'Kritik', kind: 'error' }); // ekranı işgal eder, low'lar kuyruğa düşer
-  q.push({ text: 'tik-1', kind: 'thinking' });
-  q.push({ text: 'tik-2', kind: 'thinking' });
-  q.push({ text: 'tik-3', kind: 'thinking' });
+  q.push({ text: 'tik-1', kind: 'thinking', priority: 'low' });
+  q.push({ text: 'tik-2', kind: 'thinking', priority: 'low' });
+  q.push({ text: 'tik-3', kind: 'thinking', priority: 'low' });
 
   assert.equal(q.pendingCount(), 1, 'eski low tikler atılmalı, yalnızca sonuncusu kalmalı');
   assert.equal(q.queue[0].text, 'tik-3');
@@ -189,7 +189,7 @@ test('öncelik sırasına göre tahliye edilir, geliş sırası değil', (t) => 
   const { q } = makeQueue(t);
 
   q.push({ text: 'Kritik', kind: 'error' }); // ekranda
-  q.push({ text: 'düşük', kind: 'thinking' });
+  q.push({ text: 'düşük', kind: 'thinking', priority: 'low' });
   q.push({ text: 'normal', kind: 'info' });
   q.push({ text: 'yüksek', kind: 'success' });
 
@@ -230,6 +230,29 @@ test('onQueueChange her kuyruk boyu değişiminde çağrılır', (t) => {
   assert.deepEqual(events.queueChanges, [0, 1, 2]);
 });
 
+test('kesilip kuyruğa dönen öğe, aynı dedupeKey ile gelen sonraki push tarafından güncellenir', (t) => {
+  const { q } = makeQueue(t);
+
+  // 'stage' bir normal öncelikli öğe gösteriliyor, henüz asgari süresini
+  // doldurmadı.
+  q.push({ text: 'Aşama 1', kind: 'info', priority: 'normal', dedupeKey: 'stage' });
+  t.mock.timers.tick(2);
+
+  // Daha yüksek öncelikli bir olay kesiyor — 'Aşama 1' asgari süresini
+  // doldurmadığı için kuyruğun başına geri konur (requeue).
+  q.push({ text: 'Anahtar döndürüldü', kind: 'info', priority: 'high', dedupeKey: 'rotate' });
+  assert.equal(q.pendingCount(), 1);
+  assert.equal(q.queue[0].text, 'Aşama 1', "kesilen 'stage' öğesi kuyrukta olmalı");
+
+  // Aynı dedupeKey ('stage') ile YENİ bir aşama olayı gelirse, kuyruktaki
+  // (requeue edilmiş) öğeyi YENİ bir kuyruk girdisi olarak EKLEMEMELİ,
+  // mevcut olanı güncellemeli — aksi hâlde kesme+aşama-değişimi kombosu
+  // kuyruğu şişirir.
+  q.push({ text: 'Aşama 2', kind: 'info', priority: 'normal', dedupeKey: 'stage' });
+  assert.equal(q.pendingCount(), 1, "kuyruk büyümemeli, requeue edilen öğe güncellenmeli");
+  assert.equal(q.queue[0].text, 'Aşama 2');
+});
+
 /* ------------------------------------------------------------------ */
 /* Uçtan uca senaryo — anahtar döngüsü + hata patlaması                */
 /* ------------------------------------------------------------------ */
@@ -237,8 +260,10 @@ test('onQueueChange her kuyruk boyu değişiminde çağrılır', (t) => {
 test('senaryo: hızlı ardışık aşama + döngü + hata olayları doğru sırayla ve boğulmadan işlenir', (t) => {
   const { q, events } = makeQueue(t); // low=8/30 normal=15/60 high=20/100 critical=30/200
 
-  q.push({ text: 'Hazırlanıyor', kind: 'prep' }); // low, hemen göster
-  q.push({ text: 'Düşünüyor', kind: 'thinking' }); // low, dedupeKey yok -> kuyruğa girer
+  // priority açıkça 'low' veriliyor — bu test kind eşlemesini değil, farklı
+  // önceliklerin bir arada nasıl akıştığını (kuyruk mekaniğini) sınıyor.
+  q.push({ text: 'Hazırlanıyor', kind: 'prep', priority: 'low' }); // hemen göster
+  q.push({ text: 'Düşünüyor', kind: 'thinking', priority: 'low' }); // dedupeKey yok -> kuyruğa girer
   q.push({ text: 'openai: limit aşıldı, sıradaki anahtara geçildi', kind: 'info', priority: 'high', dedupeKey: 'rotate' });
   t.mock.timers.tick(9); // low min=8 dolar, kuyruktaki en yüksek öncelikliye (high) geçilir
 

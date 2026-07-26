@@ -4,3 +4,11 @@ dist/
 *.log
 .DS_Store
 Thumbs.db
+
+# Yerel/kişisel ayarlar — depoya girmemeli
+.claude/settings.local.json
+.env
+.env.*
+*.pfx
+*.p12
+*.pem

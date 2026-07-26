@@ -8,12 +8,20 @@ let providers = [];
 let historyItems = [];
 let savedTimer = null;
 let projectUI = null;
+let modeUI = null;
 
 function renderProjects() {
   if (!projectUI && typeof ProjectUI !== 'undefined') {
     projectUI = new ProjectUI(api, typeof i18n !== 'undefined' ? i18n : { t: (k) => k });
   }
   if (projectUI) projectUI.render();
+}
+
+function renderModes() {
+  if (!modeUI && typeof ModeUI !== 'undefined') {
+    modeUI = new ModeUI(api, typeof i18n !== 'undefined' ? i18n : { t: (k) => k });
+  }
+  if (modeUI) modeUI.render();
 }
 
 /* ------------------------------------------------------------------ */
@@ -29,6 +37,7 @@ function showTab(name) {
   document.querySelectorAll('.pane').forEach((p) => p.classList.toggle('active', p.id === `tab-${name}`));
   if (name === 'history') loadHistory();
   if (name === 'projects') renderProjects();
+  if (name === 'modes') renderModes();
 }
 
 document.querySelectorAll('.tab').forEach((t) => t.addEventListener('click', () => showTab(t.dataset.tab)));
@@ -64,7 +73,10 @@ async function save(patch) {
 function showResult(el, text, kind) {
   el.hidden = false;
   el.textContent = text;
-  el.className = `result${kind === 'bad' ? ' bad' : kind === 'warn' ? ' warn' : ''}`;
+  // .result.err / .result.warn / .result.ok — panel.css'teki gerçek sınıf
+  // adlarıyla eşleşmeli. Çağıranlar 'bad' geçiyor, CSS 'err' bekliyor.
+  const cls = kind === 'bad' ? 'err' : kind === 'warn' ? 'warn' : kind === 'ok' ? 'ok' : '';
+  el.className = `result${cls ? ' ' + cls : ''}`;
 }
 
 /* ------------------------------------------------------------------ */
@@ -502,13 +514,8 @@ async function refreshShortcutErrors() {
     el.hidden = true;
     return;
   }
-  showResult(
-    el,
-    `Şu kısayollar sistem tarafından kullanılıyor, atanamadı: ${info.shortcutErrors
-      .map((s) => `${s.label} (${s.accel})`)
-      .join(', ')}`,
-    'warn'
-  );
+  const lead = T('panel.fields.shortcutsError', 'Şu kısayollar sistem tarafından kullanılıyor, atanamadı:');
+  showResult(el, `${lead} ${info.shortcutErrors.map((s) => `${s.label} (${s.accel})`).join(', ')}`, 'warn');
 }
 
 /* ------------------------------------------------------------------ */
@@ -686,7 +693,7 @@ async function populateModeSelect() {
   for (const m of catalog) {
     const o = document.createElement('option');
     o.value = m.id;
-    o.textContent = typeof i18n !== 'undefined' ? i18n.t(m.labelKey) : m.id;
+    o.textContent = m.labelKey ? (typeof i18n !== 'undefined' ? i18n.t(m.labelKey) : m.id) : m.name;
     if (m.id === activeMode) o.selected = true;
     modeSel.appendChild(o);
   }

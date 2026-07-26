@@ -15,8 +15,8 @@ const LOCALES = {
 
 class I18nManager {
   constructor() {
-    this.currentLang = 'tr';
-    this.fallbackLang = 'tr';
+    this.currentLang = 'en';
+    this.fallbackLang = 'en';
     this.listeners = new Set();
   }
 
@@ -28,8 +28,10 @@ class I18nManager {
     if (lang && LOCALES[lang]) {
       this.currentLang = lang;
     } else {
-      const navLang = typeof navigator !== 'undefined' ? (navigator.language || '').toLowerCase() : 'tr';
-      this.currentLang = navLang.startsWith('en') ? 'en' : 'tr';
+      // Kayıtlı bir ayar yoksa (ilk açılış / bozuk ayar) varsayılan İngilizce —
+      // yalnızca sistem dili açıkça Türkçe ise Türkçe'ye geçilir.
+      const navLang = typeof navigator !== 'undefined' ? (navigator.language || '').toLowerCase() : 'en';
+      this.currentLang = navLang.startsWith('tr') ? 'tr' : 'en';
     }
   }
 

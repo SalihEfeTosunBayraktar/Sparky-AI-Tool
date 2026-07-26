@@ -26,6 +26,7 @@
       <nav class="segmented-tabs">
         <button class="tab active" data-tab="settings" data-i18n="panel.tabs.settings">Genel</button>
         <button class="tab" data-tab="projects" data-i18n="panel.tabs.projects">Projeler</button>
+        <button class="tab" data-tab="modes" data-i18n="panel.tabs.modes">Modlar</button>
         <button class="tab" data-tab="providers" data-i18n="panel.tabs.providers">Model/API</button>
         <button class="tab" data-tab="shortcuts" data-i18n="panel.sections.shortcuts">Kısayollar</button>
         <button class="tab" data-tab="history" data-i18n="panel.tabs.history">Geçmiş</button>
@@ -179,6 +180,11 @@
           <div id="projectsContainer"></div>
         </section>
 
+        <!-- 2b. MODLAR PANE -->
+        <section id="tab-modes" class="pane">
+          <div id="modesContainer"></div>
+        </section>
+
         <!-- 3. MODEL VE API PANE -->
         <section id="tab-providers" class="pane">
           <h2 data-i18n="panel.sections.providerAndModel">Sağlayıcı ve Model Seçimi</h2>
@@ -304,6 +310,8 @@
     <script src="../locales/en.js"></script>
     <script src="../i18n.js"></script>
     <script src="projectUI.js"></script>
+    <script src="codeEditor.js"></script>
+    <script src="modeUI.js"></script>
     <script src="panel.js"></script>
   </body>
 </html>

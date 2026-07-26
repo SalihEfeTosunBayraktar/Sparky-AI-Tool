@@ -90,7 +90,17 @@ contextBridge.exposeInMainWorld('sparky', {
   modes: {
     catalog: () => ipcRenderer.invoke('modes:catalog'),
     getActive: () => ipcRenderer.invoke('modes:getActive'),
-    setActive: (mode) => ipcRenderer.invoke('modes:setActive', mode)
+    setActive: (mode) => ipcRenderer.invoke('modes:setActive', mode),
+    list: () => ipcRenderer.invoke('modes:list'),
+    get: (id) => ipcRenderer.invoke('modes:get', id),
+    create: (payload) => ipcRenderer.invoke('modes:create', payload),
+    update: (id, partial) => ipcRenderer.invoke('modes:update', { id, partial }),
+    remove: (id) => ipcRenderer.invoke('modes:remove', id),
+    resetToDefault: (id) => ipcRenderer.invoke('modes:resetToDefault', id),
+    export: () => ipcRenderer.invoke('modes:export'),
+    import: () => ipcRenderer.invoke('modes:import'),
+    presets: () => ipcRenderer.invoke('modes:presets'),
+    variables: () => ipcRenderer.invoke('modes:variables')
   },
 
   tokens: {
