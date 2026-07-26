@@ -150,6 +150,7 @@ const tr = {
       providerAndModel: 'Sağlayıcı ve model',
       appInterface: 'Arayüz Dili (App Language)',
       apiKeys: 'API anahtarları',
+      advancedParams: 'Gelişmiş Model Parametreleri',
       generation: 'Üretim',
       behavior: 'Davranış',
       notificationsAndSound: 'Bildirimler ve ses',

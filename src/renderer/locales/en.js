@@ -150,6 +150,7 @@ const en = {
       providerAndModel: 'Provider & Model',
       appInterface: 'App Language',
       apiKeys: 'API Keys',
+      advancedParams: 'Advanced Model Parameters',
       generation: 'Generation',
       behavior: 'Behavior',
       notificationsAndSound: 'Notifications & Sound',

@@ -4,6 +4,7 @@ dist/
 *.log
 .DS_Store
 Thumbs.db
+desktop.ini
 
 # Yerel/kişisel ayarlar — depoya girmemeli
 .claude/settings.local.json

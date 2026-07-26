@@ -13,6 +13,23 @@ yazarsınız; uygulama bunu **konuyu ve bağlamı bozmadan** kullanıma hazır b
 
 ---
 
+## Ekran görüntüleri
+
+<table>
+<tr>
+<td align="center" width="220"><img src="docs/screenshots/orb.png" width="200"><br><sub>Yüzen küre</sub></td>
+<td align="center" width="280"><img src="docs/screenshots/composer.png" width="260"><br><sub>Üretim paneli</sub></td>
+<td align="center" width="280"><img src="docs/screenshots/settings-general.png" width="260"><br><sub>Ayarlar — Genel</sub></td>
+</tr>
+<tr>
+<td align="center"><img src="docs/screenshots/settings-projects.png" width="260"><br><sub>Ayarlar — Projeler</sub></td>
+<td align="center"><img src="docs/screenshots/settings-modes.png" width="260"><br><sub>Ayarlar — Modlar</sub></td>
+<td align="center"><img src="docs/screenshots/settings-model-api.png" width="260"><br><sub>Ayarlar — Model &amp; API</sub></td>
+</tr>
+</table>
+
+---
+
 ## Kurulum
 
 ```bash

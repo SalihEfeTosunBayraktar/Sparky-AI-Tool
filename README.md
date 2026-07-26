@@ -13,6 +13,23 @@ sits on top of your screen; the app turns it into a ready-to-paste prompt
 
 ---
 
+## Screenshots
+
+<table>
+<tr>
+<td align="center" width="220"><img src="docs/screenshots/orb.png" width="200"><br><sub>The floating orb</sub></td>
+<td align="center" width="280"><img src="docs/screenshots/composer.png" width="260"><br><sub>Composer</sub></td>
+<td align="center" width="280"><img src="docs/screenshots/settings-general.png" width="260"><br><sub>Settings — General</sub></td>
+</tr>
+<tr>
+<td align="center"><img src="docs/screenshots/settings-projects.png" width="260"><br><sub>Settings — Projects</sub></td>
+<td align="center"><img src="docs/screenshots/settings-modes.png" width="260"><br><sub>Settings — Modes</sub></td>
+<td align="center"><img src="docs/screenshots/settings-model-api.png" width="260"><br><sub>Settings — Model &amp; API</sub></td>
+</tr>
+</table>
+
+---
+
 ## Setup
 
 ```bash
