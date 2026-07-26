@@ -1,17 +1,19 @@
+**🇬🇧 English | 🇹🇷 [Türkçe](README.tr.md)**
+
 # Sparky AI
 
-Windows için yüzen prompt asistanı. Ekranın üstünde duran küçük bir küreye metninizi
-yazarsınız; uygulama bunu **konuyu ve bağlamı bozmadan** kullanıma hazır bir prompt'a
-çevirir ve tek tıkla kopyalatır.
+A floating prompt assistant for Windows. Type your note into a small orb that
+sits on top of your screen; the app turns it into a ready-to-paste prompt
+**without drifting from your topic or context**, and copies it with one click.
 
-- **Yerel modeller** — Ollama, LM Studio (anahtar gerekmez)
-- **Bulut modelleri** — OpenAI, Anthropic (Claude), Google Gemini, ve her türlü
-  OpenAI-uyumlu uç (OpenRouter, Groq, DeepSeek, Together, llama.cpp…)
-- API anahtarları **Windows DPAPI** ile şifrelenir; renderer'a hiçbir zaman açık gönderilmez
+- **Local models** — Ollama, LM Studio (no key required)
+- **Cloud models** — OpenAI, Anthropic (Claude), Google Gemini, and any
+  OpenAI-compatible endpoint (OpenRouter, Groq, DeepSeek, Together, llama.cpp…)
+- API keys are encrypted with **Windows DPAPI**; never sent to the renderer in plain text
 
 ---
 
-## Kurulum
+## Setup
 
 ```bash
 npm install
@@ -23,251 +25,256 @@ npm start
 
 ---
 
-## Dağıtım
+## Distribution
 
 ```bash
 npm run dist
 ```
 
-`release/` klasörüne iki çıktı yazılır:
+Writes two outputs to `release/`:
 
-| Dosya | Boyut | Ne işe yarar |
+| File | Size | What it does |
 | --- | --- | --- |
-| `Sparky AI Setup 0.1.0.exe` | ~96 MB | Kurulum sihirbazı. **Kullanıcı bazlı kurar** (`%LOCALAPPDATA%\Programs`), yönetici yetkisi istemez, kurulum dizini seçtirir, masaüstü kısayolu oluşturur. |
-| `Sparky AI 0.1.0.exe` | ~95 MB | Taşınabilir tek dosya. Kurulum yok — USB'den bile çalışır. |
+| `Sparky AI Setup 0.1.0.exe` | ~96 MB | Installer wizard. **Installs per-user** (`%LOCALAPPDATA%\Programs`), no admin rights needed, lets you pick the install directory, creates a desktop shortcut. |
+| `Sparky AI 0.1.0.exe` | ~95 MB | Portable single file. No install — runs even from a USB drive. |
 
-> Boyutlar Electron çalışma zamanını (Chromium + Node) içerdiği için normaldir;
-> uygulama kodu bunun içinde birkaç yüz KB'dir.
+> The sizes are normal since they bundle the Electron runtime (Chromium + Node);
+> the app's own code is a few hundred KB inside that.
 
-Her iki sürüm de ayarları, geçmişi ve şifreli anahtarları **oturum açmış kullanıcının**
-`%APPDATA%\Sparky AI\` klasöründe tutar. Yani:
+Both versions keep settings, history, and encrypted keys in the **signed-in
+user's** `%APPDATA%\Sparky AI\` folder. In practice this means:
 
-- Aynı bilgisayarda farklı Windows kullanıcıları birbirinin ayarlarını görmez.
-- Taşınabilir sürümü kapatıp yeniden açtığınızda ayarlarınız yerinde durur.
-- API anahtarları DPAPI ile o kullanıcı hesabına bağlı şifrelenir; dosyayı başka
-  bir makineye kopyalasanız bile çözülemez.
+- Different Windows users on the same machine never see each other's settings.
+- Closing and reopening the portable version keeps your settings intact.
+- API keys are encrypted with DPAPI tied to that specific user account; copying
+  the file to another machine won't decrypt it.
 
-### Kod imzası hakkında
+### About code signing
 
-Çıktılar **imzalanmamıştır** (kod imzalama sertifikası gerektirir). Windows
-SmartScreen ilk çalıştırmada "Bilinmeyen yayımcı" uyarısı gösterir; *Ek bilgi →
-Yine de çalıştır* ile geçilir. Uygulamayı başkalarına dağıtacaksanız bir Authenticode
-sertifikası alıp `package.json` içindeki `build.win` bölümüne `certificateFile` /
-`certificatePassword` eklemeniz gerekir.
-
----
-
-## İlk çalıştırma
-
-Uygulama açılışta Ollama (`127.0.0.1:11434`) ve LM Studio (`127.0.0.1:1234`)
-adreslerini yoklar; biri ayaktaysa onu seçip ilk modeli atar.
-
-Hiçbiri yoksa: küreye tıklayın → **⋯ → Ayarlar** → sağlayıcı, adres ve model seçin.
-Bulut sağlayıcıları için **API anahtarları** bölümünden anahtarınızı girin.
+The builds are **unsigned** (that requires a code-signing certificate). Windows
+SmartScreen will show an "Unknown publisher" warning on first run; click *More
+info → Run anyway* to proceed. If you plan to distribute the app to others, get
+an Authenticode certificate and add `certificateFile` / `certificatePassword`
+to the `build.win` section of `package.json`.
 
 ---
 
-## Kullanım
+## First run
 
-| Hareket | Sonuç |
+On launch, the app probes Ollama (`127.0.0.1:11434`) and LM Studio
+(`127.0.0.1:1234`); if either is running, it's selected and its first model
+is assigned automatically.
+
+If neither is available: click the orb → **⋯ → Settings** → pick a provider,
+endpoint, and model. For cloud providers, enter your key under **API keys**.
+
+---
+
+## Usage
+
+| Action | Result |
 | --- | --- |
-| Küreye tık | Paneli aç |
-| **Küreye çift tık** veya **orta tık** | Panodaki metni paneli açmadan doğrudan prompt'a çevir |
-| Küreyi sürükle | Kürenin yerini değiştir (konum hatırlanır) |
-| **Ctrl** + küreye tık | Son sonucu doğrudan panoya kopyala |
-| Küreye sağ tık | Hızlı menü (kopyala, ayarlar, geçmiş, çıkış) |
-| Baloncuğa tık | Sonuç hazırsa kopyalar, değilse paneli açar |
-| `Ctrl + Enter` | Üret |
-| `Esc` | Üretimi durdur / paneli küçült |
+| Click the orb | Open the panel |
+| **Double-click** or **middle-click** the orb | Turn the clipboard's text into a prompt directly, without opening the panel |
+| Drag the orb | Move it (position is remembered) |
+| **Ctrl** + click the orb | Copy the last result directly to the clipboard |
+| Right-click the orb | Quick menu (copy, settings, history, quit) |
+| Click the bubble | Copies the result if it's ready, otherwise opens the panel |
+| `Ctrl + Enter` | Generate |
+| `Esc` | Stop generation / collapse the panel |
 
-### En hızlı akış
+### Fastest flow
 
-Metni kopyala → küreye **çift tık** → baloncuk *Prompt hazır* deyince **baloncuğa tık**.
-Panel hiç açılmaz. (Ayarlarda *Sonucu otomatik kopyala* açıksa son adım da gerekmez.)
-Netleştirme soruları açıksa ve model soru sorarsa panel kendiliğinden açılır —
-akış cevabınızı beklediği için.
+Copy text → **double-click** the orb → click the **bubble** once it says *Prompt
+ready*. The panel never opens. (If *Auto-copy result* is on in settings, even
+that last click is unnecessary.) If Ask Questions is on and the model has a
+question, the panel opens on its own — the flow is waiting on your answer.
 
-### Genel kısayollar (ayarlardan değiştirilebilir)
+### Global shortcuts (changeable in settings)
 
-| Varsayılan | İş |
+| Default | Action |
 | --- | --- |
-| `Ctrl + Shift + Space` | Paneli aç / kapat |
-| `Ctrl + Alt + P` | Panodaki metinden hemen prompt üret |
-| `Ctrl + Alt + C` | Son sonucu kopyala |
+| `Ctrl + Shift + Space` | Open / close the panel |
+| `Ctrl + Alt + P` | Generate a prompt from the clipboard immediately |
+| `Ctrl + Alt + C` | Copy the last result |
 
-Küre, durum baloncuklarıyla ne yaptığını söyler: *Hazırlanıyor… → Düşünüyor… →
-Prompt hazır*. Derin modda üç aşama görürsünüz: *Niyet çözümleniyor → Prompt
-yazılıyor → Cilalanıyor*.
+The orb narrates what it's doing through status bubbles: *Preparing… →
+Thinking… → Prompt ready*. In Deep Mode you'll see three stages: *Analyzing
+intent → Writing prompt → Polishing*.
 
 ---
 
-## Prompt biçimleri
+## Prompt formats
 
-| Biçim | Ne üretir |
+| Format | What it produces |
 | --- | --- |
-| **Detaylı** | Rol · Görev · Bağlam · Gereksinimler · Çıktı formatı · Kısıtlar |
-| **Kısa & Net** | Tek paragraf, 120 kelimenin altında |
-| **Sistem Promptu** | Bir asistanı yapılandıran ikinci-şahıs prompt |
-| **Görsel** | Görsel modelleri için yoğun blok + `Negative:` satırı |
-| **Kod / Teknik** | Hedef, sözleşme, uç durumlar, hata yönetimi, test beklentisi |
-| **Araştırma** | Soru, kapsam, kaynak önceliği, çelişki yönetimi, rapor yapısı |
+| **Detailed** | Role · Task · Context · Requirements · Output format · Constraints |
+| **Concise & Direct** | A single paragraph, under 120 words |
+| **System Prompt** | A second-person prompt that configures an assistant |
+| **Image** | A dense block for image models + a `Negative:` line |
+| **Code / Technical** | Goal, contract, edge cases, error handling, test expectations |
+| **Deep Research** | Question, scope, source priority, conflict handling, report structure |
 
-## Üç çalışma anahtarı
+## Three operating switches
 
-Üçü de **Ayarlar → Üretim** altındaki switch'lerden açılıp kapatılır; *Derin mod*
-ve *Soru sor* ayrıca kürenin araç çubuğunda tek tıklık çip olarak durur.
+All three are toggled from **Settings → Generation**; *Deep Mode* and *Ask
+Questions* also live as one-click chips on the orb's toolbar.
 
-### Derin mod (varsayılan: kapalı)
+### Deep Mode (default: off)
 
-Üç aşamalı hat: önce niyet JSON olarak çıkarılır, sonra prompt yazılır, en son bir
-editör geçişi konudan sapmaları ve meta metinleri temizler. Küçük yerel modellerde
-farkı belirgindir. Karşılığında iki ek tur maliyeti vardır.
+A three-stage pipeline: intent is extracted as JSON first, then the prompt is
+written, then a final editing pass removes topic drift and meta text. The
+difference is most noticeable with small local models. It costs two extra
+turns in exchange.
 
-### Soru sor (varsayılan: kapalı)
+### Ask Questions (default: off)
 
-Üretimden önce model metni tarar ve **yalnızca gerçekten belirsiz** noktalar için
-en fazla 3 soru sorar — her biri kısa bir gerekçe, hazır seçenek rozetleri ve
-"boş bırakırsan şunu varsayarım" önerisiyle gelir. Cevaplarınız prompt'a
-*bağlayıcı* bilgi olarak işlenir. Metin zaten açıksa soru sormadan devam eder,
-akış hiç kesilmez. Panelde *Sormadan üret* ile her zaman atlayabilirsiniz.
+Before generating, the model scans your text and asks up to 3 questions —
+**only for points that are genuinely ambiguous** — each with a short rationale,
+ready-made option chips, and an "if you leave this blank, I'll assume…"
+suggestion. Your answers are folded into the prompt as *binding* information.
+If the text is already clear, generation proceeds without asking — the flow
+never gets interrupted for nothing. You can always skip with *Generate without
+asking* in the panel.
 
-### Yarım kalan yanıtlar
+### Truncated responses
 
-Model token sınırına takıldığında yanıt sessizce kesiliyordu — "eksik prompt"
-sorununun kaynağı buydu. Artık:
+Responses used to get silently cut off when a model hit its token limit — the
+root cause of "incomplete prompt" reports. Now:
 
-- Dört sağlayıcı da kesilme sinyalini okur (`done_reason` / `finish_reason` /
-  `finishReason` / `stop_reason`).
-- Kesilme algılanırsa uygulama **kaldığı yerden en fazla 3 tur devam ettirir**;
-  parça birleştirilirken modelin son cümleyi tekrarlaması veya baştan başlaması
-  otomatik temizlenir.
-- Biçime göre taban token bütçesi uygulanır (ör. UI/UX 6144, Araştırma/Kod 4096).
-  `max_tokens` bir tavan olduğu ve model erken bitirdiğinde maliyet doğurmadığı
-  için bu güvenlidir.
-- Derin modun cilalama aşaması taslağın tamamını yeniden yazdığı için bütçesi
-  taslak uzunluğuna göre ölçeklenir.
-- Üç tur sonunda hâlâ kesikse durum çubuğunda açık bir uyarı çıkar.
+- All four providers read the truncation signal (`done_reason` / `finish_reason`
+  / `finishReason` / `stop_reason`).
+- If truncation is detected, the app **continues from where it left off for up
+  to 3 turns**; when stitching the pieces together, the model repeating its
+  last sentence or restarting from the top is cleaned up automatically.
+- A base token budget applies per format (e.g. 6144 for UI/UX, 4096 for
+  Research/Code). This is safe because `max_tokens` is a ceiling and finishing
+  early costs nothing extra.
+- Deep Mode's polishing stage rewrites the entire draft, so its budget scales
+  with the draft's length.
+- If it's still truncated after three turns, a clear warning appears in the
+  status bar.
 
-### İyileştirme önerileri (varsayılan: açık)
+### Improvement suggestions (default: on)
 
-Sonuç geldikten sonra ayrı ve engellemeyen bir turda 2–4 öneri üretilir
-("Hedef kitleyi daralt", "Çıktıyı H2 şemasına bağla"…). Rozete tıklamak öneriyi
-düzeltme olarak uygular. Bu tur başarısız olursa sessizce atlanır — elinizdeki
-sonuç etkilenmez.
+After a result arrives, a separate, non-blocking turn generates 2–4 suggestions
+("Narrow the target audience", "Tie the output to an H2 outline"…). Clicking a
+badge applies the suggestion as an edit. If this turn fails, it's silently
+skipped — your existing result is unaffected.
 
-**Düzeltme kutusu** — hazır öneriler dışında kendi talimatınızı da yazabilirsiniz:
-"daha kısa", "İngilizce olsun", "JSON çıktı ekle" → *Uygula*. Mevcut prompt
-korunarak düzenlenir.
+**Edit box** — besides the ready-made suggestions, you can type your own
+instruction: "shorter", "make it English", "add JSON output" → *Apply*. The
+existing prompt is edited in place.
 
 ---
 
-## Modlar (Custom Modes)
+## Modes (custom modes)
 
-Ayarlar → **Modlar** sekmesinde, Projeler'e benzer tam bir CRUD yapısı vardır.
-İki yerleşik mod hep vardır ve silinemez — **Normal Sohbet** (doğrudan sohbet)
-ve **Prompt Hazırlayıcı** (bu projenin asıl işi) — ama ikisinin de sistem
-kuralı tamamen düzenlenebilir.
+Settings → the **Modes** tab has a full CRUD structure similar to Projects.
+Two built-in modes always exist and can't be deleted — **Normal Chat** (direct
+conversation) and **Prompt Preparer** (this project's core job) — but both have
+a fully editable system rule.
 
-- **Ön modlar (presets)** — yeni bir özel mod oluştururken 10 hazır şablondan
-  seçilir (Boş, Düz, Teknik, Özet, Yaratıcı, Günlük, Proje Danışmanı, Şeffaf
-  Mod, Röportaj Sentezleyici, Biçim Uyarlayıcı); her biri farklı bir değişken
-  grubunu örnekleyerek "bununla neler yapılabilir" sorusuna cevap verir.
-- **Ana Kural** ve **Ek Kurallar** — sözdizimi vurgulamalı, `{{DEĞİŞKEN}}`
-  otomatik tamamlamalı, üzerine gelince açıklama gösteren, genişletilebilir
-  bir IDE editöründe düzenlenir (bkz. `codeEditor.js`).
-- **Değişkenler** — üretim anında gerçek değerle değiştirilen 20 token:
+- **Presets** — when creating a new custom mode, you pick from 10 ready-made
+  templates (Blank, Plain, Technical, Summary, Creative, Daily, Project
+  Consultant, Transparent Mode, Interview Synthesizer, Style Adapter); each one
+  demonstrates a different set of variables to answer "what can I do with this."
+- **Main Rule** and **Additional Rules** — edited in an expandable IDE-style
+  editor with `{{VARIABLE}}` syntax highlighting, autocomplete, and
+  hover tooltips (see `codeEditor.js`).
+- **Variables** — 20 tokens replaced with real values at generation time:
   `{{LANG}}`, `{{PROJECT}}`, `{{PROJECT_DESC}}`, `{{PROJECT_NOTES}}`,
   `{{INPUT}}`, `{{ANSWERS}}`, `{{DATE}}`, `{{TIME}}`, `{{YEAR}}`, `{{MONTH}}`,
   `{{DAY}}`, `{{WEEKDAY}}`, `{{STYLE}}`, `{{STYLE_HINT}}`, `{{MODEL}}`,
   `{{PROVIDER}}`, `{{TEMPERATURE}}`, `{{EFFORT}}`, `{{DEEP_MODE}}`,
   `{{GENERATION_MODE}}`.
-- **İçe/dışa aktarma** — modlarınızı `.json` olarak dışa aktarıp başka bir
-  kurulumda içe aktarabilirsiniz; isim çakışması otomatik ayırt edilir.
+- **Import/export** — export your modes as `.json` and import them into another
+  install; name collisions are resolved automatically.
 
 ---
 
-## Bildirim kuyruğu
+## Notification queue
 
-Küredeki baloncuklar önem derecesine göre sıralanır (kritik/yüksek/normal/
-düşük), aynı olay tekrarlanırsa tek satırda güncellenir (dedupe), ve kuyrukta
-bekleyen varsa asgari süre dolar dolmaz bir sonrakine geçilir — ekran
-boğulmaz. Ayarlar → Bildirimler'den sıklık (Önemli / Normal / Hepsi)
-seçilebilir.
+Bubbles from the orb are ordered by priority (critical/high/normal/low),
+repeated events update the same line instead of stacking (dedupe), and once
+there's a backlog, the next item shows as soon as the minimum duration is met
+— the screen never gets flooded. Frequency (Important only / Normal /
+Everything) is configurable under Settings → Notifications.
 
-## Çoklu API anahtarı ve otomatik döngü
+## Multiple API keys and automatic rotation
 
-Her sağlayıcı için birden fazla API anahtarı eklenebilir. Aktif anahtar limit
-aşımına (`rate_limit`) veya geçersizliğe (`invalid`) takılırsa sistem
-otomatik olarak listedeki bir sonraki sağlıklı anahtara geçer; küre bu geçişi
-bir bildirimle bildirir. Anahtar durumları (aktif/limitli/geçersiz) Ayarlar →
-Model/API → API anahtarları altında rozetlerle görünür.
+You can add more than one API key per provider. If the active key hits a rate
+limit (`rate_limit`) or turns out invalid (`invalid`), the app automatically
+switches to the next healthy key in the list; the orb announces the switch
+with a notification. Key states (active/limited/invalid) show as badges under
+Settings → Model/API → API keys.
 
 ---
 
-## Mimari
+## Architecture
 
 ```
 src/main/
-  main.js            Pencereler, IPC, tepsi, genel kısayollar, sürükleme
-  preload.js         contextBridge köprüsü (contextIsolation açık)
+  main.js            Windows, IPC, tray, global shortcuts, dragging
+  preload.js         contextBridge bridge (contextIsolation on)
   store.js           settings.json / history.json
-  secrets.js         API anahtarları (safeStorage → DPAPI)
-  llm.js             Sağlayıcı kaydı ve tek giriş noktası
-  promptEngine.js    Prompt üretim hattı (analiz → yaz → cilala)
+  secrets.js         API keys (safeStorage → DPAPI)
+  llm.js             Provider registry and single entry point
+  promptEngine.js    Prompt generation pipeline (analyze → write → polish)
   providers/
-    http.js          Ortak fetch + SSE/NDJSON okuyucuları
+    http.js          Shared fetch + SSE/NDJSON readers
     ollama.js        /api/chat, /api/tags
     openaiCompat.js  /v1/chat/completions (LM Studio, OpenAI, OpenRouter…)
-    anthropic.js     Resmî @anthropic-ai/sdk
-    gemini.js        streamGenerateContent (x-goog-api-key başlığı)
+    anthropic.js     Official @anthropic-ai/sdk
+    gemini.js        streamGenerateContent (x-goog-api-key header)
 src/renderer/
-  orb/               Yüzen küre + genişleyen kart
-  panel/             Ayarlar · Geçmiş · Hakkında
+  orb/               Floating orb + expanding card
+  panel/             Settings · History · About
 ```
 
-### Sağlayıcıya özgü notlar
+### Provider-specific notes
 
-- **Anthropic** — resmî SDK kullanılır. Yeni Claude modellerinde (`claude-opus-5`,
-  `claude-sonnet-5`, `claude-opus-4-8`…) `temperature` API tarafından reddedildiği
-  için gönderilmez; bunun yerine adaptif düşünme + `effort` (düşük/orta/yüksek)
-  ayarı kullanılır. Düşünme açıkken token bütçesi yanıtla paylaşıldığından
-  `max_tokens` değerine otomatik pay eklenir. Politika kaynaklı retler için
-  sunucu tarafı yedek model (`fallbacks: "default"`) etkindir; hesap bu betayı
-  desteklemiyorsa istek yedeksiz olarak tekrarlanır.
-- **Gemini** — anahtar URL'ye değil `x-goog-api-key` başlığına konur.
-- **OpenAI uyumlu** — adres `/v1` ile bitmiyorsa otomatik eklenir; anahtar
-  opsiyoneldir (yerelde boş bırakın).
-
----
-
-## Veri nerede duruyor
-
-`%APPDATA%/Sparky AI/` altında:
-
-- `settings.json` — ayarlar, pencere konumu
-- `history.json` — girdi/çıktı geçmişi (favoriler limit dolsa da silinmez)
-- `secrets.json` — şifrelenmiş API anahtarları
-- `projects.json` — projeler, metin notları, görseller
-- `modes.json` — yerleşik ve özel modlar
-
-**Hakkında → Veri klasörünü aç** ile doğrudan gidebilirsiniz. Geçmişi `.md` veya
-`.json` olarak dışa aktarabilirsiniz.
+- **Anthropic** — uses the official SDK. On newer Claude models (`claude-opus-5`,
+  `claude-sonnet-5`, `claude-opus-4-8`…) `temperature` is rejected by the API,
+  so it isn't sent; adaptive thinking + an `effort` setting (low/medium/high) is
+  used instead. With thinking on, the token budget is shared with the response,
+  so `max_tokens` gets an automatic top-up. A server-side fallback model
+  (`fallbacks: "default"`) is enabled for policy-driven refusals; if the account
+  doesn't support that beta, the request is retried without a fallback.
+- **Gemini** — the key goes in the `x-goog-api-key` header, not the URL.
+- **OpenAI-compatible** — `/v1` is appended automatically if the endpoint
+  doesn't already end with it; the key is optional (leave it blank locally).
 
 ---
 
-## Kullanılan açık kaynak bileşenler
+## Where your data lives
 
-| Bileşen | Lisans | Rolü |
+Under `%APPDATA%/Sparky AI/`:
+
+- `settings.json` — settings, window position
+- `history.json` — input/output history (favorites survive even past the limit)
+- `secrets.json` — encrypted API keys
+- `projects.json` — projects, text notes, images
+- `modes.json` — built-in and custom modes
+
+Go there directly via **About → Open data folder**. History can be exported
+as `.md` or `.json`.
+
+---
+
+## Open-source components used
+
+| Component | License | Role |
 | --- | --- | --- |
-| [Electron](https://www.electronjs.org/) | MIT | Masaüstü çalışma zamanı (Chromium + Node.js) |
-| [@anthropic-ai/sdk](https://github.com/anthropics/anthropic-sdk-typescript) | MIT | Anthropic (Claude) resmî istemci kütüphanesi |
-| [electron-builder](https://www.electron.build/) | MIT | Windows kurulum (NSIS) ve taşınabilir exe paketleme |
+| [Electron](https://www.electronjs.org/) | MIT | Desktop runtime (Chromium + Node.js) |
+| [@anthropic-ai/sdk](https://github.com/anthropics/anthropic-sdk-typescript) | MIT | Official Anthropic (Claude) client library |
+| [electron-builder](https://www.electron.build/) | MIT | Windows installer (NSIS) and portable exe packaging |
 
-Diğer tüm sağlayıcı entegrasyonları (Ollama, LM Studio, OpenAI, Gemini ve
-OpenAI-uyumlu uçlar) ek bir istemci kütüphanesi olmadan, doğrudan `fetch` ile
-konuşur.
+Every other provider integration (Ollama, LM Studio, OpenAI, Gemini, and
+OpenAI-compatible endpoints) talks directly over `fetch`, with no extra client
+library.
 
-## Lisans
+## License
 
-[MIT](LICENSE) — dilediğiniz gibi kullanın, değiştirin, dağıtın; tek şart
-lisans metnini korumanız.
+[MIT](LICENSE) — use, modify, and distribute it however you like; the only
+requirement is keeping the license text.
