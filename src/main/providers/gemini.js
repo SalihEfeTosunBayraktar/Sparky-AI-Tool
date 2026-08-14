@@ -69,6 +69,7 @@ async function chat({ endpoint, apiKey, model, system, messages, image, temperat
   let text = '';
   let blockReason = null;
   let finishReason = null;
+  let totalTokens = null;
   await readSSE(res, (obj) => {
     if (obj.error) throw new LlmError(obj.error.message || String(obj.error), { provider: 'gemini' });
     blockReason = obj?.promptFeedback?.blockReason || blockReason;
@@ -81,6 +82,10 @@ async function chat({ endpoint, apiKey, model, system, messages, image, temperat
         onToken?.(p.text);
       }
     }
+    // Gemini her chunk'ta usageMetadata gönderebilir; en son değeri al.
+    if (typeof obj?.usageMetadata?.totalTokenCount === 'number') {
+      totalTokens = obj.usageMetadata.totalTokenCount;
+    }
     return true;
   });
 
@@ -91,7 +96,7 @@ async function chat({ endpoint, apiKey, model, system, messages, image, temperat
   }
 
   // MAX_TOKENS → maxOutputTokens sınırına çarpıldı, yanıt yarım.
-  return { text, truncated: finishReason === 'MAX_TOKENS' };
+  return { text, truncated: finishReason === 'MAX_TOKENS', totalTokens };
 }
 
 module.exports = { listModels, chat, DEFAULT_BASE };

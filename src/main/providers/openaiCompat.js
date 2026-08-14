@@ -64,6 +64,7 @@ async function chat({ endpoint, apiKey, model, system, messages, image, temperat
 
   let text = '';
   let finishReason = null;
+  let totalTokens = null;
   await readSSE(res, (obj) => {
     if (obj.error) throw new LlmError(obj.error.message || String(obj.error), { provider: providerId });
     const choice = obj?.choices?.[0];
@@ -73,11 +74,15 @@ async function chat({ endpoint, apiKey, model, system, messages, image, temperat
       onToken?.(piece);
     }
     if (choice?.finish_reason) finishReason = choice.finish_reason;
+    // OpenAI ve uyumlu sağlayıcılar son chunk'ta usage nesnesini gönderir.
+    if (obj.usage && typeof obj.usage.total_tokens === 'number') {
+      totalTokens = obj.usage.total_tokens;
+    }
     return true;
   });
 
   // finish_reason === 'length' → max_tokens'a çarpıldı, yanıt yarım.
-  return { text, truncated: finishReason === 'length' };
+  return { text, truncated: finishReason === 'length', totalTokens };
 }
 
 module.exports = { listModels, chat };

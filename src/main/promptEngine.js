@@ -383,6 +383,8 @@ async function chatComplete({ chat, params, onToken, onStatus }) {
   let text = String(first.text || '');
   let truncated = !!first.truncated;
   let rounds = 0;
+  // Sağlayıcılardan gelen gerçek token kullanımını topla (devam turları dahil).
+  let totalTokens = first.totalTokens || null;
 
   while (truncated && rounds < MAX_CONTINUATIONS) {
     rounds += 1;
@@ -403,9 +405,11 @@ async function chatComplete({ chat, params, onToken, onStatus }) {
     if (!piece.trim()) break;
     text = joinContinuation(text, piece);
     truncated = !!cont.truncated;
+    // Devam turlarındaki token kullanımını biriktir.
+    if (cont.totalTokens) totalTokens = (totalTokens || 0) + cont.totalTokens;
   }
 
-  return { text, truncated, rounds };
+  return { text, truncated, rounds, totalTokens };
 }
 
 /**
@@ -609,7 +613,7 @@ async function run({
       onToken,
       onStatus
     });
-    return { text: clean(res.text), truncated: res.truncated };
+    return { text: clean(res.text), truncated: res.truncated, totalTokens: res.totalTokens };
   }
 
   // Oto mod kararı main tarafında, netleştirme kapısından önce alınır ve
@@ -669,6 +673,8 @@ async function run({
 
   let output = clean(first.text);
   let truncated = first.truncated;
+  // Token kullanımını biriktir: cilalama yapıldıysa her iki aşamanın toplamı.
+  let runTokens = first.totalTokens || null;
 
   if (effectiveDeepMode && output) {
     onStatus?.({ key: 'status.polishing', text: 'Cilalanıyor…', kind: 'thinking' });
@@ -689,6 +695,7 @@ async function run({
       onToken,
       onStatus
     });
+    if (refined.totalTokens) runTokens = (runTokens || 0) + refined.totalTokens;
     const cleaned = clean(refined.text);
     if (cleaned && validateRefinedPrompt(output, cleaned)) {
       output = cleaned;
@@ -704,7 +711,7 @@ async function run({
   }
 
   if (!output) throw new Error('Model boş yanıt döndürdü. Modeli veya "Maks. token" ayarını kontrol edin.');
-  return { text: output, truncated };
+  return { text: output, truncated, totalTokens: runTokens };
 }
 
 module.exports = {

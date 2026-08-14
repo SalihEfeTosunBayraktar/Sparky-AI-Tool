@@ -47,6 +47,7 @@ async function chat({ endpoint, model, system, messages, image, temperature, max
 
   let text = '';
   let truncated = false;
+  let totalTokens = null;
   await readNdjson(res, (obj) => {
     if (obj.error) throw new LlmError(String(obj.error), { provider: 'ollama' });
     const piece = obj?.message?.content;
@@ -57,12 +58,16 @@ async function chat({ endpoint, model, system, messages, image, temperature, max
     if (obj.done) {
       // num_predict sınırına çarpıldıysa yanıt yarım kalmıştır.
       truncated = obj.done_reason === 'length';
+      // Ollama son chunk'ta token istatistiklerini gönderir.
+      const prompt = Number(obj.prompt_eval_count) || 0;
+      const completion = Number(obj.eval_count) || 0;
+      if (prompt + completion > 0) totalTokens = prompt + completion;
       return false;
     }
     return true;
   });
 
-  return { text, truncated };
+  return { text, truncated, totalTokens };
 }
 
 module.exports = { listModels, chat };

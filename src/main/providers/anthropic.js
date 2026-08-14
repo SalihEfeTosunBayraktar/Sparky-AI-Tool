@@ -143,7 +143,11 @@ async function consume(stream, onToken) {
     });
   }
   // Metin varsa hata verme — üst katman kaldığı yerden devam ettirecek.
-  return { text, truncated };
+  // Anthropic finalMessage'da usage.input_tokens + output_tokens döndürür.
+  const inputT = Number(final?.usage?.input_tokens) || 0;
+  const outputT = Number(final?.usage?.output_tokens) || 0;
+  const totalTokens = (inputT + outputT) > 0 ? inputT + outputT : null;
+  return { text, truncated, totalTokens };
 }
 
 function isBetaRejection(err) {
