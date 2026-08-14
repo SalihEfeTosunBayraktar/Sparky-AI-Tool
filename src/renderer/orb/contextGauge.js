@@ -85,7 +85,10 @@ class ContextGauge {
       this.fillEl.style.strokeDasharray = '2 4';
       this.fillEl.style.strokeDashoffset = '0';
       this.labelEl.textContent = '∅';
-      if (this.chipLabelEl) this.chipLabelEl.textContent = this.t('gauge.chipStateless', 'Hafıza: ∅');
+      const titleStateless = this.t('gauge.statelessTooltip', 'Context: ∅ (Hafızasız)');
+      this.root.title = titleStateless;
+      const donutCont = this.root.querySelector('.donut-container');
+      if (donutCont) donutCont.title = titleStateless;
       if (this.badgeEl) this.badgeEl.textContent = this.t('gauge.stateless', 'Hafızasız');
 
       this.setTooltipField('#valGaugeProj', '—');
@@ -106,9 +109,10 @@ class ContextGauge {
     this.fillEl.style.strokeDasharray = `${this.CIRCUMFERENCE.toFixed(2)}`;
     this.fillEl.style.strokeDashoffset = `${offset.toFixed(2)}`;
     this.labelEl.textContent = metrics.isCompacting ? '⚡' : `${percentage}%`;
-    if (this.chipLabelEl) {
-      this.chipLabelEl.textContent = metrics.isCompacting ? 'Context: ⚡' : `Context: %${percentage}`;
-    }
+    const titleActive = `Context: ${percentage}%`;
+    this.root.title = titleActive;
+    const donutCont = this.root.querySelector('.donut-container');
+    if (donutCont) donutCont.title = titleActive;
 
     // State Resolution
     let state = 'normal';

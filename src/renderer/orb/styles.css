@@ -270,22 +270,28 @@ body {
 
 /* Görsel Yükleme & Önizleme Alanı */
 .img-preview-container {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 6px 10px;
-  margin-bottom: 8px;
+  padding: 4px 10px;
+  margin-bottom: 4px;
+  max-height: 52px;
   background: var(--bg-input);
   border: 1px solid var(--border-color);
   border-radius: 10px;
+  transition: all 0.2s ease-in-out;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
 .img-preview {
-  width: 44px;
-  height: 44px;
+  width: 38px;
+  height: 38px;
   object-fit: cover;
   border-radius: 6px;
   border: 1px solid var(--border-color);
+  flex-shrink: 0;
 }
 
 .img-info {
@@ -447,13 +453,16 @@ body {
 .body {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 12px;
-  flex: 1;
+  gap: 6px;
+  padding: 10px 12px;
+  flex: 1 1 auto;
   min-height: 0;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
 .row-label {
+  flex-shrink: 0;
   display: flex;
   align-items: baseline;
   gap: 8px;
@@ -465,7 +474,8 @@ body {
 }
 
 .row-label.out {
-  margin-top: 4px;
+  flex-shrink: 0;
+  margin-top: 2px;
 }
 
 .meta {
@@ -599,6 +609,16 @@ input[type="range"]:active::-webkit-slider-thumb {
   transform: scale(1.1);
 }
 
+.input-composer {
+  flex-shrink: 0;
+  position: relative;
+  border-radius: 11px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  padding: 8px 10px;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
 .input-composer:focus-within {
   border-color: var(--accent-orange) !important;
   box-shadow: var(--accent-glow) !important;
@@ -606,8 +626,8 @@ input[type="range"]:active::-webkit-slider-thumb {
 
 .input-composer #input {
   width: 100%;
-  height: 84px;
-  min-height: 70px;
+  height: 72px;
+  min-height: 56px;
   background: transparent;
   border: none;
   border-radius: 0;
@@ -848,9 +868,9 @@ select option {
 
 /* Prompt Çıktı Kartı (Prompt Output Card) */
 .output {
-  flex: 1;
-  min-height: 100px;
-  padding: 10px 12px;
+  flex: 1 1 auto;
+  min-height: 90px;
+  padding: 8px 12px;
   background: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: 11px;
@@ -860,6 +880,7 @@ select option {
   word-break: break-word;
   overflow-y: auto;
   color: var(--text-primary);
+  transition: all 0.2s ease-in-out;
 }
 
 .output .empty {
@@ -1022,17 +1043,19 @@ select option {
 }
 
 .out-actions {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-top: 8px;
+  margin-top: 4px;
 }
 
 /* Alt Düzeltme Girdi Alanı (Refine Bar) */
 .refine {
+  flex-shrink: 0;
   display: flex;
   gap: 8px;
-  margin-top: 8px;
+  margin-top: 4px;
 }
 
 .refine input {
@@ -1079,11 +1102,12 @@ select option {
 /* ================================================================== */
 
 .card-footer-info.status-bar {
+  flex-shrink: 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 6px;
-  padding: 6px 10px 2px 10px;
+  margin-top: 4px;
+  padding: 4px 6px 2px 6px;
   background: transparent;
   border-top: 1px solid rgba(255, 255, 255, 0.05);
   font-size: 11px;
@@ -1120,40 +1144,29 @@ select option {
   position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 2px 8px;
-  border-radius: 6px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  justify-content: center;
   cursor: pointer;
   user-select: none;
-  transition: all 0.18s ease;
-}
-
-.context-gauge-widget:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: var(--state-color, var(--accent-orange));
 }
 
 .context-gauge-widget .donut-container {
   position: relative;
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
+  padding: 1px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: border-color 0.2s ease, transform 0.18s ease, background 0.2s ease;
 }
 
-.context-gauge-widget .gauge-chip-label {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--txt-dim);
-  transition: color 0.15s ease;
-}
-
-.context-gauge-widget:hover .gauge-chip-label {
-  color: var(--txt);
+.context-gauge-widget .donut-container:hover {
+  transform: scale(1.12);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--state-color, var(--accent-orange));
 }
 
 .context-gauge-widget .donut-svg {
