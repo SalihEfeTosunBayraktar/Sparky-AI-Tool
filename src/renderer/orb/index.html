@@ -185,21 +185,23 @@
                   <span id="donutLabel" class="donut-center-label">∅</span>
                 </div>
 
-                <!-- Hover Breakdown Tooltip -->
-                <div class="context-tooltip" role="tooltip">
+                <!-- Hover & Click Context Popover Card -->
+                <div class="context-tooltip context-popover-card" role="dialog" aria-label="Context &amp; Hafıza Details">
                   <div class="tooltip-header">
                     <span class="tooltip-title" data-i18n="gauge.title">Context &amp; Hafıza</span>
-                    <span id="gaugeBadge" class="tooltip-badge">Hafızasız</span>
+                    <span id="gaugeBadge" class="tooltip-badge status-badge">Hafızasız</span>
                   </div>
                   <div class="tooltip-breakdown">
-                    <div class="breakdown-row"><span data-i18n="gauge.projectNotes">Proje Notları</span><span id="valGaugeProj">—</span></div>
-                    <div class="breakdown-row"><span data-i18n="gauge.memorySummary">Özet Hafıza</span><span id="valGaugeMem">—</span></div>
-                    <div class="breakdown-row"><span data-i18n="gauge.dialogueHistory">Diyalog Geçmişi</span><span id="valGaugeHist">0 tk</span></div>
-                    <div class="breakdown-row"><span data-i18n="gauge.currentInput">Mevcut Girdi</span><span id="valGaugeInput">0 tk</span></div>
+                    <div class="breakdown-row metric-row"><span data-i18n="gauge.projectNotes">Proje Notları</span><span id="valGaugeProj" class="metric-val">—</span></div>
+                    <div class="breakdown-row metric-row"><span data-i18n="gauge.memorySummary">Özet Hafıza</span><span id="valGaugeMem" class="metric-val">—</span></div>
+                    <div class="breakdown-row metric-row"><span data-i18n="gauge.dialogueHistory">Diyalog Geçmişi</span><span id="valGaugeHist" class="metric-val">0 tk</span></div>
+                    <div class="breakdown-row metric-row"><span data-i18n="gauge.currentInput">Mevcut Girdi</span><span id="valGaugeInput" class="metric-val">0 tk</span></div>
                     <div class="breakdown-divider"></div>
-                    <div class="breakdown-row total"><span data-i18n="gauge.totalCapacity">Toplam / Kapasite</span><span id="valGaugeTotal">0 / 32,768</span></div>
+                    <div class="breakdown-row total metric-row"><span data-i18n="gauge.totalCapacity">Toplam / Kapasite</span><span id="valGaugeTotal" class="metric-val">0 / 32,768</span></div>
                   </div>
-                  <button id="btnClearMem" class="btn-clear-mem link" data-i18n="gauge.clearMemoryBtn" hidden>Hafızayı Sıfırla</button>
+                  <div class="tooltip-footer">
+                    <button id="btnClearMem" class="btn-clear-mem reset-action-btn" data-i18n="gauge.clearMemoryBtn" hidden>Hafızayı Sıfırla</button>
+                  </div>
                 </div>
               </div>
             </div>

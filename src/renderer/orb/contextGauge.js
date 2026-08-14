@@ -34,13 +34,29 @@ class ContextGauge {
   }
 
   /**
-   * Binds click events for memory management inside tooltip.
+   * Binds click events for memory management and popover toggle/dismissal.
    */
   bindEvents() {
     if (this.btnClearMem && this.api?.memory?.clear) {
       this.btnClearMem.addEventListener('click', async (e) => {
         e.stopPropagation();
         await this.api.memory.clear();
+      });
+    }
+
+    const donutCont = this.root.querySelector('.donut-container');
+    if (donutCont) {
+      donutCont.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.root.classList.toggle('open');
+      });
+    }
+
+    if (typeof document !== 'undefined') {
+      document.addEventListener('click', (e) => {
+        if (!this.root.contains(e.target)) {
+          this.root.classList.remove('open');
+        }
       });
     }
   }

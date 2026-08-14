@@ -8,7 +8,9 @@
   --bg-app: #0d1117;
   --bg-card: rgba(22, 27, 34, 0.88);
   --bg-input: #161b22;
+  --bg-surface-overlay: rgba(22, 27, 34, 0.96);
   --border-color: #30363d;
+  --border-subtle: #30363d;
   --border-color-strong: var(--accent-border);
   --text-primary: #e6edf3;
   --text-secondary: #8b949e;
@@ -23,6 +25,7 @@
   --field: #161b22;
   --btn-bg: #21262d;
   --card-shadow: 0 24px 60px rgba(0, 0, 0, 0.65);
+  --popover-shadow: 0 10px 30px rgba(0, 0, 0, 0.45), 0 4px 12px rgba(0, 0, 0, 0.25);
   --out-bg: rgba(0, 0, 0, 0.35);
   --select-opt-bg: #181922;
   --select-opt-txt: #f1f3f9;
@@ -30,6 +33,14 @@
   --status-idle-border: rgba(16, 185, 129, 0.35);
   --status-idle-text: #34d399;
   --status-idle-dot: #10b981;
+  --badge-success-bg: rgba(16, 185, 129, 0.15);
+  --badge-success-text: #34d399;
+  --badge-warning-bg: rgba(245, 158, 11, 0.15);
+  --badge-warning-text: #f59e0b;
+  --badge-danger-bg: rgba(239, 68, 68, 0.15);
+  --badge-danger-text: #f87171;
+  --color-danger: #ef4444;
+  --color-danger-hover: #f87171;
   --sug-bg: rgba(245, 158, 11, 0.12);
   --sug-border: rgba(245, 158, 11, 0.45);
   --sug-text: #fcd34d;
@@ -40,7 +51,9 @@
   --bg-app: #f8fafc;
   --bg-card: rgba(255, 255, 255, 0.94);
   --bg-input: #ffffff;
+  --bg-surface-overlay: #ffffff;
   --border-color: #cbd5e1;
+  --border-subtle: #cbd5e1;
   --border-color-strong: var(--accent-border);
   --text-primary: #0f172a;
   --text-secondary: #475569;
@@ -55,6 +68,7 @@
   --field: #ffffff;
   --btn-bg: #f1f5f9;
   --card-shadow: 0 16px 40px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06);
+  --popover-shadow: 0 10px 30px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.06);
   --out-bg: rgba(241, 245, 249, 0.9);
   --select-opt-bg: #ffffff;
   --select-opt-txt: #0f172a;
@@ -62,6 +76,14 @@
   --status-idle-border: rgba(5, 150, 105, 0.38);
   --status-idle-text: #065f46;
   --status-idle-dot: #059669;
+  --badge-success-bg: rgba(16, 185, 129, 0.12);
+  --badge-success-text: #059669;
+  --badge-warning-bg: rgba(245, 158, 11, 0.12);
+  --badge-warning-text: #b45309;
+  --badge-danger-bg: rgba(239, 68, 68, 0.12);
+  --badge-danger-text: #dc2626;
+  --color-danger: #dc2626;
+  --color-danger-hover: #b91c1c;
   --sug-bg: rgba(245, 158, 11, 0.12);
   --sug-border: rgba(217, 119, 6, 0.45);
   --sug-text: #b45309;
@@ -1427,6 +1449,9 @@ select option {
 
 .context-gauge-widget[data-state="stateless"] {
   --state-color: #64748b;
+  --badge-bg: var(--bg-card);
+  --badge-text: var(--txt-dim);
+  --badge-border: var(--line);
 }
 .context-gauge-widget[data-state="stateless"] .donut-fill {
   stroke-dasharray: 2 4 !important;
@@ -1439,14 +1464,20 @@ select option {
 }
 
 .context-gauge-widget[data-state="normal"] {
-  --state-color: #10b981;
+  --state-color: var(--badge-success-text, #10b981);
+  --badge-bg: var(--badge-success-bg);
+  --badge-text: var(--badge-success-text);
+  --badge-border: rgba(16, 185, 129, 0.25);
 }
 .context-gauge-widget[data-state="normal"] .donut-fill {
   filter: drop-shadow(0 0 3px rgba(16, 185, 129, 0.4));
 }
 
 .context-gauge-widget[data-state="warning"] {
-  --state-color: #f59e0b;
+  --state-color: var(--badge-warning-text, #f59e0b);
+  --badge-bg: var(--badge-warning-bg);
+  --badge-text: var(--badge-warning-text);
+  --badge-border: rgba(245, 158, 11, 0.25);
 }
 .context-gauge-widget[data-state="warning"] .donut-fill {
   filter: drop-shadow(0 0 4px rgba(245, 158, 11, 0.5));
@@ -1454,7 +1485,10 @@ select option {
 }
 
 .context-gauge-widget[data-state="critical"] {
-  --state-color: #ef4444;
+  --state-color: var(--badge-danger-text, #ef4444);
+  --badge-bg: var(--badge-danger-bg);
+  --badge-text: var(--badge-danger-text);
+  --badge-border: rgba(239, 68, 68, 0.25);
 }
 .context-gauge-widget[data-state="critical"] .donut-fill {
   filter: drop-shadow(0 0 5px rgba(239, 68, 68, 0.65));
@@ -1463,6 +1497,9 @@ select option {
 
 .context-gauge-widget[data-state="compacting"] {
   --state-color: #a855f7;
+  --badge-bg: rgba(168, 85, 247, 0.15);
+  --badge-text: #c084fc;
+  --badge-border: rgba(168, 85, 247, 0.3);
 }
 .context-gauge-widget[data-state="compacting"] .donut-fill {
   filter: drop-shadow(0 0 6px rgba(168, 85, 247, 0.7));
@@ -1485,92 +1522,134 @@ select option {
   50% { opacity: 0.7; transform: scale(1.05); }
 }
 
-/* --- GLASSMORPHIC TOOLTIP --- */
+/* --- CONTEXT & MEMORY OVERLAY POPOVER CARD --- */
 
-.context-gauge-widget .context-tooltip {
+.context-gauge-widget .context-tooltip,
+.context-gauge-widget .context-popover-card {
   position: absolute;
   bottom: calc(100% + 8px);
   right: 0;
-  width: 230px;
-  padding: 10px 12px;
-  background: rgba(20, 24, 35, 0.95);
-  backdrop-filter: blur(16px);
-  border: 1px solid var(--border-color);
-  border-radius: 10px;
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.5);
+  width: 245px;
+  padding: 14px 16px;
+  background: var(--bg-surface-overlay, var(--bg-card));
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border-subtle, var(--line));
+  border-radius: 12px;
+  box-shadow: var(--popover-shadow, 0 10px 30px rgba(0, 0, 0, 0.2));
   opacity: 0;
   pointer-events: none;
-  transform: translateY(6px);
-  transition: opacity 0.18s ease, transform 0.18s ease;
-  z-index: 1000;
+  transform: translateY(6px) scale(0.98);
+  transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+  z-index: 999;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
+  font-family: var(--font, system-ui, -apple-system, sans-serif);
 }
 
-.context-gauge-widget:hover .context-tooltip {
+.context-gauge-widget:hover .context-tooltip,
+.context-gauge-widget.open .context-tooltip,
+.context-gauge-widget .context-tooltip.open {
   opacity: 1;
   pointer-events: auto;
-  transform: translateY(0);
+  transform: translateY(0) scale(1);
 }
 
 .context-tooltip .tooltip-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  padding-bottom: 5px;
+  border-bottom: 1px solid var(--line, var(--border-subtle));
+  padding-bottom: 8px;
 }
 
 .context-tooltip .tooltip-title {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--txt);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary, var(--txt));
+  letter-spacing: -0.01em;
 }
 
-.context-tooltip .tooltip-badge {
-  font-size: 9.5px;
+.context-tooltip .tooltip-badge,
+.context-tooltip .status-badge {
+  font-size: 11px;
   font-weight: 600;
-  padding: 1px 6px;
-  border-radius: 4px;
-  background: rgba(255, 255, 255, 0.08);
-  color: var(--state-color, #10b981);
+  padding: 2px 8px;
+  border-radius: 20px;
+  background: var(--badge-bg, var(--badge-success-bg));
+  color: var(--badge-text, var(--badge-success-text));
+  border: 1px solid var(--badge-border, transparent);
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  white-space: nowrap;
 }
 
 .context-tooltip .tooltip-breakdown {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 6px;
 }
 
-.context-tooltip .breakdown-row {
+.context-tooltip .breakdown-row,
+.context-tooltip .metric-row {
   display: flex;
   justify-content: space-between;
-  font-size: 10.5px;
-  color: var(--txt-dim);
+  align-items: center;
+  font-size: 12px;
+  color: var(--text-secondary, var(--txt-dim));
+  font-variant-numeric: tabular-nums;
+  line-height: 1.4;
+}
+
+.context-tooltip .breakdown-row span:last-child,
+.context-tooltip .metric-val {
+  font-weight: 500;
+  color: var(--text-primary, var(--txt));
+  font-variant-numeric: tabular-nums;
 }
 
 .context-tooltip .breakdown-row.total {
-  font-weight: 600;
-  color: var(--txt);
+  font-weight: 650;
+  color: var(--text-primary, var(--txt));
+}
+
+.context-tooltip .breakdown-row.total span:last-child {
+  font-weight: 700;
 }
 
 .context-tooltip .breakdown-divider {
   height: 1px;
-  background: rgba(255, 255, 255, 0.08);
-  margin: 3px 0;
+  background: var(--line, var(--border-subtle));
+  margin: 6px 0;
 }
 
-.context-tooltip .btn-clear-mem {
-  align-self: flex-end;
-  font-size: 10.5px;
-  color: #ef4444;
-  padding: 2px 4px;
-  cursor: pointer;
-  text-decoration: underline;
-  background: none;
-  border: none;
+.context-tooltip .tooltip-footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin-top: 2px;
 }
-.context-tooltip .btn-clear-mem:hover {
-  color: #f87171;
+
+.context-tooltip .btn-clear-mem,
+.context-tooltip .reset-action-btn {
+  background: transparent;
+  border: none;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-danger, #ef4444);
+  cursor: pointer;
+  padding: 2px 4px;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color 0.15s ease, opacity 0.15s ease;
+  font-family: inherit;
+}
+
+.context-tooltip .btn-clear-mem:hover,
+.context-tooltip .reset-action-btn:hover {
+  color: var(--color-danger-hover, #f87171);
 }
