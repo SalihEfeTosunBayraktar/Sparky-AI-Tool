@@ -49,7 +49,8 @@ function fingerprintOf(project) {
   if (!project) return null;
   const imgs = Array.isArray(project.images) ? project.images.map((i) => i.id).join(',') : '';
   const texts = Array.isArray(project.texts) ? project.texts.length : 0;
-  return `${project.id}:${project.updatedAt || 0}:${texts}:${imgs}`;
+  const mem = project.memory ? `${project.memory.lastCompactedAt || 0}:${(project.memory.summary || '').length}` : '';
+  return `${project.id}:${project.updatedAt || 0}:${texts}:${imgs}:${mem}`;
 }
 
 /**
@@ -70,6 +71,11 @@ function buildBlock(project) {
   if (texts.length) {
     parts.push('Notes & specifications:');
     for (const t of texts) parts.push(`- [${t.title || 'Not'}] ${clip(t.content, MAX_NOTE)}`);
+  }
+
+  if (project.memory && project.memory.summary) {
+    parts.push('Episodic project memory & decisions:');
+    parts.push(clip(project.memory.summary, 2400));
   }
 
   return parts.join('\n');

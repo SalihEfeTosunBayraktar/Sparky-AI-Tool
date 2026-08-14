@@ -107,6 +107,11 @@ contextBridge.exposeInMainWorld('sparky', {
     get: () => ipcRenderer.invoke('tokens:get')
   },
 
+  memory: {
+    getMetrics: (currentInput) => ipcRenderer.invoke('memory:getMetrics', currentInput),
+    clear: (projectId) => ipcRenderer.invoke('memory:clear', projectId)
+  },
+
   shell: {
     openUserData: () => ipcRenderer.invoke('shell:openUserData')
   },
@@ -132,6 +137,7 @@ contextBridge.exposeInMainWorld('sparky', {
     projectsChanged: (cb) => on('projects:changed', cb),
     modeChanged: (cb) => on('modes:changed', cb),
     tokensUpdated: (cb) => on('tokens:updated', cb),
+    memoryUpdated: (cb) => on('memory:updated', cb),
     panelTab: (cb) => on('panel:tab', cb)
   }
 });

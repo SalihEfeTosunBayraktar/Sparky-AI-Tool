@@ -42,6 +42,8 @@ const TR = {
   'status.nothingToCopy': 'Kopyalanacak sonuç yok',
   'status.stopped': 'Durduruldu',
   'status.error': 'Hata',
+  'status.compactingMemory': 'Hafıza sıkıştırılıyor (%{pct})…',
+  'status.memoryCompacted': 'Hafıza güncellendi ✨',
 
   // API anahtarı döngüsü
   'status.keyRotatedRateLimit': '{provider}: limit aşıldı, sıradaki anahtara geçildi',
@@ -96,6 +98,8 @@ const EN = {
   'status.nothingToCopy': 'No result to copy',
   'status.stopped': 'Stopped',
   'status.error': 'Error',
+  'status.compactingMemory': 'Compacting memory ({pct}%)…',
+  'status.memoryCompacted': 'Memory updated ✨',
 
   'status.keyRotatedRateLimit': '{provider}: rate limit hit, switched to the next key',
   'status.keyRotatedInvalid': '{provider}: key invalid, switched to the next key',

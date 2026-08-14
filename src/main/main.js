@@ -28,6 +28,8 @@ const notifier = require('./notifier');
 const modes = require('./modes');
 const TokenTracker = require('./tokenTracker');
 const tokenTracker = new TokenTracker();
+const ProjectMemory = require('./projectMemory');
+const projectMemory = new ProjectMemory({ projectsStore: projects });
 
 // Windows görev çubuğunda ikonun doğru eşleşmesi için (AppUserModelId)
 if (process.platform === 'win32') {
@@ -267,6 +269,28 @@ async function runGeneration(payload) {
   send('gen:status', { text: S.t('status.preparing'), kind: 'prep' });
 
   try {
+    // 0.0) Proje Hafızası ve Otonom Sıkıştırma (Project Memory & Compaction)
+    if (activeProject) {
+      const maxCtx = Number(cfg.maxTokens) * 4 || 32768;
+      const memMetrics = projectMemory.getMetrics(activeProject, maxCtx, payload.raw);
+      if (memMetrics.ratio >= 0.80) {
+        send('gen:status', {
+          text: S.t('status.compactingMemory', { pct: Math.round(memMetrics.ratio * 100) }),
+          kind: 'thinking'
+        });
+        const compacted = await projectMemory.compact(
+          activeProject,
+          (opts) => llm.chat({ ...opts, providerId: cfg.provider, model: cfg.model, signal: controller.signal }),
+          cfg
+        );
+        if (compacted) {
+          projectContext.invalidate('memory-compacted');
+          send('gen:status', { text: S.t('status.memoryCompacted'), kind: 'info' });
+          broadcast('memory:updated', projectMemory.getMetrics(activeProject, maxCtx));
+        }
+      }
+    }
+
     // 0) Oto mod kararı — netleştirme kapısından ÖNCE alınmalı. Eskiden karar
     //    engine.run içinde, yani kapıdan sonra alınıyordu; bu yüzden
     //    CLARIFICATION kararı hiçbir zaman soru sorduramıyordu.
@@ -350,6 +374,13 @@ async function runGeneration(payload) {
       output
     });
     broadcast('tokens:updated', tokenStats);
+
+    // Aktif proje varsa diyalog geçmişini kaydet ve metrikleri yay
+    if (activeProject) {
+      projectMemory.appendTurn(activeProject, payload.raw, output);
+      const maxCtx = Number(cfg.maxTokens) * 4 || 32768;
+      broadcast('memory:updated', projectMemory.getMetrics(activeProject, maxCtx));
+    }
 
     const entry = history.add({
       input: payload.raw,
@@ -908,6 +939,22 @@ function registerIpc() {
 
   // --- tokenlar (token counter)
   ipcMain.handle('tokens:get', () => tokenTracker.getStats());
+
+  // --- hafıza (context memory)
+  ipcMain.handle('memory:getMetrics', (_e, currentInput) => {
+    const p = projects.getActive();
+    const maxTokens = Number(settings.get('maxTokens')) * 4 || 32768;
+    return projectMemory.getMetrics(p, maxTokens, currentInput);
+  });
+  ipcMain.handle('memory:clear', (_e, projectId) => {
+    const p = projectId ? projects.get(projectId) : projects.getActive();
+    if (p) {
+      projectMemory.clearMemory(p);
+      broadcast('memory:updated', projectMemory.getMetrics(p));
+      projectContext.invalidate('memory-cleared');
+    }
+    return { ok: true };
+  });
 
   // --- kabuk
   ipcMain.handle('shell:openUserData', () => shell.openPath(app.getPath('userData')));
