@@ -15,6 +15,21 @@ const tr = {
     copiedToClipboard: 'Panoya kopyalandı',
     loadedFromHistory: 'Geçmişten yüklendi'
   },
+  gauge: {
+    title: 'Context Penceresi & Hafıza',
+    stateless: 'Hafızasız (Tek Seferlik)',
+    optimal: 'Optimal',
+    warning: 'Uyarı',
+    critical: 'Kritik',
+    compacting: 'Sıkıştırılıyor…',
+    noProject: 'Proje seçilmedi — Hafıza (Memory) kapalı. Tek seferlik prompt üretimi.',
+    projectNotes: 'Proje Notları',
+    memorySummary: 'Özet Hafıza',
+    dialogueHistory: 'Diyalog Geçmişi',
+    currentInput: 'Mevcut Girdi',
+    totalCapacity: 'Toplam / Kapasite',
+    clearMemoryBtn: 'Hafızayı Sıfırla'
+  },
   card: {
     inputLabel: 'Metniniz',
     inputPlaceholder: 'Ne istediğinizi yazın veya UI tasarım görseli yükleyin.\nCtrl+Enter → üret',

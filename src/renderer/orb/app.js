@@ -61,6 +61,20 @@ imgFileInput.addEventListener('change', (e) => {
   }
 });
 
+let contextGauge = null;
+
+async function refreshContextGauge(currentInput = '') {
+  if (!contextGauge || !api?.memory?.getMetrics) return;
+  const metrics = await api.memory.getMetrics(currentInput || inputEl?.value || '');
+  contextGauge.render(metrics);
+}
+
+if (api?.on?.memoryUpdated) {
+  api.on.memoryUpdated((metrics) => {
+    if (contextGauge) contextGauge.render(metrics);
+  });
+}
+
 const state = {
   settings: null,
   providers: [],
@@ -617,7 +631,10 @@ btnClearInput?.addEventListener('click', () => {
   updateClearBtnVisibility();
 });
 
-inputEl.addEventListener('input', () => updateClearBtnVisibility());
+inputEl.addEventListener('input', () => {
+  updateClearBtnVisibility();
+  refreshContextGauge(inputEl.value);
+});
 
 inputEl.addEventListener('keydown', (e) => {
   if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
@@ -805,7 +822,10 @@ api.on.loadEntry((item) => {
 });
 
 api.on.settingsChanged((s) => applySettings(s));
-api.on.projectsChanged(() => populateProjects());
+api.on.projectsChanged(async () => {
+  await populateProjects();
+  await refreshContextGauge();
+});
 api.on.modeChanged(() => populateModes());
 
 const projectSel = $('projectSelect');
@@ -869,6 +889,7 @@ if (projectSel) {
       return;
     }
     await api.projects.setActive(val || null);
+    await refreshContextGauge();
   });
 }
 
@@ -909,6 +930,11 @@ if (api.on.tokensUpdated) {
   if (api.tokens && api.tokens.get) {
     const stats = await api.tokens.get();
     updateTokenCounter(stats);
+  }
+  const gaugeEl = $('contextGauge');
+  if (gaugeEl && typeof ContextGauge !== 'undefined') {
+    contextGauge = new ContextGauge(gaugeEl, { api, i18n });
+    await refreshContextGauge();
   }
   renderEmpty();
   setStatus({ text: settings.model ? i18n.t('app.ready') : i18n.t('app.selectModel'), kind: settings.model ? 'idle' : 'info' });

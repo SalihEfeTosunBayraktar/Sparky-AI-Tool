@@ -15,6 +15,21 @@ const en = {
     copiedToClipboard: 'Copied to clipboard',
     loadedFromHistory: 'Loaded from history'
   },
+  gauge: {
+    title: 'Context Window & Memory',
+    stateless: 'Stateless (One-off)',
+    optimal: 'Optimal',
+    warning: 'Warning',
+    critical: 'Critical',
+    compacting: 'Compacting…',
+    noProject: 'No project active — Memory is dormant. Single-turn prompt generation.',
+    projectNotes: 'Project Notes',
+    memorySummary: 'Memory Summary',
+    dialogueHistory: 'Dialogue History',
+    currentInput: 'Current Input',
+    totalCapacity: 'Total / Capacity',
+    clearMemoryBtn: 'Clear Memory'
+  },
   card: {
     inputLabel: 'Your Text',
     inputPlaceholder: 'Type what you need or upload a UI design image.\nCtrl+Enter → generate',
