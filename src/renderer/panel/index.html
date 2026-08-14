@@ -104,7 +104,24 @@
             </div>
           </div>
 
-          <h2 data-i18n="panel.sections.behavior">Davranış & Arayüz</h2>
+          <h2 data-i18n="panel.sections.appearance">Görünüm &amp; Tema</h2>
+          <div class="card">
+            <div class="field">
+              <label for="themeMode" data-i18n="theme.modeLabel">Tema Modu (Theme Mode)</label>
+              <select id="themeMode">
+                <option value="dark" data-i18n="theme.modeDark">Koyu (Dark)</option>
+                <option value="light" data-i18n="theme.modeLight">Açık (Light)</option>
+                <option value="system" data-i18n="theme.modeSystem">Sistem (System)</option>
+              </select>
+            </div>
+
+            <div class="field" style="margin-top: 10px;">
+              <label data-i18n="theme.accentLabel">Vurgu Rengi &amp; Küre Avatarı (Accent &amp; Orb Skin)</label>
+              <div id="accentPicker" class="accent-picker-grid"></div>
+            </div>
+          </div>
+
+          <h2 data-i18n="panel.sections.behavior">Davranış &amp; Arayüz</h2>
           <div class="card">
             <div class="field">
               <label class="switch">
@@ -309,6 +326,7 @@
     <script src="../locales/tr.js"></script>
     <script src="../locales/en.js"></script>
     <script src="../i18n.js"></script>
+    <script src="../themeManager.js"></script>
     <script src="projectMemoryUI.js"></script>
     <script src="projectUI.js"></script>
     <script src="codeEditor.js"></script>

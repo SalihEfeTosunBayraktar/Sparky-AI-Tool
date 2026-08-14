@@ -687,6 +687,13 @@ $('appLanguage').addEventListener('change', async () => {
   }
   await save({ appLanguage: lang });
 });
+
+$('themeMode')?.addEventListener('change', async () => {
+  const mode = $('themeMode').value;
+  if (themeManager) themeManager.applyTheme(mode, settings.accent || 'sunset');
+  await save({ theme: mode });
+});
+
 $('effort').addEventListener('change', () => save({ effort: $('effort').value }));
 
 function updateSliderProgress(el) {
@@ -769,12 +776,22 @@ function populateProviderSelect() {
   if (current) provSel.value = current;
 }
 
+const themeManager = typeof ThemeManager !== 'undefined' ? new ThemeManager() : null;
+
 function renderAll() {
   if (typeof i18n !== 'undefined') {
     i18n.init(settings.appLanguage || 'tr');
     i18n.translateDOM();
     populateStyleAndLangSelects();
     populateProviderSelect();
+  }
+
+  if (themeManager) {
+    themeManager.applyTheme(settings.theme || 'dark', settings.accent || 'sunset');
+    if ($('themeMode')) $('themeMode').value = settings.theme || 'dark';
+    themeManager.renderPicker($('accentPicker'), async (newAccent) => {
+      await save({ accent: newAccent });
+    }, typeof i18n !== 'undefined' ? i18n : null);
   }
 
   renderProviderFields();

@@ -168,6 +168,7 @@ const tr = {
     },
     sections: {
       providerAndModel: 'Sağlayıcı ve model',
+      appearance: 'Görünüm & Tema',
       appInterface: 'Arayüz Dili (App Language)',
       apiKeys: 'API anahtarları',
       advancedParams: 'Gelişmiş Model Parametreleri',
@@ -333,6 +334,17 @@ const tr = {
     currentInput: 'Mevcut Girdi',
     totalCapacity: 'Toplam / Kapasite',
     clearMemoryBtn: 'Hafızayı Sıfırla'
+  },
+  theme: {
+    modeLabel: 'Tema Modu',
+    modeDark: 'Koyu (Dark)',
+    modeLight: 'Açık (Light)',
+    modeSystem: 'Sistem (System)',
+    accentLabel: 'Vurgu Rengi & Küre Avatarı',
+    sunset: 'Sunset Spark',
+    cyber: 'Cyber Neon',
+    emerald: 'Emerald Glow',
+    amethyst: 'Amethyst Aura'
   }
 };
 

@@ -21,6 +21,8 @@ const DEFAULTS = {
   style: 'detailed',
   outputLanguage: 'auto',
   appLanguage: 'en',
+  theme: 'dark',
+  accent: 'sunset',
   appMode: 'normal-chat',
   deepMode: false,
   autoMode: false,

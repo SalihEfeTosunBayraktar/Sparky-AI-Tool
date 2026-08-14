@@ -768,8 +768,13 @@ function getModelConfig(provider, model) {
   };
 }
 
+const themeManager = typeof ThemeManager !== 'undefined' ? new ThemeManager() : null;
+
 function applySettings(s) {
   state.settings = s;
+  if (themeManager) {
+    themeManager.applyTheme(s.theme || 'dark', s.accent || 'sunset');
+  }
   if (typeof i18n !== 'undefined' && s.appLanguage) {
     i18n.init(s.appLanguage);
     i18n.setLanguage(s.appLanguage);

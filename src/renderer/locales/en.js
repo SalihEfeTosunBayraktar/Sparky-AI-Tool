@@ -168,6 +168,7 @@ const en = {
     },
     sections: {
       providerAndModel: 'Provider & Model',
+      appearance: 'Appearance & Theme',
       appInterface: 'App Language',
       apiKeys: 'API Keys',
       advancedParams: 'Advanced Model Parameters',
@@ -333,6 +334,17 @@ const en = {
     currentInput: 'Current Input',
     totalCapacity: 'Total / Capacity',
     clearMemoryBtn: 'Clear Memory'
+  },
+  theme: {
+    modeLabel: 'Theme Mode',
+    modeDark: 'Dark',
+    modeLight: 'Light',
+    modeSystem: 'System',
+    accentLabel: 'Accent Palette & Orb Avatar',
+    sunset: 'Sunset Spark',
+    cyber: 'Cyber Neon',
+    emerald: 'Emerald Glow',
+    amethyst: 'Amethyst Aura'
   }
 };
 
