@@ -79,6 +79,7 @@
   --accent-gradient: linear-gradient(135deg, #ff6b4a 0%, #e0287d 100%);
   --accent-btn: linear-gradient(135deg, #ff6b4a 0%, #e0287d 100%);
   --accent-glow: 0 0 16px rgba(255, 107, 74, 0.45);
+  --accent-glow-color: rgba(255, 107, 74, 0.45);
   --orb-gradient: linear-gradient(135deg, #ff6b4a 0%, #ff4d4d 45%, #e0287d 100%);
 }
 
@@ -92,6 +93,7 @@
   --accent-gradient: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
   --accent-btn: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%);
   --accent-glow: 0 0 16px rgba(0, 242, 254, 0.45);
+  --accent-glow-color: rgba(0, 242, 254, 0.45);
   --orb-gradient: linear-gradient(135deg, #00f2fe 0%, #38ef7d 50%, #4facfe 100%);
 }
 
@@ -105,6 +107,7 @@
   --accent-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
   --accent-btn: linear-gradient(135deg, #10b981 0%, #047857 100%);
   --accent-glow: 0 0 16px rgba(16, 185, 129, 0.45);
+  --accent-glow-color: rgba(16, 185, 129, 0.45);
   --orb-gradient: linear-gradient(135deg, #34d399 0%, #10b981 50%, #059669 100%);
 }
 
@@ -118,6 +121,7 @@
   --accent-gradient: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
   --accent-btn: linear-gradient(135deg, #8b5cf6 0%, #d946ef 100%);
   --accent-glow: 0 0 16px rgba(139, 92, 246, 0.45);
+  --accent-glow-color: rgba(139, 92, 246, 0.45);
   --orb-gradient: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 50%, #ec4899 100%);
 }
 
@@ -131,6 +135,7 @@
   --accent-gradient: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
   --accent-btn: linear-gradient(135deg, #f59e0b 0%, #dc2626 100%);
   --accent-glow: 0 0 16px rgba(245, 158, 11, 0.45);
+  --accent-glow-color: rgba(245, 158, 11, 0.45);
   --orb-gradient: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #ef4444 100%);
 }
 
@@ -144,6 +149,7 @@
   --accent-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
   --accent-btn: linear-gradient(135deg, #6366f1 0%, #9333ea 100%);
   --accent-glow: 0 0 16px rgba(99, 102, 241, 0.45);
+  --accent-glow-color: rgba(99, 102, 241, 0.45);
   --orb-gradient: linear-gradient(135deg, #818cf8 0%, #6366f1 50%, #a855f7 100%);
 }
 
@@ -157,6 +163,7 @@
   --accent-gradient: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
   --accent-btn: linear-gradient(135deg, #06b6d4 0%, #2563eb 100%);
   --accent-glow: 0 0 16px rgba(6, 182, 212, 0.45);
+  --accent-glow-color: rgba(6, 182, 212, 0.45);
   --orb-gradient: linear-gradient(135deg, #22d3ee 0%, #06b6d4 50%, #3b82f6 100%);
 }
 
@@ -170,6 +177,7 @@
   --accent-gradient: linear-gradient(135deg, #64748b 0%, #334155 100%);
   --accent-btn: linear-gradient(135deg, #64748b 0%, #1e293b 100%);
   --accent-glow: 0 0 16px rgba(100, 116, 139, 0.45);
+  --accent-glow-color: rgba(100, 116, 139, 0.45);
   --orb-gradient: linear-gradient(135deg, #94a3b8 0%, #64748b 50%, #334155 100%);
 }
 
@@ -716,7 +724,7 @@ input[type="range"]::-webkit-slider-thumb {
   border-radius: 50%;
   background: var(--accent-gradient);
   cursor: pointer;
-  box-shadow: 0 0 10px var(--accent-glow);
+  box-shadow: 0 0 10px var(--accent-glow-color);
   margin-top: -5px;
   transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.15s ease;
 }
@@ -766,7 +774,7 @@ input[type="range"]:active::-webkit-slider-thumb {
 
 .input-composer:focus-within {
   border-color: var(--accent) !important;
-  box-shadow: 0 0 0 2px var(--accent-glow) !important;
+  box-shadow: 0 0 0 2px var(--accent-glow-color) !important;
 }
 
 .input-composer #input {
@@ -825,7 +833,7 @@ input[type="range"]:active::-webkit-slider-thumb {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  box-shadow: 0 4px 14px var(--accent-glow);
+  box-shadow: 0 4px 14px var(--accent-glow-color);
   transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
   overflow: hidden;
@@ -835,12 +843,12 @@ input[type="range"]:active::-webkit-slider-thumb {
   background: var(--accent-btn);
   filter: brightness(1.12);
   transform: translateY(-1px) scale(1.02);
-  box-shadow: 0 6px 20px var(--accent-glow);
+  box-shadow: 0 6px 20px var(--accent-glow-color);
 }
 
 .btn-generate:active:not(:disabled) {
   transform: translateY(0) scale(0.98);
-  box-shadow: 0 2px 8px var(--accent-glow);
+  box-shadow: 0 2px 8px var(--accent-glow-color);
 }
 
 .btn-gen-spark {
@@ -881,7 +889,7 @@ select {
 }
 
 .chip-select:hover {
-  border-color: var(--accent-orange);
+  border-color: var(--accent);
   color: var(--txt);
 }
 
@@ -935,7 +943,7 @@ select option {
   background: var(--accent-subtle);
   border-color: var(--accent);
   color: var(--accent);
-  box-shadow: 0 0 10px var(--accent-glow);
+  box-shadow: 0 0 10px var(--accent-glow-color);
 }
 
 .icon-chip {
@@ -1018,12 +1026,12 @@ select option {
   background: var(--accent-btn);
   border-color: rgba(255, 255, 255, 0.2);
   color: #ffffff;
-  box-shadow: 0 4px 12px var(--accent-glow);
+  box-shadow: 0 4px 12px var(--accent-glow-color);
 }
 
 .btn.primary:hover:not(:disabled) {
   filter: brightness(1.08);
-  box-shadow: 0 6px 16px var(--accent-glow);
+  box-shadow: 0 6px 16px var(--accent-glow-color);
   transform: translateY(-1px);
 }
 
@@ -1287,8 +1295,8 @@ select option {
 }
 
 .refine input:focus {
-  border-color: var(--accent-orange);
-  box-shadow: var(--accent-glow);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-glow-color);
 }
 
 .refine .btn {
@@ -1312,7 +1320,7 @@ select option {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--accent-orange);
+  background: var(--accent);
 }
 
 /* ================================================================== */
@@ -1355,7 +1363,7 @@ select option {
 
 .token-counter:hover {
   opacity: 1;
-  color: var(--accent-orange);
+  color: var(--accent);
 }
 
 .context-gauge-widget {
@@ -1384,7 +1392,7 @@ select option {
 .context-gauge-widget .donut-container:hover {
   transform: scale(1.12);
   background: rgba(255, 255, 255, 0.08);
-  border-color: var(--state-color, var(--accent-orange));
+  border-color: var(--state-color, var(--accent));
 }
 
 .context-gauge-widget .donut-svg {
