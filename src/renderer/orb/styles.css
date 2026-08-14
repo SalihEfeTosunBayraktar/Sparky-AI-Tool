@@ -1083,8 +1083,10 @@ select option {
   justify-content: space-between;
   align-items: center;
   margin-top: 6px;
-  padding: 6px 8px 2px 8px;
+  padding: 6px 12px;
+  background: #11131e;
   border-top: 1px solid rgba(255, 255, 255, 0.05);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   font-size: 11px;
   color: #8e92a7;
 }
@@ -1092,13 +1094,18 @@ select option {
 .status-left {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 12px;
 }
 
 .status-right {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+/* Option B (Grouped Left) support via data-layout="b" */
+.status-bar[data-layout="b"] .status-right {
+  display: none;
 }
 
 .token-counter {
@@ -1114,12 +1121,12 @@ select option {
 }
 
 .memory-indicator {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 6px;
+  cursor: pointer;
   padding: 2px 6px;
   border-radius: 6px;
-  cursor: pointer;
   user-select: none;
   font-size: 11px;
   font-weight: 550;
@@ -1136,20 +1143,20 @@ select option {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background-color: #10b981; /* Default normal green */
-  box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  background-color: #10b981; /* Soft green (<150MB) */
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.5);
+  transition: all 0.3s ease;
   flex: 0 0 6px;
 }
 
 .status-dot.warning {
-  background-color: #f59e0b; /* Moderate orange (150-300MB) */
-  box-shadow: 0 0 6px rgba(245, 158, 11, 0.7);
+  background-color: #f59e0b; /* Warning orange (150-300MB) */
+  box-shadow: 0 0 6px rgba(245, 158, 11, 0.5);
 }
 
 .status-dot.critical {
-  background-color: #ef4444; /* High red (>300MB) */
-  box-shadow: 0 0 7px rgba(239, 68, 68, 0.85);
+  background-color: #ef4444; /* Critical red (>300MB) */
+  box-shadow: 0 0 6px rgba(239, 68, 68, 0.5);
   animation: pulse-critical 1.2s infinite ease-in-out;
 }
 
