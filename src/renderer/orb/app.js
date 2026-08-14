@@ -386,7 +386,7 @@ function setOutput(text) {
   state.hasResult = !!text;
   if (!text) {
     renderEmpty();
-  } else if (multimodalRenderer && (text.includes('![')) || (text.includes('data:image/'))) {
+  } else if (multimodalRenderer && (text.includes('![') || text.includes('data:image/'))) {
     multimodalRenderer.render(outputEl, text);
   } else {
     outputEl.textContent = text;

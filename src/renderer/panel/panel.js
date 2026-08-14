@@ -10,6 +10,14 @@ let savedTimer = null;
 let projectUI = null;
 let modeUI = null;
 
+// XSS-güvenli metin → HTML dönüştürücü. projectUI.js'teki global tanıma
+// bağımlılığı kırmak için yerel kopya.
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = String(str || '');
+  return div.innerHTML;
+}
+
 function renderProjects() {
   if (!projectUI && typeof ProjectUI !== 'undefined') {
     projectUI = new ProjectUI(api, typeof i18n !== 'undefined' ? i18n : { t: (k) => k });
@@ -406,48 +414,6 @@ function bindNumber(id, key, { min, max } = {}) {
   });
 }
 
-$('style')?.addEventListener('change', () => save({ style: $('style').value }));
-$('language')?.addEventListener('change', () => save({ outputLanguage: $('language').value }));
-$('appLanguage')?.addEventListener('change', () => {
-  const lang = $('appLanguage').value;
-  if (typeof i18n !== 'undefined') {
-    i18n.setLanguage(lang);
-    i18n.translateDOM();
-  }
-  save({ appLanguage: lang });
-});
-$('effort')?.addEventListener('change', () => save({ effort: $('effort').value }));
-
-$('temperature')?.addEventListener('input', () => {
-  if ($('temperatureVal')) $('temperatureVal').textContent = Number($('temperature').value).toFixed(2);
-});
-$('temperature')?.addEventListener('change', () => save({ temperature: Number($('temperature').value) }));
-
-$('opacity')?.addEventListener('input', () => {
-  if ($('opacityVal')) $('opacityVal').textContent = `%${Math.round(Number($('opacity').value) * 100)}`;
-});
-$('opacity')?.addEventListener('change', () => save({ opacity: Number($('opacity').value) }));
-
-bindCheck('deepMode', 'deepMode');
-bindCheck('autoMode', 'autoMode');
-bindCheck('clarify', 'clarify');
-bindCheck('suggestions', 'suggestions');
-bindCheck('alwaysOnTop', 'alwaysOnTop');
-bindCheck('autoCopy', 'autoCopy');
-bindCheck('launchAtStartup', 'launchAtStartup');
-bindCheck('enableNotifications', 'enableNotifications');
-bindCheck('enableSound', 'enableSound');
-bindCheck('notifyOnlyWhenBackground', 'notifyOnlyWhenBackground');
-$('notifyLevel')?.addEventListener('change', () => save({ notifyLevel: $('notifyLevel').value }));
-bindNumber('maxTokens', 'maxTokens', { min: 256, max: 32000 });
-bindNumber('historyLimit', 'historyLimit', { min: 10, max: 2000 });
-
-$('btnReset').addEventListener('click', async () => {
-  settings = await api.settings.reset();
-  providers = await api.providers.catalog();
-  renderAll();
-  loadModels({ silent: true });
-});
 
 /* ------------------------------------------------------------------ */
 /* Kısayol yakalama                                                    */
@@ -523,7 +489,8 @@ async function refreshShortcutErrors() {
 /* ------------------------------------------------------------------ */
 
 function fmtDate(ts) {
-  return new Date(ts).toLocaleString('tr-TR', { dateStyle: 'short', timeStyle: 'short' });
+  const locale = (settings?.appLanguage === 'en' || (typeof i18n !== 'undefined' && i18n.currentLang === 'en')) ? 'en-US' : 'tr-TR';
+  return new Date(ts).toLocaleString(locale, { dateStyle: 'short', timeStyle: 'short' });
 }
 
 async function loadHistory() {
@@ -754,11 +721,16 @@ $('opacity')?.addEventListener('change', () => {
 });
 
 bindCheck('deepMode', 'deepMode');
+bindCheck('autoMode', 'autoMode');
 bindCheck('clarify', 'clarify');
 bindCheck('suggestions', 'suggestions');
 bindCheck('alwaysOnTop', 'alwaysOnTop');
 bindCheck('autoCopy', 'autoCopy');
 bindCheck('launchAtStartup', 'launchAtStartup');
+bindCheck('enableNotifications', 'enableNotifications');
+bindCheck('enableSound', 'enableSound');
+bindCheck('notifyOnlyWhenBackground', 'notifyOnlyWhenBackground');
+$('notifyLevel')?.addEventListener('change', () => save({ notifyLevel: $('notifyLevel').value }));
 bindNumber('maxTokens', 'maxTokens', { min: 256, max: 32000 });
 bindNumber('historyLimit', 'historyLimit', { min: 10, max: 2000 });
 
