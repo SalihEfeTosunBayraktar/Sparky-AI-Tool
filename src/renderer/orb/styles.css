@@ -21,6 +21,7 @@
   --txt-dim: #8b949e;
   --txt-faint: #6e7681;
   --field: #161b22;
+  --btn-bg: #21262d;
   --card-shadow: 0 24px 60px rgba(0, 0, 0, 0.65);
   --out-bg: rgba(0, 0, 0, 0.35);
   --select-opt-bg: #181922;
@@ -29,41 +30,51 @@
   --status-idle-border: rgba(16, 185, 129, 0.35);
   --status-idle-text: #34d399;
   --status-idle-dot: #10b981;
+  --sug-bg: rgba(245, 158, 11, 0.12);
+  --sug-border: rgba(245, 158, 11, 0.45);
+  --sug-text: #fcd34d;
 }
 
 [data-theme="light"] {
   color-scheme: light;
   --bg-app: #f8fafc;
   --bg-card: rgba(255, 255, 255, 0.94);
-  --bg-input: #f1f5f9;
-  --border-color: #e2e8f0;
+  --bg-input: #ffffff;
+  --border-color: #cbd5e1;
   --border-color-strong: rgba(255, 107, 74, 0.35);
   --text-primary: #0f172a;
   --text-secondary: #475569;
   --text-placeholder: #94a3b8;
   --bg: rgba(248, 250, 252, 0.96);
   --bg-solid: #f8fafc;
-  --line: #e2e8f0;
+  --line: #cbd5e1;
   --line-strong: rgba(255, 107, 74, 0.35);
   --txt: #0f172a;
   --txt-dim: #475569;
-  --txt-faint: #94a3b8;
-  --field: #f1f5f9;
+  --txt-faint: #64748b;
+  --field: #ffffff;
+  --btn-bg: #f1f5f9;
   --card-shadow: 0 16px 40px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06);
-  --out-bg: rgba(241, 245, 249, 0.85);
+  --out-bg: rgba(241, 245, 249, 0.9);
   --select-opt-bg: #ffffff;
   --select-opt-txt: #0f172a;
   --status-idle-bg: rgba(5, 150, 105, 0.14);
   --status-idle-border: rgba(5, 150, 105, 0.38);
   --status-idle-text: #065f46;
   --status-idle-dot: #059669;
+  --sug-bg: rgba(245, 158, 11, 0.12);
+  --sug-border: rgba(217, 119, 6, 0.45);
+  --sug-text: #b45309;
 }
 
 /* Accent Palettes & Orb Variants */
 :root,
 [data-accent="sunset"] {
   --accent: #ff6b4a;
+  --accent-hover: #ff5533;
   --accent-2: #e0287d;
+  --accent-subtle: rgba(255, 107, 74, 0.12);
+  --accent-border: rgba(255, 107, 74, 0.28);
   --accent-orange: #ff6b4a;
   --accent-gradient: linear-gradient(135deg, #ff6b4a 0%, #e0287d 100%);
   --accent-btn: linear-gradient(135deg, #ff6b4a 0%, #e0287d 100%);
@@ -73,7 +84,10 @@
 
 [data-accent="cyber"] {
   --accent: #00f2fe;
+  --accent-hover: #00d8e4;
   --accent-2: #4facfe;
+  --accent-subtle: rgba(0, 242, 254, 0.12);
+  --accent-border: rgba(0, 242, 254, 0.28);
   --accent-orange: #00f2fe;
   --accent-gradient: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
   --accent-btn: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%);
@@ -83,7 +97,10 @@
 
 [data-accent="emerald"] {
   --accent: #10b981;
+  --accent-hover: #059669;
   --accent-2: #059669;
+  --accent-subtle: rgba(16, 185, 129, 0.12);
+  --accent-border: rgba(16, 185, 129, 0.28);
   --accent-orange: #10b981;
   --accent-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
   --accent-btn: linear-gradient(135deg, #10b981 0%, #047857 100%);
@@ -93,7 +110,10 @@
 
 [data-accent="amethyst"] {
   --accent: #8b5cf6;
+  --accent-hover: #7c3aed;
   --accent-2: #ec4899;
+  --accent-subtle: rgba(139, 92, 246, 0.12);
+  --accent-border: rgba(139, 92, 246, 0.28);
   --accent-orange: #8b5cf6;
   --accent-gradient: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
   --accent-btn: linear-gradient(135deg, #8b5cf6 0%, #d946ef 100%);
@@ -103,7 +123,10 @@
 
 [data-accent="solar"] {
   --accent: #f59e0b;
+  --accent-hover: #d97706;
   --accent-2: #ef4444;
+  --accent-subtle: rgba(245, 158, 11, 0.12);
+  --accent-border: rgba(245, 158, 11, 0.28);
   --accent-orange: #f59e0b;
   --accent-gradient: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
   --accent-btn: linear-gradient(135deg, #f59e0b 0%, #dc2626 100%);
@@ -113,7 +136,10 @@
 
 [data-accent="cosmic"] {
   --accent: #6366f1;
+  --accent-hover: #4f46e5;
   --accent-2: #a855f7;
+  --accent-subtle: rgba(99, 102, 241, 0.12);
+  --accent-border: rgba(99, 102, 241, 0.28);
   --accent-orange: #6366f1;
   --accent-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
   --accent-btn: linear-gradient(135deg, #6366f1 0%, #9333ea 100%);
@@ -123,7 +149,10 @@
 
 [data-accent="ocean"] {
   --accent: #06b6d4;
+  --accent-hover: #0891b2;
   --accent-2: #3b82f6;
+  --accent-subtle: rgba(6, 182, 212, 0.12);
+  --accent-border: rgba(6, 182, 212, 0.28);
   --accent-orange: #06b6d4;
   --accent-gradient: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
   --accent-btn: linear-gradient(135deg, #06b6d4 0%, #2563eb 100%);
@@ -133,7 +162,10 @@
 
 [data-accent="midnight"] {
   --accent: #64748b;
+  --accent-hover: #475569;
   --accent-2: #334155;
+  --accent-subtle: rgba(100, 116, 139, 0.12);
+  --accent-border: rgba(100, 116, 139, 0.28);
   --accent-orange: #64748b;
   --accent-gradient: linear-gradient(135deg, #64748b 0%, #334155 100%);
   --accent-btn: linear-gradient(135deg, #64748b 0%, #1e293b 100%);
@@ -665,10 +697,10 @@ input[type="range"]::-webkit-slider-runnable-track {
   border-radius: 2px;
   background: linear-gradient(
     to right,
-    #ff583a 0%,
-    #ff583a var(--val, 50%),
-    rgba(255, 255, 255, 0.12) var(--val, 50%),
-    rgba(255, 255, 255, 0.12) 100%
+    var(--accent) 0%,
+    var(--accent) var(--val, 50%),
+    var(--line) var(--val, 50%),
+    var(--line) 100%
   ) !important;
   border: none;
   transition: background 0.05s ease;
@@ -680,9 +712,9 @@ input[type="range"]::-webkit-slider-thumb {
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #ff6f35 0%, #ff4d4d 100%);
+  background: var(--accent-gradient);
   cursor: pointer;
-  box-shadow: 0 0 10px rgba(255, 88, 58, 0.7);
+  box-shadow: 0 0 10px var(--accent-glow);
   margin-top: -5px;
   transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.15s ease;
 }
@@ -690,7 +722,7 @@ input[type="range"]::-webkit-slider-thumb {
 input[type="range"]:hover::-webkit-slider-thumb,
 input[type="range"]:active::-webkit-slider-thumb {
   transform: scale(1.2);
-  box-shadow: 0 0 14px rgba(255, 88, 58, 0.95);
+  box-shadow: 0 0 14px var(--accent);
 }
 
 /* Entegre Prompt Besteci */
@@ -902,17 +934,17 @@ select option {
 }
 
 .chip:hover {
-  border-color: var(--accent-orange);
+  border-color: var(--accent);
   color: var(--txt);
   transform: translateY(-1px);
 }
 
 .chip[aria-pressed="true"],
 .chip.active {
-  background: rgba(255, 111, 56, 0.18);
-  border-color: var(--accent-orange);
-  color: #ff8c5a;
-  box-shadow: 0 0 10px rgba(255, 111, 56, 0.25);
+  background: var(--accent-subtle);
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: 0 0 10px var(--accent-glow);
 }
 
 .icon-chip {
@@ -954,7 +986,7 @@ select option {
 
 .token-counter:hover {
   opacity: 1;
-  color: var(--accent-orange);
+  color: var(--accent);
 }
 
 .btn {
@@ -962,7 +994,7 @@ select option {
   padding: 0 13px;
   border-radius: 8px;
   border: 1px solid var(--border-color);
-  background: #222433;
+  background: var(--btn-bg, #222433);
   color: var(--txt);
   font-size: 12px;
   font-weight: 550;
@@ -975,9 +1007,9 @@ select option {
 }
 
 .btn:hover:not(:disabled) {
-  border-color: var(--accent-orange);
-  color: var(--accent-orange);
-  background: rgba(255, 111, 56, 0.08);
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-subtle);
   transform: translateY(-1px);
 }
 
@@ -995,7 +1027,13 @@ select option {
   background: var(--accent-btn);
   border-color: rgba(255, 255, 255, 0.2);
   color: #ffffff;
-  box-shadow: 0 4px 12px rgba(255, 111, 56, 0.35);
+  box-shadow: 0 4px 12px var(--accent-glow);
+}
+
+.btn.primary:hover:not(:disabled) {
+  filter: brightness(1.08);
+  box-shadow: 0 6px 16px var(--accent-glow);
+  transform: translateY(-1px);
 }
 
 .btn.primary:hover:not(:disabled) {
@@ -1185,21 +1223,25 @@ select option {
   height: 25px;
   padding: 0 10px;
   border-radius: 999px;
-  border: 1px dashed rgba(255, 176, 32, 0.45);
-  background: rgba(255, 176, 32, 0.09);
-  color: #ffd79a;
+  border: 1px dashed var(--sug-border);
+  background: var(--sug-bg);
+  color: var(--sug-text);
   font-family: var(--font);
   font-size: 11.5px;
+  font-weight: 500;
   cursor: pointer;
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  transition: all 0.15s ease;
 }
 
 .sug:hover {
-  background: rgba(255, 176, 32, 0.18);
+  background: var(--sug-bg);
   border-style: solid;
+  filter: brightness(1.1);
+  transform: translateY(-1px);
 }
 
 /* Alt Eylem ve İyileştirme Çubuğu Konteyneri (Bottom Action Bar Container) */

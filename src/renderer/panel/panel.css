@@ -45,6 +45,8 @@
   --accent: #ff6b4a;
   --accent-hover: #ff5533;
   --accent-2: #e0287d;
+  --accent-subtle: rgba(255, 107, 74, 0.12);
+  --accent-border: rgba(255, 107, 74, 0.28);
   --accent-gradient: linear-gradient(135deg, #ff6b4a 0%, #e0287d 100%);
   --accent-btn: linear-gradient(135deg, #ff6b4a 0%, #e0287d 100%);
   --accent-glow: rgba(255, 107, 74, 0.45);
@@ -55,6 +57,8 @@
   --accent: #00f2fe;
   --accent-hover: #00d8e4;
   --accent-2: #4facfe;
+  --accent-subtle: rgba(0, 242, 254, 0.12);
+  --accent-border: rgba(0, 242, 254, 0.28);
   --accent-gradient: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
   --accent-btn: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%);
   --accent-glow: rgba(0, 242, 254, 0.45);
@@ -65,6 +69,8 @@
   --accent: #10b981;
   --accent-hover: #059669;
   --accent-2: #059669;
+  --accent-subtle: rgba(16, 185, 129, 0.12);
+  --accent-border: rgba(16, 185, 129, 0.28);
   --accent-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
   --accent-btn: linear-gradient(135deg, #10b981 0%, #047857 100%);
   --accent-glow: rgba(16, 185, 129, 0.45);
@@ -75,6 +81,8 @@
   --accent: #8b5cf6;
   --accent-hover: #7c3aed;
   --accent-2: #ec4899;
+  --accent-subtle: rgba(139, 92, 246, 0.12);
+  --accent-border: rgba(139, 92, 246, 0.28);
   --accent-gradient: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
   --accent-btn: linear-gradient(135deg, #8b5cf6 0%, #d946ef 100%);
   --accent-glow: rgba(139, 92, 246, 0.45);
@@ -85,6 +93,8 @@
   --accent: #f59e0b;
   --accent-hover: #d97706;
   --accent-2: #ef4444;
+  --accent-subtle: rgba(245, 158, 11, 0.12);
+  --accent-border: rgba(245, 158, 11, 0.28);
   --accent-gradient: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
   --accent-btn: linear-gradient(135deg, #f59e0b 0%, #dc2626 100%);
   --accent-glow: rgba(245, 158, 11, 0.45);
@@ -95,6 +105,8 @@
   --accent: #6366f1;
   --accent-hover: #4f46e5;
   --accent-2: #a855f7;
+  --accent-subtle: rgba(99, 102, 241, 0.12);
+  --accent-border: rgba(99, 102, 241, 0.28);
   --accent-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
   --accent-btn: linear-gradient(135deg, #6366f1 0%, #9333ea 100%);
   --accent-glow: rgba(99, 102, 241, 0.45);
@@ -105,6 +117,8 @@
   --accent: #06b6d4;
   --accent-hover: #0891b2;
   --accent-2: #3b82f6;
+  --accent-subtle: rgba(6, 182, 212, 0.12);
+  --accent-border: rgba(6, 182, 212, 0.28);
   --accent-gradient: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
   --accent-btn: linear-gradient(135deg, #06b6d4 0%, #2563eb 100%);
   --accent-glow: rgba(6, 182, 212, 0.45);
@@ -115,6 +129,8 @@
   --accent: #64748b;
   --accent-hover: #475569;
   --accent-2: #334155;
+  --accent-subtle: rgba(100, 116, 139, 0.12);
+  --accent-border: rgba(100, 116, 139, 0.28);
   --accent-gradient: linear-gradient(135deg, #64748b 0%, #334155 100%);
   --accent-btn: linear-gradient(135deg, #64748b 0%, #1e293b 100%);
   --accent-glow: rgba(100, 116, 139, 0.45);
@@ -455,10 +471,10 @@ input[type="range"]::-webkit-slider-runnable-track {
   border-radius: 2px;
   background: linear-gradient(
     to right,
-    #ff583a 0%,
-    #ff583a var(--val, 50%),
-    rgba(255, 255, 255, 0.12) var(--val, 50%),
-    rgba(255, 255, 255, 0.12) 100%
+    var(--accent) 0%,
+    var(--accent) var(--val, 50%),
+    var(--line) var(--val, 50%),
+    var(--line) 100%
   ) !important;
   border: none;
   transition: background 0.05s ease;
@@ -470,9 +486,9 @@ input[type="range"]::-webkit-slider-thumb {
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #ff6f35 0%, #ff4d4d 100%);
+  background: var(--accent-gradient);
   cursor: pointer;
-  box-shadow: 0 0 10px rgba(255, 88, 58, 0.7);
+  box-shadow: 0 0 10px var(--accent-glow);
   margin-top: -5px;
   transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.15s ease;
 }
@@ -480,7 +496,7 @@ input[type="range"]::-webkit-slider-thumb {
 input[type="range"]:hover::-webkit-slider-thumb,
 input[type="range"]:active::-webkit-slider-thumb {
   transform: scale(1.2);
-  box-shadow: 0 0 14px rgba(255, 88, 58, 0.95);
+  box-shadow: 0 0 14px var(--accent);
 }
 
 input[type="range"]::-moz-range-track {
@@ -489,10 +505,10 @@ input[type="range"]::-moz-range-track {
   border-radius: 2px;
   background: linear-gradient(
     to right,
-    #ff583a 0%,
-    #ff583a var(--val, 50%),
-    rgba(255, 255, 255, 0.12) var(--val, 50%),
-    rgba(255, 255, 255, 0.12) 100%
+    var(--accent) 0%,
+    var(--accent) var(--val, 50%),
+    var(--line) var(--val, 50%),
+    var(--line) 100%
   ) !important;
   border: none;
 }
@@ -501,10 +517,10 @@ input[type="range"]::-moz-range-thumb {
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #ff6f35 0%, #ff4d4d 100%);
+  background: var(--accent-gradient);
   border: none;
   cursor: pointer;
-  box-shadow: 0 0 10px rgba(255, 88, 58, 0.7);
+  box-shadow: 0 0 10px var(--accent-glow);
 }
 
 textarea {
@@ -647,7 +663,7 @@ select option {
   height: 190px;
   border-radius: 8px;
   border: 1px solid var(--line);
-  background: #1e202b;
+  background: var(--bg-field);
   overflow: hidden;
   transition: height 0.25s ease-in-out;
 }
@@ -701,12 +717,12 @@ select option {
   outline: none !important;
   box-shadow: none !important;
   overflow: auto;
-  scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+  scrollbar-color: var(--line) transparent;
   scrollbar-width: thin;
 }
 
 .code-editor-input::selection {
-  background: rgba(255, 111, 56, 0.35);
+  background: var(--accent-subtle);
 }
 
 .code-editor-input::-webkit-scrollbar {
@@ -719,18 +735,21 @@ select option {
 }
 
 .code-editor-input::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.16);
+  background: var(--line);
   border-radius: 999px;
 }
 
 .code-editor-input::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.28);
+  background: var(--txt-dim);
 }
 
 .var-token {
-  color: #ff6b4a;
-  background: rgba(255, 107, 74, 0.1);
-  border-radius: 3px;
+  color: var(--accent);
+  background: var(--accent-subtle);
+  border: 1px solid var(--accent-border);
+  border-radius: 4px;
+  padding: 0 4px;
+  font-weight: 600;
 }
 
 .code-editor-expand-btn {
@@ -743,7 +762,7 @@ select option {
   padding: 0;
   border: 1px solid var(--line);
   border-radius: 6px;
-  background: rgba(0, 0, 0, 0.35);
+  background: var(--bg-card);
   color: var(--txt-dim);
   font-size: 11px;
   line-height: 1;
@@ -757,7 +776,7 @@ select option {
 .code-editor-expand-btn:hover {
   border-color: var(--accent);
   color: var(--accent);
-  background: rgba(255, 111, 56, 0.12);
+  background: var(--accent-subtle);
 }
 
 .code-editor.expanded {
@@ -788,13 +807,13 @@ select option {
 .var-tooltip {
   position: fixed;
   z-index: 250;
-  background: #1e202b;
-  border: 1px solid rgba(255, 107, 74, 0.4);
+  background: var(--bg-card);
+  border: 1px solid var(--line);
   border-radius: 8px;
   padding: 8px 10px;
   font-size: 11px;
   max-width: 260px;
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.5);
+  box-shadow: var(--card-shadow, 0 10px 28px rgba(0, 0, 0, 0.5));
   opacity: 0;
   transform: translateY(5px);
   transition: opacity 0.15s ease, transform 0.15s ease;
@@ -807,7 +826,7 @@ select option {
 }
 
 .var-tooltip-key {
-  color: #ff6b4a;
+  color: var(--accent);
   font-weight: 700;
   font-family: "Fira Code", "JetBrains Mono", ui-monospace, Consolas, monospace;
   margin-right: 6px;
@@ -834,12 +853,12 @@ select option {
   max-width: 320px;
   max-height: 280px;
   overflow-y: auto;
-  background: #1e202b;
+  background: var(--bg-card);
   border: 1px solid var(--line);
   border-radius: 8px;
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.5);
+  box-shadow: var(--card-shadow, 0 10px 28px rgba(0, 0, 0, 0.5));
   padding: 4px;
-  scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+  scrollbar-color: var(--line) transparent;
   scrollbar-width: thin;
 }
 
@@ -852,12 +871,12 @@ select option {
 }
 
 .autocomplete-dropdown::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.16);
+  background: var(--line);
   border-radius: 999px;
 }
 
 .autocomplete-dropdown::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.28);
+  background: var(--txt-dim);
 }
 
 .autocomplete-item {
@@ -865,16 +884,17 @@ select option {
   border-radius: 6px;
   cursor: pointer;
   font-size: 11.5px;
+  transition: background 0.12s ease;
 }
 
 .autocomplete-item.active,
 .autocomplete-item:hover {
-  background: rgba(255, 111, 56, 0.14);
+  background: var(--accent-subtle);
 }
 
 .autocomplete-key {
   display: block;
-  color: #ff6b4a;
+  color: var(--accent);
   font-weight: 650;
   font-family: "Fira Code", "JetBrains Mono", ui-monospace, Consolas, monospace;
   font-size: 11.5px;
@@ -914,7 +934,7 @@ select option {
 }
 
 .accordion summary:hover {
-  background: rgba(255, 111, 56, 0.06);
+  background: var(--accent-subtle);
   color: var(--accent);
 }
 
@@ -1342,14 +1362,14 @@ select option {
   top: calc(100% + 4px);
   left: 0;
   right: 0;
-  background: #181922;
+  background: var(--bg-card);
   border: 1px solid var(--line);
   border-radius: 8px;
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.55);
+  box-shadow: var(--card-shadow, 0 10px 28px rgba(0, 0, 0, 0.55));
   z-index: 30;
   max-height: 280px;
   overflow-y: auto;
-  scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+  scrollbar-color: var(--line) transparent;
   scrollbar-width: thin;
 }
 
@@ -1362,7 +1382,7 @@ select option {
 }
 
 .mode-dropdown-list::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.16);
+  background: var(--line);
   border-radius: 999px;
 }
 
@@ -1371,10 +1391,11 @@ select option {
   font-size: 11.5px;
   color: var(--txt);
   cursor: pointer;
+  transition: background 0.12s ease;
 }
 
 .mode-dropdown-item:hover {
-  background: rgba(255, 111, 56, 0.14);
+  background: var(--accent-subtle);
   color: var(--accent);
 }
 
@@ -1405,7 +1426,7 @@ select option {
   text-transform: uppercase;
   letter-spacing: 0.4px;
   color: var(--txt-dim);
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--bg-card);
   border: 1px solid var(--line);
   border-radius: 6px;
   padding: 3px 8px;
@@ -1417,7 +1438,7 @@ select option {
   color: var(--txt-faint);
   padding: 12px;
   text-align: center;
-  background: rgba(0, 0, 0, 0.18);
+  background: var(--bg-card);
   border-radius: 8px;
   border: 1px dashed var(--line);
 }
