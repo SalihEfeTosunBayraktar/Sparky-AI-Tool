@@ -1042,20 +1042,50 @@ select option {
   border-style: solid;
 }
 
-.out-actions {
+/* Alt Eylem ve İyileştirme Çubuğu Konteyneri (Bottom Action Bar Container) */
+.bottom-action-bar {
   flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 0;
+  opacity: 0;
+  margin: 0;
+  overflow: hidden;
+  pointer-events: none;
+  transform: translateY(8px);
+  transition: max-height 0.25s cubic-bezier(0, 0, 0.2, 1),
+              opacity 0.22s ease-out,
+              transform 0.25s cubic-bezier(0, 0, 0.2, 1),
+              margin 0.25s ease-out;
+}
+
+.bottom-action-bar.bottom-bar--visible {
+  max-height: 120px;
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+  margin-top: 4px;
+}
+
+.bottom-action-bar.bottom-bar--hidden {
+  max-height: 0;
+  opacity: 0;
+  transform: translateY(8px);
+  pointer-events: none;
+  margin: 0;
+}
+
+.out-actions {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-top: 4px;
 }
 
 /* Alt Düzeltme Girdi Alanı (Refine Bar) */
 .refine {
-  flex-shrink: 0;
   display: flex;
   gap: 8px;
-  margin-top: 4px;
 }
 
 .refine input {

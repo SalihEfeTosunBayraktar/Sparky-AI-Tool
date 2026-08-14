@@ -26,6 +26,17 @@ const btnBubbleCopy = $('btnBubbleCopy');
 const btnAttachImg = $('btnAttachImg');
 const imgFileInput = $('imgFileInput');
 const btnClearInput = $('btnClearInput');
+const bottomActionBar = $('bottomActionBar');
+
+function updateBottomActionBarVisibility() {
+  const hasGeneratedPrompt = !!(state && state.hasResult && state.output && state.output.trim());
+  if (bottomActionBar) {
+    bottomActionBar.classList.toggle('bottom-bar--visible', hasGeneratedPrompt);
+    bottomActionBar.classList.toggle('bottom-bar--hidden', !hasGeneratedPrompt);
+    bottomActionBar.setAttribute('aria-hidden', String(!hasGeneratedPrompt));
+  }
+  root.classList.toggle('has-generated-prompt', hasGeneratedPrompt);
+}
 
 function updateClearBtnVisibility() {
   if (!btnClearInput) return;
@@ -374,6 +385,7 @@ function renderEmpty() {
   d.className = 'empty';
   d.textContent = typeof i18n !== 'undefined' ? i18n.t('card.emptyPrompt') : 'Üretilen prompt burada belirecek.';
   outputEl.appendChild(d);
+  updateBottomActionBarVisibility();
 }
 
 function startStage() {
@@ -382,6 +394,7 @@ function startStage() {
   const caret = document.createElement('span');
   caret.className = 'caret';
   outputEl.appendChild(caret);
+  updateBottomActionBarVisibility();
 }
 
 function appendToken(chunk) {
@@ -407,9 +420,11 @@ function setOutput(text) {
   }
   outputEl.scrollTop = 0;
   for (const id of ['btnCopy', 'btnCopyClose', 'btnRegen', 'btnRefine']) {
-    $(id).disabled = !text;
+    const el = $(id);
+    if (el) el.disabled = !text;
   }
   updateClearBtnVisibility();
+  updateBottomActionBarVisibility();
 }
 
 async function copyOutput(msg) {
@@ -620,10 +635,10 @@ btnClearInput?.addEventListener('click', () => {
   inputEl.value = '';
   state.lastInput = '';
   imageHandler.clearImage();
-  renderEmpty();
   state.output = '';
   state.streaming = '';
   state.hasResult = false;
+  renderEmpty();
   hideSuggestions();
   hideQuestions();
   setStatus({ text: '', kind: 'info' });

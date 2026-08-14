@@ -122,17 +122,20 @@
 
           <div id="suggests" class="suggests" hidden></div>
 
-          <div class="out-actions">
-            <button id="btnCopy" class="btn primary" disabled data-i18n="card.btnCopy">Kopyala</button>
-            <button id="btnCopyClose" class="btn" disabled data-i18n="card.btnCopyClose">Kopyala &amp; küçült</button>
-            <button id="btnRegen" class="btn" disabled data-i18n="card.btnRegen">Yeniden</button>
-            <span class="grow"></span>
-            <button id="btnHistory" class="btn ghost" data-i18n="card.btnHistory">Geçmiş</button>
-          </div>
+          <!-- Alt Eylem ve İyileştirme Çubuğu (Yalnızca prompt üretildiğinde görünür) -->
+          <div id="bottomActionBar" class="bottom-action-bar bottom-bar--hidden" aria-hidden="true">
+            <div class="out-actions">
+              <button id="btnCopy" class="btn primary" disabled data-i18n="card.btnCopy">Kopyala</button>
+              <button id="btnCopyClose" class="btn" disabled data-i18n="card.btnCopyClose">Kopyala &amp; küçült</button>
+              <button id="btnRegen" class="btn" disabled data-i18n="card.btnRegen">Yeniden</button>
+              <span class="grow"></span>
+              <button id="btnHistory" class="btn ghost" data-i18n="card.btnHistory">Geçmiş</button>
+            </div>
 
-          <div class="refine">
-            <input id="refine" placeholder="Düzeltme iste: “daha kısa”, “İngilizce olsun”, “JSON çıktı ekle”…" spellcheck="false" data-i18n="card.refinePlaceholder" data-i18n-attr="placeholder" />
-            <button id="btnRefine" class="btn" disabled data-i18n="card.btnApplyRefine">Uygula</button>
+            <div class="refine">
+              <input id="refine" placeholder="Düzeltme iste: “daha kısa”, “İngilizce olsun”, “JSON çıktı ekle”…" spellcheck="false" data-i18n="card.refinePlaceholder" data-i18n-attr="placeholder" />
+              <button id="btnRefine" class="btn" disabled data-i18n="card.btnApplyRefine">Uygula</button>
+            </div>
           </div>
 
           <div class="card-footer-info status-bar">
