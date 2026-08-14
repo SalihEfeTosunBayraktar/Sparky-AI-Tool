@@ -23,6 +23,7 @@ class ContextGauge {
     this.fillEl = this.root.querySelector('#donutFill');
     this.labelEl = this.root.querySelector('#donutLabel');
     this.badgeEl = this.root.querySelector('#gaugeBadge');
+    this.chipLabelEl = this.root.querySelector('#gaugeChipLabel');
     this.btnClearMem = this.root.querySelector('#btnClearMem');
 
     if (this.fillEl) {
@@ -81,8 +82,10 @@ class ContextGauge {
     // 1. STATELESS MODE — Proje seçili değilken hafıza devre dışı
     if (!metrics.active) {
       this.root.dataset.state = 'stateless';
-      this.fillEl.style.strokeDashoffset = `${this.CIRCUMFERENCE.toFixed(2)}`;
+      this.fillEl.style.strokeDasharray = '2 4';
+      this.fillEl.style.strokeDashoffset = '0';
       this.labelEl.textContent = '∅';
+      if (this.chipLabelEl) this.chipLabelEl.textContent = 'Memory: ∅';
       if (this.badgeEl) this.badgeEl.textContent = this.t('gauge.stateless', 'Hafızasız');
 
       this.setTooltipField('#valGaugeProj', '—');
@@ -100,8 +103,12 @@ class ContextGauge {
     const percentage = Math.round(ratio * 100);
     const offset = this.CIRCUMFERENCE - ratio * this.CIRCUMFERENCE;
 
+    this.fillEl.style.strokeDasharray = `${this.CIRCUMFERENCE.toFixed(2)}`;
     this.fillEl.style.strokeDashoffset = `${offset.toFixed(2)}`;
     this.labelEl.textContent = metrics.isCompacting ? '⚡' : `${percentage}%`;
+    if (this.chipLabelEl) {
+      this.chipLabelEl.textContent = metrics.isCompacting ? 'Memory: ⚡' : `Memory: %${percentage}`;
+    }
 
     // State Resolution
     let state = 'normal';

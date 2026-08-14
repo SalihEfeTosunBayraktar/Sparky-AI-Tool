@@ -79,6 +79,36 @@
                   📷
                 </button>
                 <select id="projectSelect" class="chip-select" title="Aktif Proje" data-i18n-title="projects.activeBadge"></select>
+
+                <!-- Proje Context Penceresi & Hafıza Donut Göstergesi -->
+                <div id="contextGauge" class="context-gauge-widget hit chip-gauge" data-state="stateless" role="region" aria-label="Context Window & Memory">
+                  <div class="donut-container" title="Context Penceresi & Hafıza Durumu">
+                    <svg class="donut-svg" viewBox="0 0 36 36" aria-hidden="true">
+                      <circle class="donut-track" cx="18" cy="18" r="14" />
+                      <circle id="donutFill" class="donut-fill" cx="18" cy="18" r="14" />
+                    </svg>
+                    <span id="donutLabel" class="donut-center-label">∅</span>
+                  </div>
+                  <span id="gaugeChipLabel" class="gauge-chip-label">Memory: ∅</span>
+
+                  <!-- Hover Breakdown Tooltip -->
+                  <div class="context-tooltip" role="tooltip">
+                    <div class="tooltip-header">
+                      <span class="tooltip-title" data-i18n="gauge.title">Context &amp; Hafıza</span>
+                      <span id="gaugeBadge" class="tooltip-badge">Hafızasız</span>
+                    </div>
+                    <div class="tooltip-breakdown">
+                      <div class="breakdown-row"><span data-i18n="gauge.projectNotes">Proje Notları</span><span id="valGaugeProj">—</span></div>
+                      <div class="breakdown-row"><span data-i18n="gauge.memorySummary">Özet Hafıza</span><span id="valGaugeMem">—</span></div>
+                      <div class="breakdown-row"><span data-i18n="gauge.dialogueHistory">Diyalog Geçmişi</span><span id="valGaugeHist">0 tk</span></div>
+                      <div class="breakdown-row"><span data-i18n="gauge.currentInput">Mevcut Girdi</span><span id="valGaugeInput">0 tk</span></div>
+                      <div class="breakdown-divider"></div>
+                      <div class="breakdown-row total"><span data-i18n="gauge.totalCapacity">Toplam / Kapasite</span><span id="valGaugeTotal">0 / 32,768</span></div>
+                    </div>
+                    <button id="btnClearMem" class="btn-clear-mem link" data-i18n="gauge.clearMemoryBtn" hidden>Hafızayı Sıfırla</button>
+                  </div>
+                </div>
+
                 <select id="modeSelect" class="chip-select" title="Çalışma Modu" data-i18n-title="modes.activeTitle"></select>
                 <select id="style" title="Prompt biçimi"></select>
                 <button id="deep" class="chip" title="Analiz → yaz → cilala (3 aşama, daha yavaş ama daha iyi)" data-i18n="card.deepMode" data-i18n-title="card.deepModeTitle">
@@ -137,33 +167,6 @@
 
           <div class="card-footer-info">
             <span id="tokenCounter" class="token-counter" title="Son istek / Toplam oturum token kullanımı">Tokens: 0</span>
-
-            <div id="contextGauge" class="context-gauge-widget hit" data-state="stateless" role="region" aria-label="Context Window & Memory">
-              <div class="donut-container" title="Context Penceresi & Hafıza Durumu">
-                <svg class="donut-svg" viewBox="0 0 36 36" aria-hidden="true">
-                  <circle class="donut-track" cx="18" cy="18" r="14" />
-                  <circle id="donutFill" class="donut-fill" cx="18" cy="18" r="14" />
-                </svg>
-                <span id="donutLabel" class="donut-center-label">∅</span>
-              </div>
-
-              <!-- Hover Breakdown Tooltip -->
-              <div class="context-tooltip" role="tooltip">
-                <div class="tooltip-header">
-                  <span class="tooltip-title" data-i18n="gauge.title">Context &amp; Hafıza</span>
-                  <span id="gaugeBadge" class="tooltip-badge">Hafızasız</span>
-                </div>
-                <div class="tooltip-breakdown">
-                  <div class="breakdown-row"><span data-i18n="gauge.projectNotes">Proje Notları</span><span id="valGaugeProj">—</span></div>
-                  <div class="breakdown-row"><span data-i18n="gauge.memorySummary">Özet Hafıza</span><span id="valGaugeMem">—</span></div>
-                  <div class="breakdown-row"><span data-i18n="gauge.dialogueHistory">Diyalog Geçmişi</span><span id="valGaugeHist">0 tk</span></div>
-                  <div class="breakdown-row"><span data-i18n="gauge.currentInput">Mevcut Girdi</span><span id="valGaugeInput">0 tk</span></div>
-                  <div class="breakdown-divider"></div>
-                  <div class="breakdown-row total"><span data-i18n="gauge.totalCapacity">Toplam / Kapasite</span><span id="valGaugeTotal">0 / 32,768</span></div>
-                </div>
-                <button id="btnClearMem" class="btn-clear-mem link" data-i18n="gauge.clearMemoryBtn" hidden>Hafızayı Sıfırla</button>
-              </div>
-            </div>
           </div>
         </div>
       </section>
