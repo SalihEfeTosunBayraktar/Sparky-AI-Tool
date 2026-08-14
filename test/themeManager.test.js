@@ -20,9 +20,9 @@ function createMockElement() {
 
 test('=== Running ThemeManager Unit Tests ===', async (t) => {
   await t.test('1. Preset Palettes: contains all required accent options', () => {
-    assert.strictEqual(ACCENT_PRESETS.length, 4);
+    assert.strictEqual(ACCENT_PRESETS.length, 8);
     const ids = ACCENT_PRESETS.map((p) => p.id);
-    assert.deepStrictEqual(ids, ['sunset', 'cyber', 'emerald', 'amethyst']);
+    assert.deepStrictEqual(ids, ['sunset', 'cyber', 'emerald', 'amethyst', 'solar', 'cosmic', 'ocean', 'midnight']);
     for (const preset of ACCENT_PRESETS) {
       assert.ok(preset.gradient.startsWith('linear-gradient'));
       assert.ok(preset.glow);
@@ -83,11 +83,15 @@ test('=== Running ThemeManager Unit Tests ===', async (t) => {
       let selectedAccent = null;
       mgr.renderPicker(container, (acc) => { selectedAccent = acc; });
 
-      assert.strictEqual(container.children.length, 4);
+      assert.strictEqual(container.children.length, 8);
       assert.strictEqual(container.children[0].dataset.accent, 'sunset');
       assert.strictEqual(container.children[1].dataset.accent, 'cyber');
       assert.strictEqual(container.children[2].dataset.accent, 'emerald');
       assert.strictEqual(container.children[3].dataset.accent, 'amethyst');
+      assert.strictEqual(container.children[4].dataset.accent, 'solar');
+      assert.strictEqual(container.children[5].dataset.accent, 'cosmic');
+      assert.strictEqual(container.children[6].dataset.accent, 'ocean');
+      assert.strictEqual(container.children[7].dataset.accent, 'midnight');
     } finally {
       global.document = prevDoc;
     }

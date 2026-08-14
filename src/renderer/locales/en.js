@@ -344,7 +344,11 @@ const en = {
     sunset: 'Sunset Spark',
     cyber: 'Cyber Neon',
     emerald: 'Emerald Glow',
-    amethyst: 'Amethyst Aura'
+    amethyst: 'Amethyst Aura',
+    solar: 'Solar Flare',
+    cosmic: 'Cosmic Dream',
+    ocean: 'Ocean Breeze',
+    midnight: 'Midnight Chrome'
   }
 };
 

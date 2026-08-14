@@ -29,6 +29,30 @@ const ACCENT_PRESETS = [
     labelKey: 'theme.amethyst',
     gradient: 'linear-gradient(135deg, #8B5CF6, #EC4899)',
     glow: 'rgba(139, 92, 246, 0.45)'
+  },
+  {
+    id: 'solar',
+    labelKey: 'theme.solar',
+    gradient: 'linear-gradient(135deg, #F59E0B, #EF4444)',
+    glow: 'rgba(245, 158, 11, 0.45)'
+  },
+  {
+    id: 'cosmic',
+    labelKey: 'theme.cosmic',
+    gradient: 'linear-gradient(135deg, #6366F1, #A855F7)',
+    glow: 'rgba(99, 102, 241, 0.45)'
+  },
+  {
+    id: 'ocean',
+    labelKey: 'theme.ocean',
+    gradient: 'linear-gradient(135deg, #06B6D4, #3B82F6)',
+    glow: 'rgba(6, 182, 212, 0.45)'
+  },
+  {
+    id: 'midnight',
+    labelKey: 'theme.midnight',
+    gradient: 'linear-gradient(135deg, #64748B, #334155)',
+    glow: 'rgba(100, 116, 139, 0.45)'
   }
 ];
 
