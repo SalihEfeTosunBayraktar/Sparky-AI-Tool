@@ -9,14 +9,14 @@
   --bg-card: rgba(22, 27, 34, 0.88);
   --bg-input: #161b22;
   --border-color: #30363d;
-  --border-color-strong: rgba(255, 111, 56, 0.28);
+  --border-color-strong: var(--accent-border);
   --text-primary: #e6edf3;
   --text-secondary: #8b949e;
   --text-placeholder: #6e7681;
   --bg: rgba(13, 17, 23, 0.95);
   --bg-solid: #0d1117;
   --line: #30363d;
-  --line-strong: rgba(255, 111, 56, 0.22);
+  --line-strong: var(--accent-border);
   --txt: #e6edf3;
   --txt-dim: #8b949e;
   --txt-faint: #6e7681;
@@ -41,14 +41,14 @@
   --bg-card: rgba(255, 255, 255, 0.94);
   --bg-input: #ffffff;
   --border-color: #cbd5e1;
-  --border-color-strong: rgba(255, 107, 74, 0.35);
+  --border-color-strong: var(--accent-border);
   --text-primary: #0f172a;
   --text-secondary: #475569;
   --text-placeholder: #94a3b8;
   --bg: rgba(248, 250, 252, 0.96);
   --bg-solid: #f8fafc;
   --line: #cbd5e1;
-  --line-strong: rgba(255, 107, 74, 0.35);
+  --line-strong: var(--accent-border);
   --txt: #0f172a;
   --txt-dim: #475569;
   --txt-faint: #64748b;
@@ -319,7 +319,7 @@ body {
   border-top-left-radius: 4px;
   background: var(--bg-card);
   border: 1px solid var(--border-color);
-  border-left: 3px solid var(--accent-orange);
+  border-left: 3px solid var(--accent);
   backdrop-filter: blur(14px);
   box-shadow: 0 8px 22px rgba(0, 0, 0, 0.45);
   font-size: 12.5px;
@@ -336,7 +336,7 @@ body {
 }
 
 .bubble[data-priority="high"] {
-  border-left-color: var(--accent-orange);
+  border-left-color: var(--accent);
 }
 
 .bubble[data-priority="normal"] {
@@ -345,17 +345,18 @@ body {
 
 .bubble-copy {
   border: 0;
-  background: rgba(255, 111, 56, 0.2);
-  color: #fff;
+  background: var(--accent-subtle);
+  color: var(--txt);
   border-radius: 6px;
   padding: 2px 6px;
   font-size: 11px;
   cursor: pointer;
-  transition: background 0.15s ease;
+  transition: all 0.15s ease;
 }
 
 .bubble-copy:hover {
-  background: var(--accent-orange);
+  background: var(--accent);
+  color: #fff;
 }
 
 .bubble[data-kind="success"] {
@@ -397,13 +398,13 @@ body {
 
 @keyframes bubblePulse {
   0% {
-    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.4), 0 0 0 0 rgba(255, 111, 56, 0);
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.4), 0 0 0 0 transparent;
   }
   35% {
-    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.4), 0 0 0 3px rgba(255, 111, 56, 0.35);
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.4), 0 0 0 3px var(--accent-subtle);
   }
   100% {
-    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.4), 0 0 0 0 rgba(255, 111, 56, 0);
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.4), 0 0 0 0 transparent;
   }
 }
 
@@ -413,8 +414,8 @@ body {
   height: 16px;
   padding: 0 5px;
   border-radius: 999px;
-  background: rgba(255, 111, 56, 0.25);
-  color: var(--txt);
+  background: var(--accent-subtle);
+  color: var(--accent);
   font-size: 10px;
   font-weight: 700;
   line-height: 16px;
@@ -470,8 +471,8 @@ body {
 }
 
 .card.drag-over {
-  border-color: var(--accent-orange);
-  box-shadow: 0 0 16px rgba(255, 111, 56, 0.45);
+  border-color: var(--accent);
+  box-shadow: var(--accent-glow);
 }
 
 /* ------------------------------------------------------------------ */
@@ -487,7 +488,7 @@ body {
   background: var(--bg-app);
   border: 1px solid var(--border-color);
   backdrop-filter: blur(24px) saturate(140%);
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 111, 56, 0.15);
+  box-shadow: var(--card-shadow);
   overflow: hidden;
   opacity: 0;
   visibility: hidden;
@@ -529,7 +530,7 @@ body {
   display: grid;
   place-items: center;
   background: var(--accent-gradient);
-  box-shadow: 0 0 10px rgba(255, 111, 56, 0.4);
+  box-shadow: var(--accent-glow);
 }
 
 .mini-orb svg {
@@ -645,8 +646,8 @@ body {
 .link {
   margin-left: auto;
   border: 1px solid var(--border-color);
-  background: rgba(255, 111, 56, 0.08);
-  color: var(--accent-orange);
+  background: var(--accent-subtle);
+  color: var(--accent);
   font-size: 11px;
   font-weight: 600;
   cursor: pointer;
@@ -658,12 +659,13 @@ body {
 }
 
 .link:hover {
-  background: rgba(255, 111, 56, 0.18);
-  border-color: var(--accent-orange);
+  background: var(--accent-subtle);
+  border-color: var(--accent);
+  filter: brightness(1.1);
   transform: translateY(-1px);
 }
 
-/* Evrensel Form Kontrolleri (Dark & Orange Accent Focus) */
+/* Evrensel Form Kontrolleri (Dark & Dynamic Accent Focus) */
 textarea,
 input,
 select,
@@ -677,7 +679,7 @@ select,
   transition: border-color 0.18s ease, box-shadow 0.18s ease;
 }
 
-/* Custom Range Slider with Dynamic Active Filled Progress Bar (Turuncu Dolu Çubuk) */
+/* Custom Range Slider with Dynamic Active Filled Progress Bar */
 input[type="range"] {
   -webkit-appearance: none;
   appearance: none;
@@ -726,18 +728,6 @@ input[type="range"]:active::-webkit-slider-thumb {
 }
 
 /* Entegre Prompt Besteci */
-.input-composer {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  background: var(--bg-input);
-  border: 1px solid var(--border-color);
-  border-radius: 14px;
-  padding: 8px 10px;
-  gap: 8px;
-  transition: border-color 0.18s ease, box-shadow 0.18s ease;
-}
-
 .btn-clear-input {
   position: absolute;
   top: 8px;
@@ -758,9 +748,9 @@ input[type="range"]:active::-webkit-slider-thumb {
 }
 
 .btn-clear-input:hover {
-  background: rgba(255, 111, 56, 0.2);
-  color: #fff;
-  border-color: var(--accent-orange);
+  background: var(--accent-subtle);
+  color: var(--txt);
+  border-color: var(--accent);
   transform: scale(1.1);
 }
 
@@ -775,8 +765,8 @@ input[type="range"]:active::-webkit-slider-thumb {
 }
 
 .input-composer:focus-within {
-  border-color: var(--accent-orange) !important;
-  box-shadow: var(--accent-glow) !important;
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 2px var(--accent-glow) !important;
 }
 
 .input-composer #input {
@@ -820,7 +810,7 @@ input[type="range"]:active::-webkit-slider-thumb {
   margin-left: auto;
 }
 
-/* Birincil CTA "Üret" Butonu (Primary Orange Gradient CTA) */
+/* Birincil CTA "Üret" Butonu */
 .btn-generate {
   height: 32px;
   padding: 0 16px;
@@ -835,21 +825,22 @@ input[type="range"]:active::-webkit-slider-thumb {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  box-shadow: 0 4px 14px rgba(255, 111, 56, 0.35);
+  box-shadow: 0 4px 14px var(--accent-glow);
   transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
   overflow: hidden;
 }
 
 .btn-generate:hover:not(:disabled) {
-  background: linear-gradient(135deg, #ff804a 0%, #ff6161 100%);
+  background: var(--accent-btn);
+  filter: brightness(1.12);
   transform: translateY(-1px) scale(1.02);
-  box-shadow: 0 6px 20px rgba(255, 111, 56, 0.55);
+  box-shadow: 0 6px 20px var(--accent-glow);
 }
 
 .btn-generate:active:not(:disabled) {
   transform: translateY(0) scale(0.98);
-  box-shadow: 0 2px 8px rgba(255, 111, 56, 0.3);
+  box-shadow: 0 2px 8px var(--accent-glow);
 }
 
 .btn-gen-spark {
@@ -1036,12 +1027,6 @@ select option {
   transform: translateY(-1px);
 }
 
-.btn.primary:hover:not(:disabled) {
-  background: linear-gradient(135deg, #ff804a 0%, #ff6161 100%);
-  color: #ffffff;
-  box-shadow: 0 6px 16px rgba(255, 111, 56, 0.5);
-}
-
 .btn.danger {
   background: rgba(224, 61, 74, 0.15);
   border-color: rgba(224, 61, 74, 0.4);
@@ -1093,7 +1078,7 @@ select option {
   height: 1em;
   margin-left: 1px;
   vertical-align: text-bottom;
-  background: var(--accent-orange);
+  background: var(--accent);
   animation: caret-blink 1s step-end infinite;
 }
 
@@ -1118,8 +1103,8 @@ select option {
   overflow: hidden;
   padding: 11px;
   border-radius: 11px;
-  border: 1px solid rgba(255, 111, 56, 0.35);
-  background: rgba(255, 111, 56, 0.07);
+  border: 1px solid var(--accent-border);
+  background: var(--accent-subtle);
 }
 
 /* Sorular kayar, butonlar sabit kalır — kırpılmasınlar. */
@@ -1177,13 +1162,14 @@ select option {
   font-family: var(--font);
   font-size: 11.5px;
   cursor: pointer;
+  transition: all 0.15s ease;
 }
 
 .qa-opt:hover,
 .qa-opt.on {
-  background: rgba(255, 111, 56, 0.22);
-  border-color: rgba(255, 111, 56, 0.6);
-  color: #ffd9c7;
+  background: var(--accent-subtle);
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 .qa-item input {

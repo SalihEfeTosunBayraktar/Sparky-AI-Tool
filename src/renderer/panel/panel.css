@@ -10,7 +10,7 @@
   --bg-field: #161b22;
   --bg-modal: rgba(13, 17, 23, 0.95);
   --line: #30363d;
-  --line-strong: rgba(255, 111, 56, 0.28);
+  --line-strong: var(--accent-border);
   --txt: #e6edf3;
   --txt-dim: #8b949e;
   --txt-faint: #6e7681;
@@ -28,7 +28,7 @@
   --bg-field: #ffffff;
   --bg-modal: rgba(248, 250, 252, 0.98);
   --line: #cbd5e1;
-  --line-strong: rgba(255, 107, 74, 0.35);
+  --line-strong: var(--accent-border);
   --txt: #0f172a;
   --txt-dim: #475569;
   --txt-faint: #64748b;
@@ -227,7 +227,7 @@ body {
   -webkit-backdrop-filter: blur(24px);
   backdrop-filter: blur(24px);
   border: 1px solid var(--line-strong);
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 111, 56, 0.15);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.7);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -252,7 +252,7 @@ body {
   display: grid;
   place-items: center;
   background: var(--accent-gradient);
-  box-shadow: 0 0 10px rgba(255, 111, 56, 0.4);
+  box-shadow: var(--accent-glow);
 }
 
 .mini-orb svg {
@@ -333,7 +333,7 @@ body {
 }
 
 .tab:hover:not(.active) {
-  background: rgba(255, 111, 56, 0.08);
+  background: var(--accent-subtle);
   color: var(--accent);
 }
 
@@ -574,7 +574,7 @@ select option {
 .btn:hover:not(:disabled) {
   border-color: var(--accent);
   color: var(--accent);
-  background: rgba(255, 111, 56, 0.08);
+  background: var(--accent-subtle);
   transform: translateY(-1px);
 }
 
@@ -588,13 +588,14 @@ select option {
   background: var(--accent-btn);
   border-color: rgba(255, 255, 255, 0.2);
   color: #ffffff;
-  box-shadow: 0 4px 12px rgba(255, 111, 56, 0.35);
+  box-shadow: 0 4px 12px var(--accent-glow);
 }
 
 .btn.primary:hover:not(:disabled) {
-  background: linear-gradient(135deg, #ff804a 0%, #ff6161 100%);
+  background: var(--accent-btn);
+  filter: brightness(1.12);
   color: #ffffff;
-  box-shadow: 0 6px 16px rgba(255, 111, 56, 0.5);
+  box-shadow: 0 6px 16px var(--accent-glow);
 }
 
 .btn.danger {
@@ -993,7 +994,7 @@ select option {
 }
 
 .keyrow.is-active {
-  background: rgba(255, 111, 56, 0.06);
+  background: var(--accent-subtle);
   border-radius: 6px;
   padding-left: 6px;
   padding-right: 6px;
@@ -1464,8 +1465,8 @@ select option {
 }
 
 .history-item.fav {
-  border-color: rgba(255, 111, 56, 0.45);
-  background: linear-gradient(180deg, rgba(255, 111, 56, 0.07), var(--bg-card) 40%);
+  border-color: var(--accent-border);
+  background: linear-gradient(180deg, var(--accent-subtle), var(--bg-card) 40%);
 }
 
 .about {
@@ -1530,8 +1531,8 @@ select option {
 /* ================================================================== */
 
 .project-memory-card {
-  border: 1px solid rgba(255, 111, 56, 0.25) !important;
-  background: linear-gradient(180deg, rgba(255, 111, 56, 0.05) 0%, rgba(20, 22, 34, 0.7) 100%) !important;
+  border: 1px solid var(--accent-border) !important;
+  background: var(--bg-card) !important;
   padding: 12px 14px;
 }
 
@@ -1546,9 +1547,9 @@ select option {
   font-weight: 600;
   padding: 2px 7px;
   border-radius: 999px;
-  background: rgba(255, 111, 56, 0.15);
+  background: var(--accent-subtle);
   color: var(--accent);
-  border: 1px solid rgba(255, 111, 56, 0.3);
+  border: 1px solid var(--accent-border);
 }
 
 .memory-editor-textarea {
@@ -1568,7 +1569,7 @@ select option {
 
 .memory-editor-textarea:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 0 2px rgba(255, 111, 56, 0.2);
+  box-shadow: 0 0 0 2px var(--accent-glow);
 }
 
 .memory-footer-bar {
