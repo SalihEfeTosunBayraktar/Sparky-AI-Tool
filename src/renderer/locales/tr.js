@@ -68,7 +68,12 @@ const tr = {
     noTextOrImage: 'Önce bir metin veya resim girin',
     invalidImageFormat: 'Yalnızca desteklenen resim dosyalarını yükleyebilirsiniz (PNG, JPG, WEBP, GIF).',
     imageSizeTooLarge: 'Görsel boyutu çok büyük (Maksimum 10 MB).',
-    imageReadError: 'Görsel yüklenirken bir hata oluştu.'
+    imageReadError: 'Görsel yüklenirken bir hata oluştu.',
+    modelNoVisionWarning: 'Seçilen model görsel desteklemiyor. Eklenen görsel kaldırıldı.',
+    modelNoVisionDropBlocked: 'Mevcut model görsel girişini desteklemiyor.',
+    attachImageDisabledNoVision: 'Seçili model görsel desteklemiyor',
+    imageLimitReached: 'Görsel sınırına ulaşıldı',
+    duplicateImageWarning: 'Bu görsel zaten eklenmiş.'
   },
   modes: {
     activeTitle: 'Çalışma Modu',

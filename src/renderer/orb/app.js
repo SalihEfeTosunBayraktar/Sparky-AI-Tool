@@ -50,6 +50,8 @@ const imageHandler = new ImageHandler({
   previewEl: $('imgPreviewContainer'),
   imgEl: $('imgPreview'),
   removeBtn: $('btnRemoveImg'),
+  attachBtn: btnAttachImg,
+  fileInput: imgFileInput,
   dropTarget: $('card'),
   pasteTarget: window,
   onImageChanged: (img) => {
@@ -59,8 +61,13 @@ const imageHandler = new ImageHandler({
     }
     updateClearBtnVisibility();
   },
+  onWarning: (msg) => {
+    setStatus({ text: msg, kind: 'info' });
+    queueBubble(msg, 'info', { priority: 'normal' });
+  },
   onError: (msg) => {
     setStatus({ text: msg, kind: 'error' });
+    queueBubble(msg, 'error', { priority: 'normal' });
   }
 });
 
@@ -717,6 +724,50 @@ function populateStyles() {
   if (current) styleSel.value = current;
 }
 
+function getModelConfig(provider, model) {
+  const p = String(provider || '').toLowerCase();
+  const m = String(model || '').toLowerCase();
+
+  // Explicit non-vision checks
+  if (p === 'deepseek' || m.includes('deepseek-chat') || m.includes('deepseek-coder') || m.includes('deepseek-reasoner')) {
+    if (!m.includes('vl')) {
+      return { id: model, name: model, supportsVision: false, maxImagesAllowed: 0 };
+    }
+  }
+
+  if (m.startsWith('gpt-3.5') || m === 'gpt-4' || m === 'gpt-4-0314' || m === 'gpt-4-0613') {
+    return { id: model, name: model, supportsVision: false, maxImagesAllowed: 0 };
+  }
+
+  // Vision detection rules
+  let supportsVision = false;
+  let maxImagesAllowed = 5;
+
+  if (p === 'gemini' || m.includes('gemini')) {
+    supportsVision = true;
+    maxImagesAllowed = 10;
+  } else if (p === 'anthropic' || m.includes('claude-3') || m.includes('claude-opus') || m.includes('claude-sonnet') || m.includes('claude-haiku')) {
+    supportsVision = true;
+    maxImagesAllowed = 5;
+  } else if (m.includes('4o') || m.includes('vision') || m.includes('llava') || m.includes('bakllava') || m.includes('moondream') || m.includes('vl') || m.includes('minicpm-v')) {
+    supportsVision = true;
+    maxImagesAllowed = 5;
+  } else if (p === 'openai' && (m.includes('gpt-4') || m.includes('o1') || m.includes('o3') || m.includes('chatgpt-4o'))) {
+    supportsVision = true;
+    maxImagesAllowed = 5;
+  } else if (p === 'ollama' || p === 'lmstudio') {
+    supportsVision = /(vision|llava|bakllava|moondream|minicpm-v|vl)/i.test(m);
+    maxImagesAllowed = supportsVision ? 1 : 0;
+  }
+
+  return {
+    id: model || 'unknown',
+    name: model || 'Unknown Model',
+    supportsVision,
+    maxImagesAllowed: supportsVision ? maxImagesAllowed : 0
+  };
+}
+
 function applySettings(s) {
   state.settings = s;
   if (typeof i18n !== 'undefined' && s.appLanguage) {
@@ -731,6 +782,10 @@ function applySettings(s) {
   clarifyBtn.setAttribute('aria-pressed', String(!!s.clarify));
   if (autoModeBtn) autoModeBtn.setAttribute('aria-pressed', String(!!s.autoMode));
   renderMeta();
+  if (imageHandler) {
+    const config = getModelConfig(s.provider, s.model);
+    imageHandler.setModelConfig(config);
+  }
 }
 
 /* ------------------------------------------------------------------ */

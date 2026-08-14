@@ -775,6 +775,18 @@ select option {
   justify-content: center;
 }
 
+.chip:disabled,
+.chip.disabled {
+  opacity: 0.38 !important;
+  cursor: not-allowed !important;
+  pointer-events: auto !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  background: rgba(255, 255, 255, 0.02) !important;
+  color: var(--txt-faint) !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
 .card-footer-info {
   display: flex;
   align-items: center;

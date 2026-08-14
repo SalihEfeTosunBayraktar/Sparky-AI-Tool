@@ -68,7 +68,12 @@ const en = {
     noTextOrImage: 'Please enter text or upload an image first',
     invalidImageFormat: 'Only supported image files can be uploaded (PNG, JPG, WEBP, GIF).',
     imageSizeTooLarge: 'Image file size is too large (Max 10 MB).',
-    imageReadError: 'An error occurred while loading the image.'
+    imageReadError: 'An error occurred while loading the image.',
+    modelNoVisionWarning: 'The selected model does not support images. Attached files have been removed.',
+    modelNoVisionDropBlocked: 'The current model does not support image inputs.',
+    attachImageDisabledNoVision: 'Selected model does not support images',
+    imageLimitReached: 'Image limit reached',
+    duplicateImageWarning: 'This image has already been attached.'
   },
   modes: {
     activeTitle: 'Operation Mode',
