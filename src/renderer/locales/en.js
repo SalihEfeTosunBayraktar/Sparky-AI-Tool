@@ -295,6 +295,21 @@ const en = {
     noProjectsYet: 'No projects created yet. Click "Create New Project" to get started.',
     noTextsYet: 'No text notes in this project yet.',
     noImagesYet: 'No images in this project yet.'
+  },
+  gauge: {
+    title: 'Context & Memory',
+    stateless: 'Stateless',
+    chipStateless: 'Memory: ∅',
+    optimal: 'Optimal',
+    warning: 'Warning',
+    critical: 'Critical',
+    compacting: 'Compacting…',
+    projectNotes: 'Project Notes',
+    memorySummary: 'Memory Summary',
+    dialogueHistory: 'Dialogue History',
+    currentInput: 'Current Input',
+    totalCapacity: 'Total / Capacity',
+    clearMemoryBtn: 'Clear Memory'
   }
 };
 

@@ -85,7 +85,7 @@ class ContextGauge {
       this.fillEl.style.strokeDasharray = '2 4';
       this.fillEl.style.strokeDashoffset = '0';
       this.labelEl.textContent = '∅';
-      if (this.chipLabelEl) this.chipLabelEl.textContent = 'Memory: ∅';
+      if (this.chipLabelEl) this.chipLabelEl.textContent = this.t('gauge.chipStateless', 'Hafıza: ∅');
       if (this.badgeEl) this.badgeEl.textContent = this.t('gauge.stateless', 'Hafızasız');
 
       this.setTooltipField('#valGaugeProj', '—');
@@ -107,7 +107,7 @@ class ContextGauge {
     this.fillEl.style.strokeDashoffset = `${offset.toFixed(2)}`;
     this.labelEl.textContent = metrics.isCompacting ? '⚡' : `${percentage}%`;
     if (this.chipLabelEl) {
-      this.chipLabelEl.textContent = metrics.isCompacting ? 'Memory: ⚡' : `Memory: %${percentage}`;
+      this.chipLabelEl.textContent = metrics.isCompacting ? 'Context: ⚡' : `Context: %${percentage}`;
     }
 
     // State Resolution

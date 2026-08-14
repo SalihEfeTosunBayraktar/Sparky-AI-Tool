@@ -896,59 +896,17 @@ if (projectSel) {
 const tokenCounterEl = $('tokenCounter');
 
 function updateTokenCounter(stats) {
-  const tokenCountEl = $('token-count');
   if (!tokenCounterEl) return;
   const last = Number(stats?.lastTokens) || 0;
   const total = Number(stats?.sessionTotal) || 0;
   const fmt = (n) => n.toLocaleString();
-  if (tokenCountEl) {
-    tokenCountEl.textContent = fmt(last);
-  } else {
-    tokenCounterEl.textContent = `Tokens: ${fmt(last)}`;
-  }
+  tokenCounterEl.textContent = `Tokens: ${fmt(last)}`;
   tokenCounterEl.title = `Son istek: ${fmt(last)} token · Oturum Toplamı: ${fmt(total)} token`;
 }
 
 if (api.on.tokensUpdated) {
   api.on.tokensUpdated((stats) => updateTokenCounter(stats));
 }
-
-function updateMemoryIndicator(memoryInfo) {
-  const memoryValEl = $('memory-val');
-  const statusDotEl = document.querySelector('.status-dot');
-  if (!memoryValEl || !statusDotEl || !memoryInfo) return;
-
-  const usedKB = Number(memoryInfo.workingSetSize) || Number(memoryInfo.heapUsed) || 0;
-  const usedMB = Math.round(usedKB / 1024);
-  memoryValEl.textContent = `${usedMB} MB`;
-
-  statusDotEl.className = 'status-dot';
-  if (usedMB >= 300) {
-    statusDotEl.classList.add('critical');
-  } else if (usedMB >= 150) {
-    statusDotEl.classList.add('warning');
-  }
-
-  const memInd = $('memory-indicator');
-  if (memInd) {
-    const peakMB = memoryInfo.peakWorkingSetSize ? Math.round(memoryInfo.peakWorkingSetSize / 1024) : usedMB;
-    memInd.title = `Sistem RAM Kullanımı: ${usedMB} MB (Zirve: ${peakMB} MB)`;
-  }
-}
-
-if (api.on.systemMemoryUpdate) {
-  api.on.systemMemoryUpdate((mem) => updateMemoryIndicator(mem));
-} else if (api.on.memoryUpdate) {
-  api.on.memoryUpdate((mem) => updateMemoryIndicator(mem));
-}
-
-// Dev mode / click to garbage collect hint
-$('memory-indicator')?.addEventListener('click', async () => {
-  if (api.system && api.system.getMemory) {
-    const mem = await api.system.getMemory();
-    updateMemoryIndicator(mem);
-  }
-});
 
 /* ------------------------------------------------------------------ */
 /* Başlangıç                                                           */
@@ -970,9 +928,6 @@ $('memory-indicator')?.addEventListener('click', async () => {
   if (api.tokens && api.tokens.get) {
     const stats = await api.tokens.get();
     updateTokenCounter(stats);
-  }
-  if (api.system && api.system.getMemory) {
-    api.system.getMemory().then((mem) => updateMemoryIndicator(mem)).catch(() => {});
   }
   const gaugeEl = $('contextGauge');
   if (gaugeEl && typeof ContextGauge !== 'undefined') {

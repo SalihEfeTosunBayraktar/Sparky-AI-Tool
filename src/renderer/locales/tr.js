@@ -295,6 +295,21 @@ const tr = {
     noProjectsYet: 'Henüz proje oluşturulmadı. Yeni bir proje ekleyerek başlayın.',
     noTextsYet: 'Bu projede henüz metin içeriği yok.',
     noImagesYet: 'Bu projede henüz görsel yok.'
+  },
+  gauge: {
+    title: 'Context & Hafıza',
+    stateless: 'Hafızasız',
+    chipStateless: 'Hafıza: ∅',
+    optimal: 'Optimal',
+    warning: 'Uyarı',
+    critical: 'Kritik',
+    compacting: 'Sıkıştırılıyor…',
+    projectNotes: 'Proje Notları',
+    memorySummary: 'Özet Hafıza',
+    dialogueHistory: 'Diyalog Geçmişi',
+    currentInput: 'Mevcut Girdi',
+    totalCapacity: 'Toplam / Kapasite',
+    clearMemoryBtn: 'Hafızayı Sıfırla'
   }
 };
 

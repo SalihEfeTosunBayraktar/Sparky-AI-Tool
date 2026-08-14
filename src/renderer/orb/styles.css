@@ -1083,18 +1083,17 @@ select option {
   justify-content: space-between;
   align-items: center;
   margin-top: 6px;
-  padding: 6px 12px;
-  background: #11131e;
+  padding: 6px 10px 2px 10px;
+  background: transparent;
   border-top: 1px solid rgba(255, 255, 255, 0.05);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   font-size: 11px;
-  color: #8e92a7;
+  color: var(--txt-dim);
 }
 
 .status-left {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
 }
 
 .status-right {
@@ -1103,16 +1102,13 @@ select option {
   gap: 8px;
 }
 
-/* Option B (Grouped Left) support via data-layout="b" */
-.status-bar[data-layout="b"] .status-right {
-  display: none;
-}
-
 .token-counter {
   font-size: 11px;
-  color: #8e92a7;
-  opacity: 0.85;
+  font-weight: 550;
+  color: var(--txt-dim);
+  opacity: 0.8;
   transition: opacity 0.15s ease, color 0.15s ease;
+  user-select: none;
 }
 
 .token-counter:hover {
@@ -1120,99 +1116,43 @@ select option {
   color: var(--accent-orange);
 }
 
-.memory-indicator {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  cursor: pointer;
-  padding: 2px 6px;
-  border-radius: 6px;
-  user-select: none;
-  font-size: 11px;
-  font-weight: 550;
-  color: #8e92a7;
-  transition: background 0.18s ease, color 0.18s ease;
-}
-
-.memory-indicator:hover {
-  background: rgba(255, 255, 255, 0.06);
-  color: #f1f3f9;
-}
-
-.status-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background-color: #10b981; /* Soft green (<150MB) */
-  box-shadow: 0 0 6px rgba(16, 185, 129, 0.5);
-  transition: all 0.3s ease;
-  flex: 0 0 6px;
-}
-
-.status-dot.warning {
-  background-color: #f59e0b; /* Warning orange (150-300MB) */
-  box-shadow: 0 0 6px rgba(245, 158, 11, 0.5);
-}
-
-.status-dot.critical {
-  background-color: #ef4444; /* Critical red (>300MB) */
-  box-shadow: 0 0 6px rgba(239, 68, 68, 0.5);
-  animation: pulse-critical 1.2s infinite ease-in-out;
-}
-
-.memory-text {
-  font-size: 11px;
-  font-weight: 550;
-  letter-spacing: 0.1px;
-}
-
 .context-gauge-widget {
   position: relative;
   display: inline-flex;
   align-items: center;
-  user-select: none;
-}
-
-.chip-gauge {
-  height: 30px;
-  padding: 0 10px 0 6px;
-  border-radius: 999px;
-  background: var(--bg-input);
-  border: 1px solid var(--border-color);
-  color: var(--txt-dim);
-  display: inline-flex;
-  align-items: center;
   gap: 6px;
-  flex: 0 0 auto;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   cursor: pointer;
+  user-select: none;
   transition: all 0.18s ease;
 }
 
-.chip-gauge:hover {
+.context-gauge-widget:hover {
+  background: rgba(255, 255, 255, 0.08);
   border-color: var(--state-color, var(--accent-orange));
-  color: var(--txt);
-  transform: translateY(-1px);
 }
 
-.chip-gauge .donut-container {
+.context-gauge-widget .donut-container {
   position: relative;
   width: 22px;
   height: 22px;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
   border-radius: 50%;
 }
 
-.chip-gauge .gauge-chip-label {
-  font-size: 11.5px;
+.context-gauge-widget .gauge-chip-label {
+  font-size: 11px;
   font-weight: 600;
   color: var(--txt-dim);
   transition: color 0.15s ease;
 }
 
-.chip-gauge:hover .gauge-chip-label {
+.context-gauge-widget:hover .gauge-chip-label {
   color: var(--txt);
 }
 
@@ -1224,7 +1164,7 @@ select option {
 
 .context-gauge-widget .donut-track {
   fill: none;
-  stroke: rgba(255, 255, 255, 0.08);
+  stroke: rgba(255, 255, 255, 0.12);
   stroke-width: 3.5;
 }
 
@@ -1238,7 +1178,7 @@ select option {
 
 .context-gauge-widget .donut-center-label {
   position: absolute;
-  font-size: 8px;
+  font-size: 7.5px;
   font-weight: 700;
   color: var(--txt);
   letter-spacing: -0.02em;
