@@ -956,8 +956,50 @@ function registerIpc() {
     return { ok: true };
   });
 
+  // --- sistem bellek (RAM usage)
+  ipcMain.handle('system:getMemory', async () => {
+    try {
+      const procMem = await process.getProcessMemoryInfo();
+      const nodeMem = process.memoryUsage();
+      return {
+        workingSetSize: procMem.workingSetSize,
+        peakWorkingSetSize: procMem.peakWorkingSetSize,
+        privateBytes: procMem.privateBytes,
+        heapUsed: Math.round(nodeMem.heapUsed / 1024),
+        heapTotal: Math.round(nodeMem.heapTotal / 1024)
+      };
+    } catch {
+      const nodeMem = process.memoryUsage();
+      const usedKB = Math.round(nodeMem.heapUsed / 1024);
+      return { workingSetSize: usedKB, heapUsed: usedKB, heapTotal: Math.round(nodeMem.heapTotal / 1024) };
+    }
+  });
+
   // --- kabuk
   ipcMain.handle('shell:openUserData', () => shell.openPath(app.getPath('userData')));
+}
+
+let memoryPollTimer = null;
+function startMemoryPolling() {
+  if (memoryPollTimer) return;
+  const poll = async () => {
+    try {
+      if (!orb || orb.isDestroyed()) return;
+      const procMem = await process.getProcessMemoryInfo();
+      const nodeMem = process.memoryUsage();
+      const memData = {
+        workingSetSize: procMem.workingSetSize,
+        peakWorkingSetSize: procMem.peakWorkingSetSize,
+        privateBytes: procMem.privateBytes,
+        heapUsed: Math.round(nodeMem.heapUsed / 1024),
+        heapTotal: Math.round(nodeMem.heapTotal / 1024)
+      };
+      broadcast('system:memory-update', memData);
+      broadcast('memory-update', memData);
+    } catch {}
+  };
+  setTimeout(poll, 1000);
+  memoryPollTimer = setInterval(poll, 4000);
 }
 
 /* ------------------------------------------------------------------ */
@@ -978,6 +1020,7 @@ if (!app.requestSingleInstanceLock()) {
     createOrb();
     buildTray();
     registerShortcuts();
+    startMemoryPolling();
 
     // İlk çalıştırma: yerel bir sunucu ayaktaysa onu seç ve ilk modeli ata.
     if (!settings.get('model')) {

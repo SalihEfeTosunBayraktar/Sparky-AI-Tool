@@ -112,6 +112,10 @@ contextBridge.exposeInMainWorld('sparky', {
     clear: (projectId) => ipcRenderer.invoke('memory:clear', projectId)
   },
 
+  system: {
+    getMemory: () => ipcRenderer.invoke('system:getMemory')
+  },
+
   shell: {
     openUserData: () => ipcRenderer.invoke('shell:openUserData')
   },
@@ -138,6 +142,19 @@ contextBridge.exposeInMainWorld('sparky', {
     modeChanged: (cb) => on('modes:changed', cb),
     tokensUpdated: (cb) => on('tokens:updated', cb),
     memoryUpdated: (cb) => on('memory:updated', cb),
+    memoryUpdate: (cb) => on('system:memory-update', cb),
+    systemMemoryUpdate: (cb) => on('system:memory-update', cb),
     panelTab: (cb) => on('panel:tab', cb)
   }
 });
+
+// Backward compatibility alias for electronAPI
+try {
+  contextBridge.exposeInMainWorld('electronAPI', {
+    onMemoryUpdate: (cb) => {
+      ipcRenderer.on('system:memory-update', (_e, data) => cb(_e, data));
+      ipcRenderer.on('memory-update', (_e, data) => cb(_e, data));
+    }
+  });
+} catch {}
+

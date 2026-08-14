@@ -1078,18 +1078,85 @@ select option {
 /* Context Window & Memory Donut Chart Widget                          */
 /* ================================================================== */
 
-.card-footer-info {
+.card-footer-info.status-bar {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-top: 6px;
-  padding: 0 4px;
+  padding: 6px 8px 2px 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 11px;
+  color: #8e92a7;
+}
+
+.status-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.status-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .token-counter {
   font-size: 11px;
-  color: var(--txt-dim);
+  color: #8e92a7;
   opacity: 0.85;
+  transition: opacity 0.15s ease, color 0.15s ease;
+}
+
+.token-counter:hover {
+  opacity: 1;
+  color: var(--accent-orange);
+}
+
+.memory-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 6px;
+  border-radius: 6px;
+  cursor: pointer;
+  user-select: none;
+  font-size: 11px;
+  font-weight: 550;
+  color: #8e92a7;
+  transition: background 0.18s ease, color 0.18s ease;
+}
+
+.memory-indicator:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #f1f3f9;
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #10b981; /* Default normal green */
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  flex: 0 0 6px;
+}
+
+.status-dot.warning {
+  background-color: #f59e0b; /* Moderate orange (150-300MB) */
+  box-shadow: 0 0 6px rgba(245, 158, 11, 0.7);
+}
+
+.status-dot.critical {
+  background-color: #ef4444; /* High red (>300MB) */
+  box-shadow: 0 0 7px rgba(239, 68, 68, 0.85);
+  animation: pulse-critical 1.2s infinite ease-in-out;
+}
+
+.memory-text {
+  font-size: 11px;
+  font-weight: 550;
+  letter-spacing: 0.1px;
 }
 
 .context-gauge-widget {

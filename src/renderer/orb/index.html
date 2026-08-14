@@ -165,8 +165,16 @@
             <button id="btnRefine" class="btn" disabled data-i18n="card.btnApplyRefine">Uygula</button>
           </div>
 
-          <div class="card-footer-info">
-            <span id="tokenCounter" class="token-counter" title="Son istek / Toplam oturum token kullanımı">Tokens: 0</span>
+          <div class="card-footer-info status-bar">
+            <div class="status-left">
+              <span id="tokenCounter" class="token-counter" title="Son istek / Toplam oturum token kullanımı">Tokens: <span id="token-count">0</span></span>
+            </div>
+            <div class="status-right">
+              <div class="memory-indicator" id="memory-indicator" title="Sistem RAM Kullanımı">
+                <span class="status-dot"></span>
+                <span class="memory-text">RAM: <span id="memory-val">0 MB</span></span>
+              </div>
+            </div>
           </div>
         </div>
       </section>
