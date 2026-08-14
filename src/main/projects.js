@@ -2,16 +2,17 @@
 
 /**
  * Projects Manager / Proje Yönetim Modülü
- * Handles CRUD operations for user projects, text context notes, and vision images.
- * Kullanıcı projelerini, metin bağlamlarını ve görsellerini yönetir.
+ * Handles CRUD operations, vision images, and persistent AI episodic memory storage.
+ * Kullanıcı projelerini, bağlam notlarını ve yapay zeka hafıza katmanını yönetir.
  */
 
 const fs = require('fs');
 const path = require('path');
 const { app } = require('electron');
 
-const FILE_PATH = path.join(app.getPath('userData'), 'projects.json');
+const FILE_PATH = path.join(app ? app.getPath('userData') : process.cwd(), 'projects.json');
 const INITIAL_DATA = { activeProjectId: null, projects: [] };
+const MAX_HISTORY_TURNS = 50;
 
 let cache = null;
 let saveTimer = null;
@@ -19,25 +20,53 @@ let saveTimer = null;
 function loadData() {
   if (cache) return cache;
   try {
-    const raw = fs.readFileSync(FILE_PATH, 'utf8');
-    cache = JSON.parse(raw);
-    if (!Array.isArray(cache.projects)) cache.projects = [];
-  } catch {
+    if (fs.existsSync(FILE_PATH)) {
+      const raw = fs.readFileSync(FILE_PATH, 'utf8');
+      cache = JSON.parse(raw);
+      if (!cache || typeof cache !== 'object' || !Array.isArray(cache.projects)) {
+        throw new Error('Invalid schema structure');
+      }
+    } else {
+      cache = { ...INITIAL_DATA };
+    }
+  } catch (err) {
+    console.warn('[projects] Veri dosyası bozuk veya okunamadı, yedekleniyor:', err.message);
+    try {
+      if (fs.existsSync(FILE_PATH)) {
+        const backupPath = path.join(path.dirname(FILE_PATH), `projects.corrupted.${Date.now()}.bak`);
+        fs.copyFileSync(FILE_PATH, backupPath);
+      }
+    } catch {}
     cache = { ...INITIAL_DATA };
   }
   return cache;
 }
 
+function flushToDisk() {
+  if (!cache) return;
+  try {
+    const dir = path.dirname(FILE_PATH);
+    fs.mkdirSync(dir, { recursive: true });
+    // Cap memory history turns to prevent file bloat
+    for (const p of cache.projects) {
+      if (p.memory && Array.isArray(p.memory.history) && p.memory.history.length > MAX_HISTORY_TURNS) {
+        p.memory.history = p.memory.history.slice(-MAX_HISTORY_TURNS);
+      }
+    }
+    const tempPath = `${FILE_PATH}.tmp`;
+    fs.writeFileSync(tempPath, JSON.stringify(cache, null, 2), 'utf8');
+    fs.renameSync(tempPath, FILE_PATH);
+  } catch (err) {
+    console.error('[projects] Kaydetme hatası:', err.message);
+  }
+}
+
 function saveData() {
   if (saveTimer) clearTimeout(saveTimer);
   saveTimer = setTimeout(() => {
-    try {
-      fs.mkdirSync(path.dirname(FILE_PATH), { recursive: true });
-      fs.writeFileSync(FILE_PATH, JSON.stringify(cache, null, 2), 'utf8');
-    } catch (err) {
-      console.error('[projects] save failed:', err.message);
-    }
-  }, 100);
+    saveTimer = null;
+    flushToDisk();
+  }, 120);
 }
 
 function genId(prefix) {
@@ -45,6 +74,15 @@ function genId(prefix) {
 }
 
 const projects = {
+  saveData,
+  saveDataNow() {
+    if (saveTimer) {
+      clearTimeout(saveTimer);
+      saveTimer = null;
+    }
+    flushToDisk();
+  },
+
   list() {
     return loadData().projects;
   },
@@ -79,7 +117,8 @@ const projects = {
       createdAt: Date.now(),
       updatedAt: Date.now(),
       texts: Array.isArray(payload.texts) ? payload.texts : [],
-      images: Array.isArray(payload.images) ? payload.images : []
+      images: Array.isArray(payload.images) ? payload.images : [],
+      memory: { summary: '', history: [], lastCompactedAt: 0 }
     };
     data.projects.unshift(item);
     if (!data.activeProjectId) data.activeProjectId = item.id;
@@ -92,9 +131,32 @@ const projects = {
     if (!p) return null;
     if (typeof partial.name === 'string') p.name = partial.name.trim();
     if (typeof partial.description === 'string') p.description = partial.description.trim();
+    if (partial.memory && typeof partial.memory === 'object') {
+      p.memory = {
+        summary: typeof partial.memory.summary === 'string' ? partial.memory.summary : (p.memory?.summary || ''),
+        history: Array.isArray(partial.memory.history) ? partial.memory.history : (p.memory?.history || []),
+        lastCompactedAt: partial.memory.lastCompactedAt || p.memory?.lastCompactedAt || 0
+      };
+    }
     p.updatedAt = Date.now();
     saveData();
     return p;
+  },
+
+  updateMemory(id, memoryPayload) {
+    const p = this.get(id);
+    if (!p) return null;
+    if (!p.memory) p.memory = { summary: '', history: [], lastCompactedAt: 0 };
+    if (typeof memoryPayload.summary === 'string') {
+      p.memory.summary = memoryPayload.summary.trim();
+    }
+    if (Array.isArray(memoryPayload.history)) {
+      p.memory.history = memoryPayload.history;
+    }
+    p.memory.lastCompactedAt = Date.now();
+    p.updatedAt = Date.now();
+    saveData();
+    return p.memory;
   },
 
   remove(id) {

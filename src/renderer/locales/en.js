@@ -294,7 +294,19 @@ const en = {
     addImageBtn: '📷 Upload Image',
     noProjectsYet: 'No projects created yet. Click "Create New Project" to get started.',
     noTextsYet: 'No text notes in this project yet.',
-    noImagesYet: 'No images in this project yet.'
+    noImagesYet: 'No images in this project yet.',
+    memoryTitle: 'AI Memory & Context Ledger',
+    memoryTurns: 'dialogues',
+    memoryDesc: 'Summarized rules, technical decisions, and background learned by the AI for this project. Editable directly.',
+    memoryPlaceholder: 'Project episodic summary, architectural decisions, and rules…',
+    lastCompacted: 'Last Compacted:',
+    memoryNeverCompacted: 'Not compacted yet',
+    memorySaveBtn: 'Save Memory',
+    memoryRevertBtn: 'Revert',
+    clearMemoryBtn: 'Clear Memory',
+    clearMemoryConfirm: 'The AI episodic memory and dialogue history for this project will be wiped. Do you confirm?',
+    historyTitle: 'Dialogue History',
+    noHistoryYet: 'No recorded dialogue history in this project yet.'
   },
   gauge: {
     title: 'Context & Memory',

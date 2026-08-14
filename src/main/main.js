@@ -951,9 +951,21 @@ function registerIpc() {
     if (p) {
       projectMemory.clearMemory(p);
       broadcast('memory:updated', projectMemory.getMetrics(p));
+      broadcast('projects:changed', projects.getActiveId());
       projectContext.invalidate('memory-cleared');
     }
     return { ok: true };
+  });
+  ipcMain.handle('memory:update', (_e, projectId, memoryData) => {
+    const p = projectId ? projects.get(projectId) : projects.getActive();
+    if (p) {
+      projects.updateMemory(p.id, memoryData);
+      broadcast('memory:updated', projectMemory.getMetrics(p));
+      broadcast('projects:changed', projects.getActiveId());
+      projectContext.invalidate('memory-updated');
+      return { ok: true, memory: p.memory };
+    }
+    return { ok: false, error: 'Project not found' };
   });
 
   // --- kabuk
@@ -963,6 +975,12 @@ function registerIpc() {
 /* ------------------------------------------------------------------ */
 /* Yaşam döngüsü                                                       */
 /* ------------------------------------------------------------------ */
+
+app.on('before-quit', () => {
+  try {
+    projects.saveDataNow();
+  } catch {}
+});
 
 if (!app.requestSingleInstanceLock()) {
   app.quit();

@@ -294,7 +294,19 @@ const tr = {
     addImageBtn: '📷 Görsel Yükle',
     noProjectsYet: 'Henüz proje oluşturulmadı. Yeni bir proje ekleyerek başlayın.',
     noTextsYet: 'Bu projede henüz metin içeriği yok.',
-    noImagesYet: 'Bu projede henüz görsel yok.'
+    noImagesYet: 'Bu projede henüz görsel yok.',
+    memoryTitle: 'Yapay Zeka Hafızası (Memory & Context)',
+    memoryTurns: 'diyalog',
+    memoryDesc: 'Modelin bu projede öğrendiği özet kurallar, kararlar ve teknik bağlam. İsteğe göre doğrudan düzenlenebilir.',
+    memoryPlaceholder: 'Proje hafıza özeti, mimari kararlar ve kurallar…',
+    lastCompacted: 'Son Sıkıştırma:',
+    memoryNeverCompacted: 'Henüz sıkıştırılmadı',
+    memorySaveBtn: 'Hafızayı Kaydet',
+    memoryRevertBtn: 'Geri Al',
+    clearMemoryBtn: 'Hafızayı Sıfırla',
+    clearMemoryConfirm: 'Bu projenin yapay zeka hafızası ve diyalog geçmişi sıfırlanacak. Onaylıyor musunuz?',
+    historyTitle: 'Diyalog Geçmişi',
+    noHistoryYet: 'Bu projede henüz kayıtlı diyalog geçmişi yok.'
   },
   gauge: {
     title: 'Context & Hafıza',
