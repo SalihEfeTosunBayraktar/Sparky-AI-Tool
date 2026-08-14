@@ -410,13 +410,13 @@ async function runGeneration(payload) {
     // istek bloğu yeniden kursun.
     projectContext.invalidate('generation-failed');
     const aborted = controller.signal.aborted;
-    const message = aborted ? 'Durduruldu.' : err?.message || String(err);
+    const message = aborted ? S.t('status.stopped') : err?.message || String(err);
     send('gen:error', { message, aborted, genId });
     send('gen:status', { text: S.t(aborted ? 'status.stopped' : 'status.error'), kind: aborted ? 'info' : 'error' });
     if (!aborted) {
       send('gen:playSound', 'error');
       notifier.notifyError({
-        title: 'Sparky AI — İşlem Başarısız ⚠️',
+        title: S.t('notify.errorTitle'),
         body: message,
         targetWindow: orb
       });
@@ -762,11 +762,11 @@ function registerIpc() {
   });
   ipcMain.handle('history:export', async (_e, format) => {
     const items = history.list();
-    if (!items.length) return { ok: false, error: 'Geçmiş boş.' };
+    if (!items.length) return { ok: false, error: S.t('history.empty') };
     const isMd = format === 'md';
     const { canceled, filePath } = await dialog.showSaveDialog(panel || orb, {
-      title: 'Geçmişi dışa aktar',
-      defaultPath: `sparky-gecmis.${isMd ? 'md' : 'json'}`,
+      title: S.t('history.exportTitle'),
+      defaultPath: `${S.t('history.defaultFilename')}.${isMd ? 'md' : 'json'}`,
       filters: isMd ? [{ name: 'Markdown', extensions: ['md'] }] : [{ name: 'JSON', extensions: ['json'] }]
     });
     if (canceled || !filePath) return { ok: false, canceled: true };
@@ -873,10 +873,10 @@ function registerIpc() {
   });
   ipcMain.handle('modes:export', async () => {
     const items = modes.exportAll();
-    if (!items.length) return { ok: false, error: 'Aktarılacak mod yok.' };
+    if (!items.length) return { ok: false, error: S.t('modes.exportEmpty') };
     const { canceled, filePath } = await dialog.showSaveDialog(panel || orb, {
-      title: 'Modları dışa aktar',
-      defaultPath: 'sparky-modlar.json',
+      title: S.t('modes.exportTitle'),
+      defaultPath: `${S.t('modes.exportFilename')}.json`,
       filters: [{ name: 'JSON', extensions: ['json'] }]
     });
     if (canceled || !filePath) return { ok: false, canceled: true };
@@ -889,7 +889,7 @@ function registerIpc() {
   });
   ipcMain.handle('modes:import', async () => {
     const { canceled, filePaths } = await dialog.showOpenDialog(panel || orb, {
-      title: 'Modları içe aktar',
+      title: S.t('modes.importTitle'),
       filters: [{ name: 'JSON', extensions: ['json'] }],
       properties: ['openFile']
     });
@@ -925,8 +925,6 @@ if (!app.requestSingleInstanceLock()) {
     if (!orb.isVisible()) orb.show();
     setExpanded(true, { focusInput: true });
   });
-
-  app.setAppUserModelId('com.sparkyai.app');
 
   app.whenReady().then(async () => {
     registerIpc();

@@ -48,7 +48,19 @@ const TR = {
   'status.keyRotatedInvalid': '{provider}: anahtar geçersiz, sıradaki anahtara geçildi',
 
   // Bildirim
-  'notify.readyTitle': 'Sparky AI — Prompt Hazır ✨'
+  'notify.readyTitle': 'Sparky AI — Prompt Hazır ✨',
+  'notify.errorTitle': 'Sparky AI — İşlem Başarısız ⚠️',
+
+  // Geçmiş dışa aktarma
+  'history.empty': 'Geçmiş boş.',
+  'history.exportTitle': 'Geçmişi dışa aktar',
+  'history.defaultFilename': 'sparky-gecmis',
+
+  // Mod dışa / içe aktarma
+  'modes.exportEmpty': 'Aktarılacak mod yok.',
+  'modes.exportTitle': 'Modları dışa aktar',
+  'modes.exportFilename': 'sparky-modlar',
+  'modes.importTitle': 'Modları içe aktar'
 };
 
 const EN = {
@@ -88,7 +100,19 @@ const EN = {
   'status.keyRotatedRateLimit': '{provider}: rate limit hit, switched to the next key',
   'status.keyRotatedInvalid': '{provider}: key invalid, switched to the next key',
 
-  'notify.readyTitle': 'Sparky AI — Prompt Ready ✨'
+  'notify.readyTitle': 'Sparky AI — Prompt Ready ✨',
+  'notify.errorTitle': 'Sparky AI — Operation Failed ⚠️',
+
+  // History export
+  'history.empty': 'History is empty.',
+  'history.exportTitle': 'Export history',
+  'history.defaultFilename': 'sparky-history',
+
+  // Mode export / import
+  'modes.exportEmpty': 'No modes to export.',
+  'modes.exportTitle': 'Export modes',
+  'modes.exportFilename': 'sparky-modes',
+  'modes.importTitle': 'Import modes'
 };
 
 function dict() {
