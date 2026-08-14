@@ -209,7 +209,7 @@ class ProjectUI {
     for (const p of list) {
       const opt = document.createElement('option');
       opt.value = p.id;
-      opt.textContent = `${p.id === activeId ? '★ ' : '📁 '}${p.name}${p.id === activeId ? ` (${this.i18n.t('projects.activeBadge') || 'Aktif Proje'})` : ''}`;
+      opt.textContent = `${p.name}${p.id === activeId ? ` (${this.i18n.t('projects.activeBadge') || 'Aktif Proje'})` : ''}`;
       if (p.id === this.activeEditingId) opt.selected = true;
       selectEl.appendChild(opt);
     }

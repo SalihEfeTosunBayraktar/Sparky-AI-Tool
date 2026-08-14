@@ -125,7 +125,7 @@ async function loadModels({ silent = false } = {}) {
   if (!res.ok) {
     const opt = document.createElement('option');
     opt.value = settings.model || '';
-    opt.textContent = settings.model || '— liste alınamadı —';
+    opt.textContent = settings.model || (typeof i18n !== 'undefined' ? i18n.t('panel.fields.noListRetrieved') : '— liste alınamadı —');
     sel.appendChild(opt);
     if (!silent) showResult($('testResult'), res.error, 'bad');
     return;
@@ -134,7 +134,7 @@ async function loadModels({ silent = false } = {}) {
   if (!res.models.length) {
     const opt = document.createElement('option');
     opt.value = '';
-    opt.textContent = '— model bulunamadı —';
+    opt.textContent = typeof i18n !== 'undefined' ? i18n.t('panel.fields.noModelsFound') : '— model bulunamadı —';
     sel.appendChild(opt);
     return;
   }
@@ -556,8 +556,8 @@ function renderHistory() {
     };
 
     const copyTxt = typeof i18n !== 'undefined' ? i18n.t('card.btnCopy') : 'Kopyala';
-    const reuseTxt = typeof i18n !== 'undefined' ? (i18n.currentLang === 'en' ? 'Load in panel' : 'Panele yükle') : 'Panele yükle';
-    const deleteTxt = typeof i18n !== 'undefined' ? (i18n.currentLang === 'en' ? 'Delete' : 'Sil') : 'Sil';
+    const reuseTxt = typeof i18n !== 'undefined' ? i18n.t('panel.history.loadInPanel') : 'Panele yükle';
+    const deleteTxt = typeof i18n !== 'undefined' ? i18n.t('panel.history.delete') : 'Sil';
 
     mk(copyTxt, 'primary', () => api.clipboard.write(item.output));
     mk(reuseTxt, '', () => api.history.reuse(item.id));
@@ -734,10 +734,21 @@ $('notifyLevel')?.addEventListener('change', () => save({ notifyLevel: $('notify
 bindNumber('maxTokens', 'maxTokens', { min: 256, max: 32000 });
 bindNumber('historyLimit', 'historyLimit', { min: 10, max: 2000 });
 
-$('btnReset').addEventListener('click', async () => {
-  settings = await api.settings.reset();
-  providers = await api.providers.catalog();
-  renderAll();
+$('btnReset')?.addEventListener('click', async () => {
+  const confirmMsg = typeof i18n !== 'undefined'
+    ? i18n.t('panel.fields.resetConfirm')
+    : 'Tüm ayarlar varsayılana sıfırlanacak. Onaylıyor musunuz?';
+  if (confirm(confirmMsg)) {
+    settings = await api.settings.reset();
+    providers = await api.providers.catalog();
+    renderAll();
+  }
+});
+
+$('btnOpenData')?.addEventListener('click', () => {
+  if (api.shell && api.shell.openUserData) {
+    api.shell.openUserData();
+  }
 });
 
 /* ------------------------------------------------------------------ */

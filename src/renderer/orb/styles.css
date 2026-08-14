@@ -721,7 +721,13 @@ select {
 
 .chip-select {
   border-radius: 999px;
-  background: var(--bg-input);
+  background-color: var(--bg-input);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.5)' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  padding-right: 22px !important;
+  appearance: none;
+  -webkit-appearance: none;
   color: var(--txt-dim);
   border: 1px solid var(--border-color);
   max-width: 130px;
@@ -736,6 +742,25 @@ select {
 select option {
   background: #181922;
   color: #f1f3f9;
+}
+
+.chip-with-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.chip-with-icon .chip-svg {
+  display: inline-block;
+  flex-shrink: 0;
+  stroke: currentColor;
+}
+
+.btn-generate .btn-gen-spark-svg {
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 4px;
+  fill: currentColor;
 }
 
 .chip {

@@ -31,7 +31,12 @@
           <span id="bubbleText"></span>
           <!-- Kuyrukta bekleyen bildirim sayısı — "boğulmadan" haberdar etme. -->
           <span id="bubbleQueueCount" class="bubble-queue-count" hidden></span>
-          <button id="btnBubbleCopy" class="bubble-copy" title="Sonucu panoya kopyala" data-i18n-title="card.btnCopy" hidden>📋</button>
+          <button id="btnBubbleCopy" class="bubble-copy" title="Sonucu panoya kopyala" data-i18n-title="card.btnCopy" hidden aria-label="Kopyala">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+          </button>
         </div>
       </div>
 
@@ -39,16 +44,33 @@
       <section id="card" class="card hit" aria-label="Prompt paneli">
         <header class="card-head">
           <span class="mini-orb" aria-hidden="true">
-            <svg viewBox="0 0 24 24"><path d="M12 2.2 13.9 9 20.8 10.9 13.9 12.8 12 19.6 10.1 12.8 3.2 10.9 10.1 9Z" /></svg>
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+              <path d="M12 2.2 13.9 9 20.8 10.9 13.9 12.8 12 19.6 10.1 12.8 3.2 10.9 10.1 9Z" />
+              <circle cx="18.4" cy="5.2" r="1.5" opacity=".85" />
+              <circle cx="6.1" cy="17.4" r="1.05" opacity=".6" />
+            </svg>
           </span>
           <span class="brand">Sparky<span class="brand-dim"> AI</span></span>
           <span id="statusPill" class="status" data-kind="idle">
             <i class="dot" aria-hidden="true"></i><span id="statusText" data-i18n="app.ready">Hazır</span>
           </span>
           <span class="grow"></span>
-          <button id="btnMenu" class="icon" title="Menü (sağ tık)" data-i18n-title="card.menuTitle">⋯</button>
-          <button id="btnCollapse" class="icon" title="Küçült (Esc)" data-i18n-title="card.collapseTitle">‹</button>
-          <button id="btnHide" class="icon" title="Tepsiye gizle" data-i18n-title="card.hideTitle">✕</button>
+          <button id="btnMenu" class="icon" title="Menü (sağ tık)" data-i18n-title="card.menuTitle" aria-label="Menü">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true">
+              <circle cx="5" cy="12" r="2" /><circle cx="12" cy="12" r="2" /><circle cx="19" cy="12" r="2" />
+            </svg>
+          </button>
+          <button id="btnCollapse" class="icon" title="Küçült (Esc)" data-i18n-title="card.collapseTitle" aria-label="Küçült">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+          </button>
+          <button id="btnHide" class="icon" title="Tepsiye gizle" data-i18n-title="card.hideTitle" aria-label="Tepsiye gizle">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
         </header>
 
         <div class="body">
@@ -75,8 +97,12 @@
             <div class="composer-bar">
               <div class="toolbar">
                 <input type="file" id="imgFileInput" accept="image/*" hidden />
-                <button id="btnAttachImg" class="chip icon-chip" title="Görsel Yükle" data-i18n="card.btnAttachImage" data-i18n-title="card.btnAttachImage">
-                  📷
+                <button id="btnAttachImg" class="chip icon-chip" title="Görsel Yükle" data-i18n-title="card.btnAttachImage" aria-label="Görsel Yükle">
+                  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <rect x="3" y="3" width="18" height="18" rx="3" ry="3"></rect>
+                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                    <polyline points="21 15 16 10 5 21"></polyline>
+                  </svg>
                 </button>
                 <select id="projectSelect" class="chip-select" title="Aktif Proje" data-i18n-title="projects.activeBadge"></select>
                 <select id="modeSelect" class="chip-select" title="Çalışma Modu" data-i18n-title="modes.activeTitle"></select>
@@ -84,8 +110,11 @@
                 <button id="deep" class="chip" title="Analiz → yaz → cilala (3 aşama, daha yavaş ama daha iyi)" data-i18n="card.deepMode" data-i18n-title="card.deepModeTitle">
                   Derin mod
                 </button>
-                <button id="autoMode" class="chip" title="İsteğin karmaşıklığına ve netliğine göre Otomatik Derin Mod veya Soru Sorma akışını seçer" data-i18n="card.autoMode" data-i18n-title="card.autoModeTitle">
-                  🤖 Oto mod
+                <button id="autoMode" class="chip chip-with-icon" title="İsteğin karmaşıklığına ve netliğine göre Otomatik Derin Mod veya Soru Sorma akışını seçer" data-i18n-title="card.autoModeTitle">
+                  <svg class="chip-svg" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path>
+                  </svg>
+                  <span data-i18n="card.autoMode">Oto mod</span>
                 </button>
                 <button id="clarify" class="chip" title="Belirsiz noktalar için önce sana soru sorsun" data-i18n="card.askQuestions" data-i18n-title="card.askQuestionsTitle">
                   Soru sor
@@ -95,7 +124,9 @@
               <div class="composer-actions">
                 <button id="btnStop" class="btn danger" hidden data-i18n="card.btnStop">Durdur</button>
                 <button id="btnGen" class="btn primary btn-generate">
-                  <span class="btn-gen-spark" aria-hidden="true">✨</span>
+                  <svg class="btn-gen-spark-svg" viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true">
+                    <path d="M12 2L14.4 8.6L21 11L14.4 13.4L12 20L9.6 13.4L3 11L9.6 8.6L12 2Z" />
+                  </svg>
                   <span data-i18n="card.btnGenerate">Üret</span>
                 </button>
               </div>

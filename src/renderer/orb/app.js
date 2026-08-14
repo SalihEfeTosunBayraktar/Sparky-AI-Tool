@@ -933,13 +933,13 @@ async function populateProjects() {
 
   const noneOpt = document.createElement('option');
   noneOpt.value = '';
-  noneOpt.textContent = `📁 ${i18n.t('projects.chipNoProject')}`;
+  noneOpt.textContent = i18n.t('projects.chipNoProject');
   projectSel.appendChild(noneOpt);
 
   for (const p of list) {
     const opt = document.createElement('option');
     opt.value = p.id;
-    opt.textContent = `📁 ${p.name}`;
+    opt.textContent = p.name;
     if (p.id === activeId) opt.selected = true;
     projectSel.appendChild(opt);
   }
