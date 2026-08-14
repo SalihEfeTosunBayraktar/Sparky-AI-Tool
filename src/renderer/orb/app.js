@@ -434,11 +434,41 @@ function setOutput(text) {
   updateBottomActionBarVisibility();
 }
 
-async function copyOutput(msg) {
+/**
+ * Kopyalama butonunda geçici checkmark ikonu ve yeşil ışıma mikro animasyonu tetikler.
+ * Temporarily triggers a checkmark icon and green glow micro-animation on copy buttons.
+ * @param {HTMLElement} btn
+ */
+function triggerCopySuccessAnimation(btn) {
+  if (!btn) return;
+  btn.classList.add('btn-copied-flash');
+  const originalHtml = btn.getAttribute('data-orig-html') || btn.innerHTML;
+  if (!btn.getAttribute('data-orig-html')) {
+    btn.setAttribute('data-orig-html', originalHtml);
+  }
+
+  const checkSvg = '<svg viewBox="0 0 16 16" width="13" height="13" fill="currentColor" class="anim-pop-check" style="margin-right:4px; vertical-align:-1px;"><path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/></svg>';
+  const copiedLabel = typeof i18n !== 'undefined' ? i18n.t('card.copiedText', 'Kopyalandı!') : 'Kopyalandı!';
+
+  btn.innerHTML = `${checkSvg}<span>${copiedLabel}</span>`;
+
+  setTimeout(() => {
+    btn.classList.remove('btn-copied-flash');
+    const stored = btn.getAttribute('data-orig-html');
+    if (stored) {
+      btn.innerHTML = stored;
+      btn.removeAttribute('data-orig-html');
+    }
+  }, 1400);
+}
+
+async function copyOutput(msg, triggeringBtn) {
   if (!state.output) return;
   const text = msg || i18n.t('app.copiedToClipboard');
   await api.clipboard.write(state.output);
   setStatus({ text, kind: 'success' });
+  const btn = triggeringBtn || $('btnCopy');
+  if (btn) triggerCopySuccessAnimation(btn);
 }
 
 /* ------------------------------------------------------------------ */
@@ -616,12 +646,43 @@ async function applyRefine() {
   await applyInstruction(instruction);
 }
 
+/**
+ * Canlı karakter, kelime ve yaklaşık token istatistiğini hesaplar ve gösterir.
+ * Calculates and renders live character, word, and estimated token stats.
+ */
+function updateInputStats() {
+  const statsEl = $('inputStats');
+  if (!statsEl || !inputEl) return;
+  const val = inputEl.value;
+  if (!val || !val.trim()) {
+    statsEl.classList.remove('visible', 'warning');
+    statsEl.textContent = '';
+    return;
+  }
+
+  const charCount = val.length;
+  const words = val.trim().split(/\s+/).filter(Boolean).length;
+  const approxTokens = Math.max(1, Math.round(charCount / 4));
+
+  const charLabel = typeof i18n !== 'undefined' ? i18n.t('card.statsChars', 'kr') : 'kr';
+  const wordLabel = typeof i18n !== 'undefined' ? i18n.t('card.statsWords', 'kelime') : 'kelime';
+
+  statsEl.textContent = `${charCount.toLocaleString()} ${charLabel} · ${words.toLocaleString()} ${wordLabel} · ~${approxTokens.toLocaleString()} tk`;
+  statsEl.classList.add('visible');
+
+  if (approxTokens > 2000) {
+    statsEl.classList.add('warning');
+  } else {
+    statsEl.classList.remove('warning');
+  }
+}
+
 $('btnGen').addEventListener('click', generate);
 $('btnStop').addEventListener('click', () => api.gen.abort());
 $('btnRegen').addEventListener('click', generate);
-$('btnCopy').addEventListener('click', () => copyOutput());
-$('btnCopyClose').addEventListener('click', async () => {
-  await copyOutput();
+$('btnCopy').addEventListener('click', (e) => copyOutput(undefined, e.currentTarget));
+$('btnCopyClose').addEventListener('click', async (e) => {
+  await copyOutput(undefined, e.currentTarget);
   setExpanded(false);
 });
 $('btnRefine').addEventListener('click', applyRefine);
@@ -632,6 +693,7 @@ $('btnPaste').addEventListener('click', async () => {
     return;
   }
   inputEl.value = text.trim();
+  updateInputStats();
   inputEl.focus();
 });
 
@@ -651,11 +713,13 @@ btnClearInput?.addEventListener('click', () => {
   setStatus({ text: '', kind: 'info' });
   inputEl.focus();
   updateClearBtnVisibility();
+  updateInputStats();
 });
 
 inputEl.addEventListener('input', () => {
   updateClearBtnVisibility();
   refreshContextGauge(inputEl.value);
+  updateInputStats();
 });
 
 inputEl.addEventListener('keydown', (e) => {
@@ -885,6 +949,8 @@ api.on.focusInput(() => setTimeout(() => inputEl.focus(), 60));
 api.on.fillInput((text) => {
   inputEl.value = text;
   state.lastInput = text;
+  updateClearBtnVisibility();
+  updateInputStats();
 });
 
 api.on.loadEntry((item) => {
@@ -894,6 +960,8 @@ api.on.loadEntry((item) => {
   state.lastInput = item.input || '';
   setOutput(item.output || '');
   setStatus({ text: i18n.t('app.loadedFromHistory'), kind: 'info' });
+  updateClearBtnVisibility();
+  updateInputStats();
 });
 
 api.on.settingsChanged((s) => applySettings(s));

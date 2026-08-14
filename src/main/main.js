@@ -123,8 +123,49 @@ function createOrb() {
   return orb;
 }
 
+const SNAP_THRESHOLD = 28; // Kenara yapışma eşik mesafesi (px) / Snapping threshold (px)
+const SNAP_MARGIN = 16; // Ekran sınırından bırakılacak emniyet mesafesi (px) / Margin from screen boundary (px)
+
+/**
+ * Yüzen küreyi ekran sınırlarına yaklaştığında manyetik olarak kenara hizalar.
+ * Magnetically snaps the floating orb to the nearest display workArea edges.
+ */
+function snapOrbToEdges() {
+  if (!orb || orb.isDestroyed()) return;
+  const b = orb.getBounds();
+  const display = screen.getDisplayNearestPoint({ x: b.x, y: b.y });
+  if (!display) return;
+  const wa = display.workArea;
+
+  let newX = b.x;
+  let newY = b.y;
+
+  // Sol ve sağ kenar yapışması
+  if (Math.abs(b.x - wa.x) <= SNAP_THRESHOLD) {
+    newX = wa.x + SNAP_MARGIN;
+  } else if (Math.abs((b.x + b.width) - (wa.x + wa.width)) <= SNAP_THRESHOLD) {
+    newX = wa.x + wa.width - b.width - SNAP_MARGIN;
+  }
+
+  // Üst ve alt kenar yapışması
+  if (Math.abs(b.y - wa.y) <= SNAP_THRESHOLD) {
+    newY = wa.y + SNAP_MARGIN;
+  } else if (Math.abs((b.y + b.height) - (wa.y + wa.height)) <= SNAP_THRESHOLD) {
+    newY = wa.y + wa.height - b.height - SNAP_MARGIN;
+  }
+
+  // Ekran sınırları dışına taşmayı engelle
+  newX = Math.max(wa.x, Math.min(newX, wa.x + wa.width - b.width));
+  newY = Math.max(wa.y, Math.min(newY, wa.y + wa.height - b.height));
+
+  if (newX !== b.x || newY !== b.y) {
+    orb.setPosition(newX, newY);
+  }
+}
+
 function persistOrbBounds() {
   if (!orb || orb.isDestroyed()) return;
+  snapOrbToEdges();
   const b = orb.getBounds();
   settings.patch({ orbBounds: { x: b.x, y: b.y, width: COLLAPSED.width, height: COLLAPSED.height } });
 }

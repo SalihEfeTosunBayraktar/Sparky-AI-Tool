@@ -840,6 +840,29 @@ input[type="range"]:active::-webkit-slider-thumb {
   margin-left: auto;
 }
 
+/* Canlı Karakter/Kelime ve Token Sayacı (Live Stats Badge) */
+.input-stats-badge {
+  font-size: 10.5px;
+  font-weight: 550;
+  color: var(--text-secondary, var(--txt-dim));
+  font-variant-numeric: tabular-nums;
+  opacity: 0;
+  transform: translateY(2px);
+  transition: opacity 0.2s ease, transform 0.2s ease, color 0.2s ease;
+  white-space: nowrap;
+  pointer-events: none;
+  margin-right: 4px;
+}
+
+.input-stats-badge.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.input-stats-badge.warning {
+  color: var(--badge-warning-text, #f59e0b) !important;
+}
+
 /* Birincil CTA "Üret" Butonu */
 .btn-generate {
   height: 32px;
@@ -1077,6 +1100,33 @@ select option {
 .btn.ghost:hover:not(:disabled) {
   background: rgba(255, 255, 255, 0.06);
   color: var(--txt);
+}
+
+/* Kopyalama Başarı Mikro Animasyonu (Copy Success Micro-Animation) */
+.btn-copied-flash {
+  border-color: var(--badge-success-text, #10b981) !important;
+  color: var(--badge-success-text, #10b981) !important;
+  box-shadow: 0 0 14px rgba(16, 185, 129, 0.4) !important;
+  transform: scale(0.98);
+}
+
+.btn-copied-flash .anim-pop-check {
+  animation: checkmarkPop 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes checkmarkPop {
+  0% {
+    transform: scale(0.3) rotate(-25deg);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.2) rotate(4deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
 }
 
 /* Prompt Çıktı Kartı (Prompt Output Card) */
