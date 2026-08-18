@@ -2,7 +2,7 @@
 
 /**
  * VoiceInput — Smart Audio & Continuous VAD Speech Controller for Sparky AI.
- * Ses aktivite dedektörü (VAD), ara transkripsiyon ve sessizlik sonrası oto-üretim.
+ * Ses aktivite algılama (VAD), hassas mikrofon analizi ve sessizlik sonrası oto-üretim.
  */
 
 class VoiceInput {
@@ -29,11 +29,10 @@ class VoiceInput {
     this.audioCtx = null;
     this.analyser = null;
     this.vadTimer = null;
+    this.startTime = 0;
     this.lastSpeechTime = 0;
     this.hasSpoken = false;
-    this.hasTranscribedAny = false;
-    this.silenceChunkMs = 1400;
-    this.silenceSubmitMs = 3200;
+    this.silenceSubmitMs = 2400; // 2.4 seconds silence threshold
   }
 
   static isSupported() {
@@ -56,16 +55,17 @@ class VoiceInput {
       this.stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       this.audioChunks = [];
       this.hasSpoken = false;
-      this.hasTranscribedAny = false;
+      this.startTime = Date.now();
       this.lastSpeechTime = Date.now();
 
       const mimeType = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/ogg';
       this.mediaRecorder = new MediaRecorder(this.stream, { mimeType });
-      this.mediaRecorder.ondataavailable = (e) => { if (e.data?.size > 0) this.audioChunks.push(e.data); };
-      this.mediaRecorder.onstop = () => { this.processAudio(); };
+      this.mediaRecorder.ondataavailable = (e) => {
+        if (e.data?.size > 0) this.audioChunks.push(e.data);
+      };
 
-      this.mediaRecorder.start(300); // 300ms timeslices for smooth chunking
-      this.initVad(this.stream);
+      this.mediaRecorder.start(250);
+      await this.initVad(this.stream);
       this.setState('listening');
       return true;
     } catch (err) {
@@ -75,11 +75,15 @@ class VoiceInput {
     }
   }
 
-  initVad(stream) {
+  async initVad(stream) {
     try {
       const AudioContextClass = window.AudioContext || window.webkitAudioContext;
       if (!AudioContextClass) return;
       this.audioCtx = new AudioContextClass();
+      if (this.audioCtx.state === 'suspended') {
+        await this.audioCtx.resume();
+      }
+
       const source = this.audioCtx.createMediaStreamSource(stream);
       this.analyser = this.audioCtx.createAnalyser();
       this.analyser.fftSize = 256;
@@ -96,56 +100,61 @@ class VoiceInput {
         const avg = sum / bufferLength;
 
         const now = Date.now();
-        if (avg > 15) { // Active speech threshold
+        // Sensitive threshold (>= 4 detects whispering/quiet mics)
+        if (avg >= 4) {
           this.lastSpeechTime = now;
           this.hasSpoken = true;
-        } else if (this.hasSpoken) {
+        } else {
           const silentFor = now - this.lastSpeechTime;
-          // Intermediate pause: process current sentence chunk
-          if (silentFor >= this.silenceChunkMs && this.audioChunks.length > 0) {
-            this.hasSpoken = false;
-            this.flushChunk();
-          }
-          // Prolonged pause: trigger auto-submit if enabled
-          if (this.autoSubmit && silentFor >= this.silenceSubmitMs && this.hasTranscribedAny) {
+          if (this.hasSpoken && silentFor >= this.silenceSubmitMs) {
+            // User spoke and paused: stop and process with auto-submit
+            this.stopAndProcess(true);
+          } else if (!this.hasSpoken && (now - this.startTime) >= 7000) {
+            // No speech detected at all for 7s: cancel listening
             this.stop();
-            setTimeout(() => this.onAutoSubmit?.(), 250);
           }
         }
       }, 150);
     } catch {}
   }
 
-  async flushChunk() {
-    if (!this.audioChunks.length) return;
-    const chunksToProcess = [...this.audioChunks];
-    this.audioChunks = [];
-    await this.transcribeBlob(new Blob(chunksToProcess, { type: 'audio/webm' }));
-  }
-
-  stop() {
+  cleanupStream() {
     if (this.vadTimer) { clearInterval(this.vadTimer); this.vadTimer = null; }
     if (this.audioCtx) { try { this.audioCtx.close(); } catch {} this.audioCtx = null; }
-    if (this.mediaRecorder && this.state === 'listening') {
-      try { this.mediaRecorder.stop(); } catch {}
-    }
     if (this.stream) {
       this.stream.getTracks().forEach((t) => t.stop());
       this.stream = null;
     }
-    this.setState('processing');
   }
 
-  async processAudio() {
-    if (this.audioChunks.length) {
-      await this.transcribeBlob(new Blob(this.audioChunks, { type: 'audio/webm' }));
-      this.audioChunks = [];
+  stop() {
+    this.cleanupStream();
+    if (this.mediaRecorder && this.state === 'listening') {
+      try { this.mediaRecorder.stop(); } catch {}
     }
-    if (this.state !== 'error') this.setState('idle');
+    this.setState('idle');
   }
 
-  async transcribeBlob(audioBlob) {
+  async stopAndProcess(shouldAutoSubmit = false) {
+    if (this.state !== 'listening') return;
+    this.cleanupStream();
+    this.setState('processing');
+
+    if (this.mediaRecorder) {
+      try { this.mediaRecorder.stop(); } catch {}
+    }
+
+    // Wait a brief moment for last recorder chunks
+    await new Promise((r) => setTimeout(r, 200));
+
+    if (!this.audioChunks.length) {
+      this.setState('idle');
+      return;
+    }
+
     try {
+      const audioBlob = new Blob(this.audioChunks, { type: 'audio/webm' });
+      this.audioChunks = [];
       const arrayBuffer = await audioBlob.arrayBuffer();
       const uint8Array = new Uint8Array(arrayBuffer);
       const apiBridge = this.api || (typeof window !== 'undefined' ? (window.api || (typeof api !== 'undefined' ? api : null)) : null);
@@ -153,20 +162,32 @@ class VoiceInput {
       if (apiBridge?.voice?.transcribe) {
         const res = await apiBridge.voice.transcribe(uint8Array);
         if (res?.ok && res.text) {
-          this.hasTranscribedAny = true;
           this.onResult?.(res.text);
-        } else if (res?.error && !this.hasTranscribedAny) {
+          this.setState('idle');
+          if (shouldAutoSubmit && this.autoSubmit) {
+            setTimeout(() => this.onAutoSubmit?.(), 300);
+          }
+        } else {
           this.setState('error');
-          this.onError?.(res.error);
+          this.onError?.(res?.error || 'Sesli tanıma için Ayarlar → Model/API bölümünden bir Groq veya OpenAI anahtarı ekleyin.');
         }
+      } else {
+        this.setState('error');
+        this.onError?.('Ses servisi bulunamadı.');
       }
     } catch (err) {
+      this.setState('error');
       this.onError?.(`Ses hatası: ${err.message}`);
     }
   }
 
   toggle() {
-    return this.state === 'listening' ? (this.stop(), false) : this.start();
+    if (this.state === 'listening') {
+      this.stopAndProcess(false);
+      return false;
+    } else {
+      return this.start();
+    }
   }
 }
 

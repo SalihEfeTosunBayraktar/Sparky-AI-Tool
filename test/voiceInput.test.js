@@ -12,8 +12,7 @@ test('=== Running VoiceInput & Whisper STT Unit Tests ===', async (t) => {
     assert.strictEqual(vi.state, 'idle');
     assert.strictEqual(vi.audioChunks.length, 0);
     assert.strictEqual(vi.autoSubmit, true);
-    assert.strictEqual(vi.silenceChunkMs, 1400);
-    assert.strictEqual(vi.silenceSubmitMs, 3200);
+    assert.strictEqual(vi.silenceSubmitMs, 2400);
   });
 
   await t.test('2. State Transitions: notifies listeners on state updates', () => {
@@ -23,9 +22,9 @@ test('=== Running VoiceInput & Whisper STT Unit Tests ===', async (t) => {
     });
 
     vi.setState('listening');
-    vi.stop(); // Sets state to 'processing'
+    vi.stop();
 
-    assert.deepStrictEqual(states, ['listening', 'processing']);
+    assert.deepStrictEqual(states, ['listening', 'idle']);
   });
 
   await t.test('3. WhisperEngine Validation: validates empty buffer and missing API key gracefully', async () => {
