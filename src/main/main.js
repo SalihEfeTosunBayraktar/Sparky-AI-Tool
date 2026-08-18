@@ -35,6 +35,7 @@ const DatabaseManager = require('./database');
 const database = new DatabaseManager();
 const McpClient = require('./mcpClient');
 const CodeApplier = require('./codeApplier');
+const WhisperEngine = require('./whisperEngine');
 
 // Windows görev çubuğunda ikonun doğru eşleşmesi için (AppUserModelId)
 if (process.platform === 'win32') {
@@ -1141,6 +1142,9 @@ function registerIpc() {
     const p = projectPath || (projects.getActive() ? projects.getActive().path : process.cwd());
     return CodeApplier.applyToFile(p, filePath, content);
   });
+
+  // --- Voice Input (Whisper STT) ---
+  ipcMain.handle('voice:transcribe', async (_e, audioBuffer) => WhisperEngine.transcribe(audioBuffer));
 
   // --- kabuk
   ipcMain.handle('shell:openUserData', () => shell.openPath(app.getPath('userData')));

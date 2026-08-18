@@ -149,6 +149,10 @@ contextBridge.exposeInMainWorld('sparky', {
     apply: (projectPath, filePath, content) => ipcRenderer.invoke('code:apply', { projectPath, filePath, content })
   },
 
+  voice: {
+    transcribe: (audioBuffer) => ipcRenderer.invoke('voice:transcribe', audioBuffer)
+  },
+
   shell: {
     openUserData: () => ipcRenderer.invoke('shell:openUserData')
   },

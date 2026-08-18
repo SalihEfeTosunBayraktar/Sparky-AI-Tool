@@ -1,88 +1,32 @@
 'use strict';
 
 /**
- * VoiceInput — Real-Time Voice Speech-to-Text (STT) Controller for Sparky AI.
- * Web Speech API ve Whisper uyumlu mikrofon ses tanıma yöneticisi.
+ * VoiceInput — High-Fidelity Audio & Speech-to-Text Controller for Sparky AI.
+ * MediaRecorder ses kaydı ve Whisper STT entegrasyonu.
  */
 
 class VoiceInput {
   /**
    * @param {Object} [options]
-   * @param {Function} [options.onResult] - Callback with transcribed text (text, isFinal)
+   * @param {Function} [options.onResult] - Callback with transcribed text (text)
    * @param {Function} [options.onStateChange] - Callback with state ('idle'|'listening'|'processing'|'error')
-   * @param {Function} [options.onError] - Callback with error details
-   * @param {string} [options.lang='tr-TR'] - Default language code
+   * @param {Function} [options.onError] - Callback with error message
+   * @param {Object} [options.api] - Electron API bridge
    */
   constructor(options = {}) {
     this.onResult = options.onResult || null;
     this.onStateChange = options.onStateChange || null;
     this.onError = options.onError || null;
-    this.lang = options.lang || 'tr-TR';
+    this.api = options.api || (typeof window !== 'undefined' ? window.api : null);
     this.state = 'idle'; // 'idle' | 'listening' | 'processing' | 'error'
-    this.recognition = null;
-    this.initRecognition();
+    this.mediaRecorder = null;
+    this.audioChunks = [];
+    this.stream = null;
   }
 
-  /** Checks if speech recognition is available in the current runtime */
   static isSupported() {
-    if (typeof window === 'undefined') return false;
-    return !!(window.SpeechRecognition || window.webkitSpeechRecognition);
-  }
-
-  initRecognition() {
-    if (!VoiceInput.isSupported()) return;
-
-    const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
-    this.recognition = new SpeechRec();
-    this.recognition.continuous = true;
-    this.recognition.interimResults = true;
-    this.recognition.lang = this.lang;
-
-    this.recognition.onstart = () => {
-      this.setState('listening');
-    };
-
-    this.recognition.onresult = (event) => {
-      let interim = '';
-      let final = '';
-
-      for (let i = event.resultIndex; i < event.results.length; ++i) {
-        const transcript = event.results[i][0].transcript;
-        if (event.results[i].isFinal) {
-          final += transcript;
-        } else {
-          interim += transcript;
-        }
-      }
-
-      if (typeof this.onResult === 'function') {
-        const text = final || interim;
-        const isFinal = !!final;
-        if (text) this.onResult(text.trim(), isFinal);
-      }
-    };
-
-    this.recognition.onerror = (event) => {
-      console.warn('[VoiceInput] Recognition error:', event.error);
-      this.setState('error');
-      if (typeof this.onError === 'function') {
-        this.onError(event.error);
-      }
-      this.stop();
-    };
-
-    this.recognition.onend = () => {
-      if (this.state === 'listening') {
-        this.setState('idle');
-      }
-    };
-  }
-
-  setLanguage(langCode) {
-    this.lang = langCode === 'tr' ? 'tr-TR' : 'en-US';
-    if (this.recognition) {
-      this.recognition.lang = this.lang;
-    }
+    if (typeof navigator === 'undefined' || !navigator.mediaDevices) return false;
+    return typeof navigator.mediaDevices.getUserMedia === 'function';
   }
 
   setState(newState) {
@@ -92,31 +36,95 @@ class VoiceInput {
     }
   }
 
-  start() {
-    if (!this.recognition) {
-      this.initRecognition();
-    }
-    if (!this.recognition) {
-      if (typeof this.onError === 'function') this.onError('not-supported');
+  async start() {
+    if (this.state === 'listening') return false;
+
+    if (!VoiceInput.isSupported()) {
+      if (typeof this.onError === 'function') {
+        this.onError('Mikrofon erişimi bu ortamda desteklenmiyor.');
+      }
       return false;
     }
 
     try {
-      this.recognition.start();
+      this.stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      this.audioChunks = [];
+
+      const mimeType = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/ogg';
+      this.mediaRecorder = new MediaRecorder(this.stream, { mimeType });
+
+      this.mediaRecorder.ondataavailable = (event) => {
+        if (event.data && event.data.size > 0) {
+          this.audioChunks.push(event.data);
+        }
+      };
+
+      this.mediaRecorder.onstop = async () => {
+        await this.processAudio();
+      };
+
+      this.mediaRecorder.start();
+      this.setState('listening');
       return true;
     } catch (err) {
-      console.warn('[VoiceInput] Start error:', err.message);
+      console.warn('[VoiceInput] Microphone access error:', err.message);
+      this.setState('error');
+      if (typeof this.onError === 'function') {
+        this.onError(`Mikrofon erişilemedi: ${err.message}`);
+      }
       return false;
     }
   }
 
   stop() {
-    if (this.recognition && this.state === 'listening') {
+    if (this.mediaRecorder && this.state === 'listening') {
       try {
-        this.recognition.stop();
+        this.mediaRecorder.stop();
       } catch {}
     }
-    this.setState('idle');
+    if (this.stream) {
+      this.stream.getTracks().forEach((track) => track.stop());
+      this.stream = null;
+    }
+    this.setState('processing');
+  }
+
+  async processAudio() {
+    if (!this.audioChunks.length) {
+      this.setState('idle');
+      return;
+    }
+
+    try {
+      const audioBlob = new Blob(this.audioChunks, { type: 'audio/webm' });
+      const arrayBuffer = await audioBlob.arrayBuffer();
+      const uint8Array = new Uint8Array(arrayBuffer);
+
+      if (this.api && this.api.voice && typeof this.api.voice.transcribe === 'function') {
+        const res = await this.api.voice.transcribe(uint8Array);
+        if (res && res.ok && res.text) {
+          if (typeof this.onResult === 'function') {
+            this.onResult(res.text);
+          }
+          this.setState('idle');
+        } else {
+          this.setState('error');
+          if (typeof this.onError === 'function') {
+            this.onError(res?.error || 'Ses çözümlenemedi.');
+          }
+        }
+      } else {
+        this.setState('error');
+        if (typeof this.onError === 'function') {
+          this.onError('Ses tanıma servisi bulunamadı.');
+        }
+      }
+    } catch (err) {
+      this.setState('error');
+      if (typeof this.onError === 'function') {
+        this.onError(`Ses işleme hatası: ${err.message}`);
+      }
+    }
   }
 
   toggle() {

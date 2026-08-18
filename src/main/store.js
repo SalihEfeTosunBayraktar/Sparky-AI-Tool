@@ -84,7 +84,8 @@ function deepMerge(base, patch) {
 
 class JsonFile {
   constructor(name, fallback) {
-    this.file = path.join(app.getPath('userData'), name);
+    const userData = app ? app.getPath('userData') : process.cwd();
+    this.file = path.join(userData, name);
     this.fallback = fallback;
     this.data = fallback;
     this._timer = null;
