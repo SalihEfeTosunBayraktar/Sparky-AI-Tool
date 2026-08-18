@@ -1221,48 +1221,65 @@ async function updateQuickModels(providerId, selectedModel) {
   if (!quickModelSel) return;
   quickModelSel.innerHTML = '<option value="">Yükleniyor…</option>';
   try {
-    const models = await api.providers.models(providerId);
+    const rawModels = await api.providers.models(providerId);
     quickModelSel.innerHTML = '';
-    if (models && models.length > 0) {
-      let resolvedModel = selectedModel || models[0].id || models[0].name;
-      models.forEach((m) => {
-        const id = m.id || m.name;
-        const name = m.name || m.id;
+
+    const modelsList = [];
+    if (Array.isArray(rawModels)) {
+      rawModels.forEach((m) => {
+        if (typeof m === 'string' && m.trim()) {
+          modelsList.push({ id: m.trim(), name: m.trim() });
+        } else if (m && (m.id || m.name)) {
+          modelsList.push({ id: m.id || m.name, name: m.name || m.id });
+        }
+      });
+    }
+
+    if (selectedModel && selectedModel !== '__custom__' && !modelsList.some((m) => m.id === selectedModel)) {
+      modelsList.unshift({ id: selectedModel, name: selectedModel });
+    }
+
+    let resolvedModel = selectedModel || (modelsList[0] ? modelsList[0].id : '');
+
+    if (modelsList.length > 0) {
+      modelsList.forEach((m) => {
         const opt = document.createElement('option');
-        opt.value = id;
-        opt.textContent = name;
-        if (id === resolvedModel) opt.selected = true;
+        opt.value = m.id;
+        opt.textContent = m.name;
+        if (m.id === resolvedModel) opt.selected = true;
         quickModelSel.appendChild(opt);
       });
-      const optCustom = document.createElement('option');
-      optCustom.value = '__custom__';
-      optCustom.textContent = '✏️ ' + (typeof i18n !== 'undefined' ? i18n.t('panel.fields.modelManualPlaceholder', 'Elle model adı...') : 'Elle model adı...');
-      quickModelSel.appendChild(optCustom);
+    }
 
-      if (resolvedModel && !models.some((m) => (m.id || m.name) === resolvedModel)) {
-        optCustom.selected = true;
-        if (quickModelCustom) {
-          quickModelCustom.hidden = false;
-          quickModelCustom.value = resolvedModel;
-        }
-      } else if (quickModelCustom) {
-        quickModelCustom.hidden = true;
-      }
-      return resolvedModel;
-    } else {
-      quickModelSel.innerHTML = '<option value="">Model listesi yok (elle yazın)</option>';
+    const optCustom = document.createElement('option');
+    optCustom.value = '__custom__';
+    optCustom.textContent = '✏️ ' + (typeof i18n !== 'undefined' ? i18n.t('panel.fields.modelManualPlaceholder', 'Elle model adı...') : 'Elle model adı...');
+    quickModelSel.appendChild(optCustom);
+
+    if (resolvedModel && !modelsList.some((m) => m.id === resolvedModel)) {
+      optCustom.selected = true;
       if (quickModelCustom) {
         quickModelCustom.hidden = false;
-        quickModelCustom.value = selectedModel || '';
+        quickModelCustom.value = resolvedModel;
       }
-      return selectedModel || '';
+    } else if (quickModelCustom) {
+      quickModelCustom.hidden = true;
     }
+
+    return resolvedModel;
   } catch {
-    quickModelSel.innerHTML = '<option value="">Model listesi alınamadı</option>';
-    if (quickModelCustom) {
-      quickModelCustom.hidden = false;
-      quickModelCustom.value = selectedModel || '';
+    quickModelSel.innerHTML = '';
+    if (selectedModel) {
+      const optActive = document.createElement('option');
+      optActive.value = selectedModel;
+      optActive.textContent = selectedModel;
+      optActive.selected = true;
+      quickModelSel.appendChild(optActive);
     }
+    const optCustom = document.createElement('option');
+    optCustom.value = '__custom__';
+    optCustom.textContent = '✏️ ' + (typeof i18n !== 'undefined' ? i18n.t('panel.fields.modelManualPlaceholder', 'Elle model adı...') : 'Elle model adı...');
+    quickModelSel.appendChild(optCustom);
     return selectedModel || '';
   }
 }
