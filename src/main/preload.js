@@ -24,6 +24,7 @@ contextBridge.exposeInMainWorld('sparky', {
   settings: {
     get: () => ipcRenderer.invoke('settings:get'),
     patch: (partial) => ipcRenderer.invoke('settings:patch', partial),
+    set: (partial) => ipcRenderer.invoke('settings:patch', partial),
     reset: () => ipcRenderer.invoke('settings:reset')
   },
 

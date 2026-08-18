@@ -2276,6 +2276,7 @@ select option {
   text-overflow: ellipsis;
   white-space: nowrap;
   flex: 1;
+  pointer-events: none;
 }
 
 .quick-model-badge {
@@ -2286,6 +2287,7 @@ select option {
   color: var(--txt-dim);
   margin-left: 6px;
   flex-shrink: 0;
+  pointer-events: none;
 }
 
 .quick-custom-btn {

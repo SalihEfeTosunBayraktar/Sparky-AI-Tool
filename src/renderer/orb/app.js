@@ -1421,11 +1421,17 @@ async function updateQuickModels(providerId, targetModel) {
           model: chosenModel,
           modelByProvider: { ...(state.settings?.modelByProvider || {}), [providerId]: chosenModel }
         };
-        const updated = await api.settings.set(patch);
-        applySettings(updated || { ...(state.settings || {}), ...patch });
-        toggleQuickPicker(false);
+        // Anında yerel durumu güncelle / Immediately update local state
+        state.settings = { ...(state.settings || {}), ...patch };
         renderMeta();
+        toggleQuickPicker(false);
         setStatus({ text: `${i18n.t('app.ready')} (${chosenModel})`, kind: 'success' });
+
+        const saveFn = api.settings.patch || api.settings.set;
+        if (saveFn) {
+          const updated = await saveFn(patch);
+          if (updated) applySettings(updated);
+        }
       } catch (err) {
         console.error('[QuickPicker] Model seçimi kaydedilemedi:', err);
         toggleQuickPicker(false);
@@ -1443,10 +1449,14 @@ async function updateQuickModels(providerId, targetModel) {
           model: chosenModel,
           modelByProvider: { ...(state.settings?.modelByProvider || {}), [providerId]: chosenModel }
         };
-        const updated = await api.settings.set(patch);
-        applySettings(updated || { ...(state.settings || {}), ...patch });
-        toggleQuickPicker(false);
+        state.settings = { ...(state.settings || {}), ...patch };
         renderMeta();
+        toggleQuickPicker(false);
+        const saveFn = api.settings.patch || api.settings.set;
+        if (saveFn) {
+          const updated = await saveFn(patch);
+          if (updated) applySettings(updated);
+        }
       } catch {
         toggleQuickPicker(false);
       }
@@ -1465,11 +1475,16 @@ function initQuickModelPicker() {
         model: chosenModel,
         modelByProvider: { ...(state.settings?.modelByProvider || {}), [quickActiveProvider]: chosenModel }
       };
-      const updated = await api.settings.set(patch);
-      applySettings(updated || { ...(state.settings || {}), ...patch });
-      toggleQuickPicker(false);
+      state.settings = { ...(state.settings || {}), ...patch };
       renderMeta();
+      toggleQuickPicker(false);
       setStatus({ text: `${i18n.t('app.ready')} (${chosenModel})`, kind: 'success' });
+
+      const saveFn = api.settings.patch || api.settings.set;
+      if (saveFn) {
+        const updated = await saveFn(patch);
+        if (updated) applySettings(updated);
+      }
     } catch (err) {
       console.error('[QuickPicker] Model seçimi uygulanamadı:', err);
       toggleQuickPicker(false);
@@ -1525,9 +1540,13 @@ function initQuickModelPicker() {
       model: newModel,
       modelByProvider: { ...(state.settings?.modelByProvider || {}), [provId]: newModel }
     };
-    const updated = await api.settings.set(patch);
-    applySettings(updated || { ...(state.settings || {}), ...patch });
+    state.settings = { ...(state.settings || {}), ...patch };
     renderMeta();
+    const saveFn = api.settings.patch || api.settings.set;
+    if (saveFn) {
+      const updated = await saveFn(patch);
+      if (updated) applySettings(updated);
+    }
     setStatus({ text: `${i18n.t('app.ready')} (${newModel || provId})`, kind: 'success' });
   });
 
