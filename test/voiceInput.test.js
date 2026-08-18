@@ -11,6 +11,9 @@ test('=== Running VoiceInput & Whisper STT Unit Tests ===', async (t) => {
     const vi = new VoiceInput();
     assert.strictEqual(vi.state, 'idle');
     assert.strictEqual(vi.audioChunks.length, 0);
+    assert.strictEqual(vi.autoSubmit, true);
+    assert.strictEqual(vi.silenceChunkMs, 1400);
+    assert.strictEqual(vi.silenceSubmitMs, 3200);
   });
 
   await t.test('2. State Transitions: notifies listeners on state updates', () => {
@@ -34,5 +37,17 @@ test('=== Running VoiceInput & Whisper STT Unit Tests ===', async (t) => {
     const resNoKey = await WhisperEngine.transcribe(dummyAudio);
     assert.strictEqual(resNoKey.ok, false);
     assert.ok(resNoKey.error.length > 0);
+  });
+
+  await t.test('4. VAD & Auto-Submit callback handling', () => {
+    let autoSubmitted = false;
+    const vi = new VoiceInput({
+      autoSubmit: true,
+      onAutoSubmit: () => { autoSubmitted = true; }
+    });
+
+    assert.strictEqual(autoSubmitted, false);
+    vi.onAutoSubmit();
+    assert.strictEqual(autoSubmitted, true);
   });
 });

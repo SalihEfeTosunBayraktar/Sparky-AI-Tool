@@ -1684,12 +1684,20 @@ function initQuickModelPicker() {
   if (typeof VoiceInput !== 'undefined' && btnVoice) {
     const voice = new VoiceInput({
       api,
+      autoSubmit: settings.voiceAutoSubmit !== false,
       lang: settings.appLanguage === 'en' ? 'en-US' : 'tr-TR',
       onResult: (text) => {
         if (inputEl) {
           const cur = inputEl.value.trim();
           inputEl.value = cur ? `${cur} ${text}` : text;
           updateInputStats();
+        }
+      },
+      onAutoSubmit: async () => {
+        if (inputEl && inputEl.value.trim() && !state.busy) {
+          btnVoice.classList.remove('voice-active');
+          const btnGen = $('btnGenerate');
+          if (btnGen) btnGen.click();
         }
       },
       onStateChange: (vState) => {

@@ -265,6 +265,14 @@
               <input id="voiceCustomEndpoint" placeholder="örn. http://localhost:8000/v1/audio/transcriptions" spellcheck="false" />
               <p class="hint" data-i18n="panel.fields.voiceCustomHint">OpenAI Whisper uyumlu `/v1/audio/transcriptions` adresini girin.</p>
             </div>
+            <div class="field" style="margin-top: 8px;">
+              <label class="switch">
+                <input id="voiceAutoSubmit" type="checkbox" checked />
+                <span class="track"><span class="knob"></span></span>
+                <span class="switch-label" data-i18n="panel.fields.voiceAutoSubmit">Sessizlik Sonrası Otomatik Üret</span>
+              </label>
+              <p class="hint" data-i18n="panel.fields.voiceAutoSubmitHint">Konuşma bittikten sonra 3.2 saniye sessiz kalınırsa prompt üretimini otomatik başlatır.</p>
+            </div>
           </div>
         </section>
 

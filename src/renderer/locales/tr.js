@@ -254,6 +254,8 @@ const tr = {
       voiceHint: 'Küre üzerindeki mikrofona bastığınızda konuşmanızı metne dönüştürecek motoru seçin.',
       voiceCustomEndpoint: 'Özel Whisper Endpoint URL',
       voiceCustomHint: 'OpenAI Whisper uyumlu /v1/audio/transcriptions adresini girin.',
+      voiceAutoSubmit: 'Sessizlik Sonrası Otomatik Üret',
+      voiceAutoSubmitHint: 'Konuşma bittikten sonra 3.2 saniye sessiz kalınırsa prompt üretimini otomatik başlatır.',
       provider: 'Sağlayıcı',
       btnProbe: 'Yerel sunucuları tara',
       endpoint: 'Sunucu adresi',

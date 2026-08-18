@@ -19,6 +19,7 @@ const DEFAULTS = {
   },
   voiceProvider: 'auto',
   voiceCustomEndpoint: '',
+  voiceAutoSubmit: true,
   // Sağlayıcı başına son seçilen model — sağlayıcı değişince geri yüklenir.
   modelByProvider: {},
   style: 'detailed',

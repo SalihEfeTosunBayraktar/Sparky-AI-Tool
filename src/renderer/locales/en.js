@@ -254,6 +254,8 @@ const en = {
       voiceHint: 'Select the STT engine used when clicking the microphone button.',
       voiceCustomEndpoint: 'Custom Whisper Endpoint URL',
       voiceCustomHint: 'Enter OpenAI Whisper compatible /v1/audio/transcriptions URL.',
+      voiceAutoSubmit: 'Auto Generate After Silence',
+      voiceAutoSubmitHint: 'Automatically starts prompt generation after 3.2 seconds of silence.',
       provider: 'Provider',
       btnProbe: 'Scan local servers',
       endpoint: 'Server endpoint',

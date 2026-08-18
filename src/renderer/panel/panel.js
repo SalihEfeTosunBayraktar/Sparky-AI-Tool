@@ -473,6 +473,7 @@ bindCheck('launchAtStartup', 'launchAtStartup');
 bindCheck('enableNotifications', 'enableNotifications');
 bindCheck('enableSound', 'enableSound');
 bindCheck('notifyOnlyWhenBackground', 'notifyOnlyWhenBackground');
+bindCheck('voiceAutoSubmit', 'voiceAutoSubmit');
 
 $('autoCompactThreshold')?.addEventListener('input', () => {
   const v = $('autoCompactThreshold').value;
@@ -1034,6 +1035,7 @@ function renderAll() {
   if ($('enableNotifications')) $('enableNotifications').checked = !!settings.enableNotifications;
   if ($('enableSound')) $('enableSound').checked = !!settings.enableSound;
   if ($('notifyOnlyWhenBackground')) $('notifyOnlyWhenBackground').checked = !!settings.notifyOnlyWhenBackground;
+  if ($('voiceAutoSubmit')) $('voiceAutoSubmit').checked = settings.voiceAutoSubmit !== false;
   if ($('notifyLevel')) $('notifyLevel').value = settings.notifyLevel || 'normal';
 
   if ($('voiceProvider')) {
