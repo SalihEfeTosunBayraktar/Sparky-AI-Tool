@@ -127,14 +127,31 @@ class PromptAssistEngine {
     const lines = cleanText.split('\n');
     const blocks = [];
     let currentBlock = null;
-    const headingRegex = /^(?:#{1,6}\s+|\*\*(?:\d+\.?\s*)?|\b\d+\.\s+)(.*?)(?:\*\*|:)?\s*$/;
 
-    for (const rawLine of lines) {
+    // Markdown heading regex: ## Heading, **Heading**, 1. Heading
+    const mdHeadingRegex = /^(?:#{1,6}\s+|\*\*(?:\d+\.?\s*)?|\b\d+\.\s+)(.*?)(?:\*\*|:)?\s*$/;
+
+    // Bare semantic heading: short line (< 40 chars) that matches a known block type
+    // Düz anlamsal başlık: kısa satır (< 40 karakter) ve bilinen bir blok türüne eşleşir
+    const isBareSemanticHeading = (line) => {
+      if (!line || line.length > 40 || line.includes('```')) return null;
+      // Must not start with bullet/dash/number (those are content lines)
+      if (/^[-•*\d]/.test(line)) return null;
+      const stripped = line.replace(/[:\s]+$/, '').trim();
+      if (!stripped) return null;
+      const type = detectBlockType(stripped);
+      // Only accept if it resolved to a known semantic type (not general)
+      return type !== 'general' ? { title: stripped, type } : null;
+    };
+
+    for (let i = 0; i < lines.length; i++) {
+      const rawLine = lines[i];
       const line = rawLine.trim();
-      const match = line.match(headingRegex);
 
-      if (match && match[1] && match[1].trim().length < 60 && !line.includes('```')) {
-        const rawTitle = match[1].replace(/^[^\w\s\u00C0-\u017F]+/, '').trim();
+      // 1. Try markdown heading (## Role, **Task**, etc.)
+      const mdMatch = line.match(mdHeadingRegex);
+      if (mdMatch && mdMatch[1] && mdMatch[1].trim().length < 60 && !line.includes('```')) {
+        const rawTitle = mdMatch[1].replace(/^[^\w\s\u00C0-\u017F]+/, '').trim();
         const type = detectBlockType(rawTitle);
         if (type !== 'general' || line.startsWith('#') || line.startsWith('**')) {
           if (currentBlock && currentBlock.content.trim()) {
@@ -144,7 +161,7 @@ class PromptAssistEngine {
           currentBlock = {
             id: `blk_${type}_${Date.now()}_${blocks.length + 1}`,
             type,
-            title: rawTitle || match[1].trim() || 'Bölüm',
+            title: rawTitle || mdMatch[1].trim() || 'Bölüm',
             content: '',
             iconSvg: getBlockSvg(type)
           };
@@ -152,6 +169,29 @@ class PromptAssistEngine {
         }
       }
 
+      // 2. Try bare semantic heading (just "Role", "Task", "Context" on its own line)
+      // Only if the NEXT line exists and is non-empty content (to avoid false positives)
+      const bareResult = isBareSemanticHeading(line);
+      if (bareResult) {
+        const nextLine = (i + 1 < lines.length) ? lines[i + 1].trim() : '';
+        // Confirm: next line should be content (non-empty), not another heading
+        if (nextLine && !isBareSemanticHeading(nextLine)) {
+          if (currentBlock && currentBlock.content.trim()) {
+            currentBlock.content = currentBlock.content.trim();
+            blocks.push(currentBlock);
+          }
+          currentBlock = {
+            id: `blk_${bareResult.type}_${Date.now()}_${blocks.length + 1}`,
+            type: bareResult.type,
+            title: bareResult.title,
+            content: '',
+            iconSvg: getBlockSvg(bareResult.type)
+          };
+          continue;
+        }
+      }
+
+      // 3. Append to current block or start a general block
       if (currentBlock) {
         currentBlock.content += (currentBlock.content ? '\n' : '') + rawLine;
       } else if (line) {
