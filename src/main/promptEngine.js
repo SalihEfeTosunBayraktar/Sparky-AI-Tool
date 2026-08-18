@@ -163,7 +163,8 @@ function buildSystem({ styleId, languageId, modeConfig, project, raw, cfg, mode,
 
   let sys = interpolate(modeConfig ? modeConfig.mainRule : NORMAL_CHAT_BASE_RULES) || interpolate(NORMAL_CHAT_BASE_RULES);
 
-  if (modeConfig && modeConfig.useStyleGuide) {
+  const isPrompter = modeConfig?.id === 'prompt-preparer' || (modeConfig && modeConfig.useStyleGuide === true && modeConfig.basePreset === 'technical');
+  if (isPrompter && modeConfig && modeConfig.useStyleGuide) {
     sys += `\n\n${style.guide}`;
   }
 
@@ -647,11 +648,12 @@ async function run({
     }
   }
 
-  const isChat = modeConfig?.id === 'normal-chat' || (modeConfig && !modeConfig.useStyleGuide && modeConfig.basePreset === 'plain');
+  const isPrompter = modeConfig?.id === 'prompt-preparer' || (modeConfig && modeConfig.useStyleGuide === true && modeConfig.basePreset === 'technical');
+  const isChat = !isPrompter;
 
   onStatus?.({
-    key: effectiveDeepMode && !isChat ? 'status.writing' : 'status.thinking',
-    text: effectiveDeepMode && !isChat ? 'Prompt yazılıyor…' : 'Düşünüyor…',
+    key: effectiveDeepMode && isPrompter ? 'status.writing' : 'status.thinking',
+    text: effectiveDeepMode && isPrompter ? 'Prompt yazılıyor…' : 'Düşünüyor…',
     kind: 'thinking'
   });
   onStage?.();

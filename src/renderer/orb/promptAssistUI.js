@@ -53,7 +53,7 @@ class PromptAssistUI {
 
   /** Aktif moda ve ayara göre Prompt Assist'i aç/kapat / Enable/disable based on active mode & setting */
   async setMode(modeId, enableSetting = true) {
-    this.enabled = modeId !== 'normal-chat' && enableSetting !== false;
+    this.enabled = modeId === 'prompt-preparer' && enableSetting !== false;
     if (!this.enabled) {
       this.hide();
     } else if (this.strategies.length === 0) {

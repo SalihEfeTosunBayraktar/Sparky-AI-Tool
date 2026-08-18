@@ -408,8 +408,8 @@ async function runGeneration(payload) {
     const truncated = !!result.truncated;
 
     lastOutput = output;
-    const isNormalChat = modes.getActive()?.id === 'normal-chat';
-    const shouldAutoCopy = !!cfg.autoCopy && !isNormalChat;
+    const isPrompter = modes.getActive()?.id === 'prompt-preparer' || (modes.getActive()?.useStyleGuide === true && modes.getActive()?.basePreset === 'technical');
+    const shouldAutoCopy = !!cfg.autoCopy && isPrompter;
     if (shouldAutoCopy) clipboard.writeText(output);
 
     const tokenStats = tokenTracker.record({
@@ -460,8 +460,8 @@ async function runGeneration(payload) {
     });
     if (panel && !panel.isDestroyed()) panel.webContents.send('history:changed');
 
-    // 3) Öneriler — yalnızca prompt hazırlama modunda çalıştır (normal sohbette gereksiz)
-    if (cfg.suggestions && !isNormalChat) {
+    // 3) Öneriler — yalnızca prompt hazırlama modunda çalıştır (sohbet/danışman modlarında gereksiz)
+    if (cfg.suggestions && isPrompter) {
       send('gen:busy', false);
       send('gen:suggestions', { pending: true, items: [], genId });
       try {

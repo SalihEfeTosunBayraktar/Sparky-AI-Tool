@@ -390,10 +390,10 @@ function renderEmpty() {
   outputEl.textContent = '';
   const d = document.createElement('div');
   d.className = 'empty';
-  const isChat = modeSel ? modeSel.value === 'normal-chat' : false;
-  d.textContent = isChat
-    ? (typeof i18n !== 'undefined' ? i18n.t('card.emptyChat', 'Yanıt burada belirecek.') : 'Yanıt burada belirecek.')
-    : (typeof i18n !== 'undefined' ? i18n.t('card.emptyPrompt', 'Üretilen prompt burada belirecek.') : 'Üretilen prompt burada belirecek.');
+  const isPrompter = modeSel ? modeSel.value === 'prompt-preparer' : false;
+  d.textContent = isPrompter
+    ? (typeof i18n !== 'undefined' ? i18n.t('card.emptyPrompt', 'Üretilen prompt burada belirecek.') : 'Üretilen prompt burada belirecek.')
+    : (typeof i18n !== 'undefined' ? i18n.t('card.emptyChat', 'Yanıt burada belirecek.') : 'Yanıt burada belirecek.');
   outputEl.appendChild(d);
   if (promptAssistUI) promptAssistUI.setContent('');
   updateBottomActionBarVisibility();
@@ -1000,12 +1000,13 @@ const projectSel = $('projectSelect');
 const modeSel = $('modeSelect');
 
 function updateModeLayout(modeId) {
-  const isChat = modeId === 'normal-chat';
+  const isPrompter = modeId === 'prompt-preparer';
+  const isChat = !isPrompter;
 
-  // Prompt biçim seçicisi
+  // Prompt biçim seçicisi (Detaylı, Kısa & Net...)
   if (styleSel) styleSel.hidden = isChat;
 
-  // Prompt hazırlama çipleri
+  // Prompt hazırlama çipleri (Derin mod, Oto mod, Soru sor)
   if (deepBtn) deepBtn.hidden = isChat;
   if (autoModeBtn) autoModeBtn.hidden = isChat;
   if (clarifyBtn) clarifyBtn.hidden = isChat;
@@ -1013,24 +1014,24 @@ function updateModeLayout(modeId) {
   // Çıktı başlığı ("Prompt" vs "Yanıt")
   const outLabel = $('outputLabel') || document.querySelector('label[for="output"]');
   if (outLabel) {
-    outLabel.textContent = isChat
-      ? (typeof i18n !== 'undefined' ? i18n.t('card.chatOutputLabel', 'Yanıt') : 'Yanıt')
-      : (typeof i18n !== 'undefined' ? i18n.t('card.promptOutputLabel', 'Prompt') : 'Prompt');
+    outLabel.textContent = isPrompter
+      ? (typeof i18n !== 'undefined' ? i18n.t('card.promptOutputLabel', 'Prompt') : 'Prompt')
+      : (typeof i18n !== 'undefined' ? i18n.t('card.chatOutputLabel', 'Yanıt') : 'Yanıt');
   }
 
   // Giriş placeholder'ı
   if (inputEl) {
-    inputEl.placeholder = isChat
-      ? (typeof i18n !== 'undefined' ? i18n.t('card.chatInputPlaceholder', 'Mesajınızı yazın...\nCtrl+Enter → gönder') : 'Mesajınızı yazın...\nCtrl+Enter → gönder')
-      : (typeof i18n !== 'undefined' ? i18n.t('card.inputPlaceholder') : 'Ne istediğinizi yazın veya UI tasarım görseli yükleyin.\nCtrl+Enter → üret');
+    inputEl.placeholder = isPrompter
+      ? (typeof i18n !== 'undefined' ? i18n.t('card.inputPlaceholder') : 'Ne istediğinizi yazın veya UI tasarım görseli yükleyin.\nCtrl+Enter → üret')
+      : (typeof i18n !== 'undefined' ? i18n.t('card.chatInputPlaceholder', 'Mesajınızı yazın...\nCtrl+Enter → gönder') : 'Mesajınızı yazın...\nCtrl+Enter → gönder');
   }
 
   // Buton metni ("Gönder" vs "Üret")
   const genBtnSpan = document.querySelector('#btnGen span');
   if (genBtnSpan) {
-    genBtnSpan.textContent = isChat
-      ? (typeof i18n !== 'undefined' ? i18n.t('card.btnSend', 'Gönder') : 'Gönder')
-      : (typeof i18n !== 'undefined' ? i18n.t('card.btnGenerate', 'Üret') : 'Üret');
+    genBtnSpan.textContent = isPrompter
+      ? (typeof i18n !== 'undefined' ? i18n.t('card.btnGenerate', 'Üret') : 'Üret')
+      : (typeof i18n !== 'undefined' ? i18n.t('card.btnSend', 'Gönder') : 'Gönder');
   }
 
   // Boşsa placeholder'ı güncelle
