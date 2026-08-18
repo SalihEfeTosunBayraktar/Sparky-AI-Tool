@@ -637,6 +637,14 @@ function setBusy(next) {
 
 async function generate() {
   const raw = inputEl.value.trim();
+  if (slashCommands && slashCommands.isCommand(raw)) {
+    hideCommandSuggestions();
+    inputEl.value = '';
+    updateClearBtnVisibility();
+    updateInputStats();
+    await slashCommands.execute(raw);
+    return;
+  }
   const image = imageHandler.getImage();
   if (!raw && !image) {
     setStatus({ text: i18n.t('card.noTextOrImage'), kind: 'info' });
@@ -728,6 +736,7 @@ inputEl.addEventListener('input', () => {
   updateClearBtnVisibility();
   refreshContextGauge(inputEl.value);
   updateInputStats();
+  handleCommandInput(inputEl.value);
 });
 
 inputEl.addEventListener('keydown', (e) => {
@@ -746,13 +755,25 @@ refineEl.addEventListener('keydown', (e) => {
 
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
-    if (state.busy) api.gen.abort();
-    else setExpanded(false);
+    if (quickModelPickerPopover && !quickModelPickerPopover.hidden) {
+      toggleQuickPicker(false);
+    } else if (state.busy) {
+      api.gen.abort();
+    } else {
+      setExpanded(false);
+    }
   }
   if (e.key === 'c' && (e.ctrlKey || e.metaKey) && e.shiftKey) {
     e.preventDefault();
     copyOutput();
   }
+});
+
+document.addEventListener('click', (e) => {
+  if (quickModelPickerPopover && !quickModelPickerPopover.hidden && !quickModelPickerPopover.contains(e.target) && !btnQuickModelPicker?.contains(e.target)) {
+    toggleQuickPicker(false);
+  }
+  hideCommandSuggestions();
 });
 
 /* ------------------------------------------------------------------ */
@@ -1187,6 +1208,187 @@ if (api.on.tokensUpdated) {
     await promptAssistUI.setMode(initialMode, settings.enablePromptAssist !== false);
   }
 
+  if (typeof SlashCommandEngine !== 'undefined') {
+    slashCommands = new SlashCommandEngine({
+      api,
+      i18n,
+      onOutput: (text, isSuccess) => {
+        setOutput(text);
+        setStatus({ text: isSuccess ? i18n.t('app.ready') : 'Tamamlandı', kind: isSuccess ? 'success' : 'info' });
+      },
+      onStatus: (st) => setStatus(st),
+      onSettingsChange: async () => {
+        const newSettings = await api.settings.get();
+        applySettings(newSettings);
+      }
+    });
+  }
+
+  initQuickModelPicker();
   renderEmpty();
   setStatus({ text: settings.model ? i18n.t('app.ready') : i18n.t('app.selectModel'), kind: settings.model ? 'idle' : 'info' });
 })();
+
+let slashCommands = null;
+
+function handleCommandInput(val) {
+  const overlay = $('commandSuggestionsOverlay');
+  if (!overlay || !slashCommands) return;
+  const trimmed = val.trim();
+  if (trimmed.startsWith('/')) {
+    const suggestions = slashCommands.getSuggestions(trimmed);
+    if (suggestions.length > 0) {
+      overlay.innerHTML = suggestions.map((s) => `
+        <div class="command-suggestion-item" data-name="${s.name}">
+          <span class="command-item-name">${s.usage}</span>
+          <span class="command-item-desc">${escapeHtml(s.description)}</span>
+        </div>
+      `).join('');
+      overlay.querySelectorAll('.command-suggestion-item').forEach((item) => {
+        item.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const name = item.dataset.name;
+          inputEl.value = `${name} `;
+          inputEl.focus();
+          hideCommandSuggestions();
+        });
+      });
+      overlay.hidden = false;
+      return;
+    }
+  }
+  hideCommandSuggestions();
+}
+
+function hideCommandSuggestions() {
+  const overlay = $('commandSuggestionsOverlay');
+  if (overlay) overlay.hidden = true;
+}
+
+// --- Quick Model & Provider Picker
+const btnQuickModelPicker = $('btnQuickModelPicker');
+const quickModelPickerPopover = $('quickModelPickerPopover');
+const btnCloseQuickPicker = $('btnCloseQuickPicker');
+const quickProviderSel = $('quickProviderSel');
+const quickModelSel = $('quickModelSel');
+const quickModelCustom = $('quickModelCustom');
+const btnQuickApply = $('btnQuickApply');
+
+function toggleQuickPicker(force) {
+  if (!quickModelPickerPopover) return;
+  const show = typeof force === 'boolean' ? force : quickModelPickerPopover.hidden;
+  if (show) {
+    populateQuickPicker();
+    quickModelPickerPopover.hidden = false;
+  } else {
+    quickModelPickerPopover.hidden = true;
+  }
+}
+
+async function populateQuickPicker() {
+  if (!quickProviderSel || !state.settings) return;
+  const currentProvider = state.settings.provider;
+  const currentModel = state.settings.model;
+
+  quickProviderSel.innerHTML = '';
+  (state.providers || []).forEach((p) => {
+    const opt = document.createElement('option');
+    opt.value = p.id;
+    opt.textContent = p.label;
+    if (p.id === currentProvider) opt.selected = true;
+    quickProviderSel.appendChild(opt);
+  });
+
+  await updateQuickModels(currentProvider, currentModel);
+}
+
+async function updateQuickModels(providerId, selectedModel) {
+  if (!quickModelSel) return;
+  quickModelSel.innerHTML = '<option value="">Yükleniyor…</option>';
+  try {
+    const models = await api.providers.models(providerId);
+    quickModelSel.innerHTML = '';
+    if (models && models.length > 0) {
+      models.forEach((m) => {
+        const id = m.id || m.name;
+        const name = m.name || m.id;
+        const opt = document.createElement('option');
+        opt.value = id;
+        opt.textContent = name;
+        if (id === selectedModel) opt.selected = true;
+        quickModelSel.appendChild(opt);
+      });
+      const optCustom = document.createElement('option');
+      optCustom.value = '__custom__';
+      optCustom.textContent = '✏️ ' + (typeof i18n !== 'undefined' ? i18n.t('panel.fields.modelManualPlaceholder', 'Elle model adı...') : 'Elle model adı...');
+      quickModelSel.appendChild(optCustom);
+
+      if (selectedModel && !models.some((m) => (m.id || m.name) === selectedModel)) {
+        optCustom.selected = true;
+        if (quickModelCustom) {
+          quickModelCustom.hidden = false;
+          quickModelCustom.value = selectedModel;
+        }
+      } else if (quickModelCustom) {
+        quickModelCustom.hidden = true;
+      }
+    } else {
+      quickModelSel.innerHTML = '<option value="">Model listesi yok (elle yazın)</option>';
+      if (quickModelCustom) {
+        quickModelCustom.hidden = false;
+        quickModelCustom.value = selectedModel || '';
+      }
+    }
+  } catch {
+    quickModelSel.innerHTML = '<option value="">Model listesi alınamadı</option>';
+    if (quickModelCustom) {
+      quickModelCustom.hidden = false;
+      quickModelCustom.value = selectedModel || '';
+    }
+  }
+}
+
+function initQuickModelPicker() {
+  btnQuickModelPicker?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleQuickPicker();
+  });
+
+  btnCloseQuickPicker?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleQuickPicker(false);
+  });
+
+  quickProviderSel?.addEventListener('change', async () => {
+    const provId = quickProviderSel.value;
+    await updateQuickModels(provId, '');
+  });
+
+  quickModelSel?.addEventListener('change', () => {
+    if (quickModelSel.value === '__custom__') {
+      if (quickModelCustom) {
+        quickModelCustom.hidden = false;
+        quickModelCustom.focus();
+      }
+    } else if (quickModelCustom) {
+      quickModelCustom.hidden = true;
+    }
+  });
+
+  btnQuickApply?.addEventListener('click', async () => {
+    const provider = quickProviderSel.value;
+    let model = quickModelSel.value;
+    if (model === '__custom__' || !model) {
+      model = quickModelCustom ? quickModelCustom.value.trim() : '';
+    }
+
+    if (provider) {
+      const patch = { provider };
+      if (model) patch.model = model;
+      const updated = await api.settings.set(patch);
+      applySettings(updated);
+      toggleQuickPicker(false);
+      setStatus({ text: `${i18n.t('app.ready')} (${patch.model || provider})`, kind: 'success' });
+    }
+  });
+}

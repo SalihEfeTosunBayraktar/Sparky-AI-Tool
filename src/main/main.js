@@ -1020,6 +1020,19 @@ function registerIpc() {
     }
     return { ok: true };
   });
+  ipcMain.handle('memory:compact', async (_e, projectId) => {
+    const p = projectId ? projects.get(projectId) : projects.getActive();
+    if (!p) return { ok: false, error: 'No active project' };
+    const cfg = settings.all();
+    const ok = await projectMemory.compact(p, chatWithRotationNotice, cfg);
+    if (ok) {
+      broadcast('memory:updated', projectMemory.getMetrics(p));
+      broadcast('projects:changed', projects.getActiveId());
+      projectContext.invalidate('memory-compacted');
+      return { ok: true, summary: p.memory?.summary, history: p.memory?.history };
+    }
+    return { ok: false, reason: 'Not enough history or compaction failed' };
+  });
   ipcMain.handle('memory:update', (_e, projectId, memoryData) => {
     const p = projectId ? projects.get(projectId) : projects.getActive();
     if (p) {

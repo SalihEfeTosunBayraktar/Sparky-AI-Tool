@@ -86,6 +86,7 @@
           </div>
 
           <div class="input-composer" id="inputComposer">
+            <div id="commandSuggestionsOverlay" class="command-suggestions-overlay" hidden></div>
             <button id="btnClearInput" class="btn-clear-input" title="Metni ve çıktıyı temizle" data-i18n-title="card.btnClearInputTitle" hidden>✕</button>
             <textarea
               id="input"
@@ -136,7 +137,36 @@
 
           <div class="row-label out">
             <label for="output" id="outputLabel" data-i18n="card.promptOutputLabel">Prompt</label>
-            <span id="meta" class="meta"></span>
+            <div class="meta-picker-wrapper">
+              <button id="btnQuickModelPicker" class="meta-picker-btn" title="Sağlayıcı ve Model Değiştir" data-i18n-title="picker.btnTitle">
+                <span id="meta" class="meta"></span>
+                <svg class="meta-chevron" viewBox="0 0 16 16" width="9" height="9" fill="currentColor" aria-hidden="true">
+                  <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/>
+                </svg>
+              </button>
+
+              <!-- Hızlı Model & Sağlayıcı Seçici Popover -->
+              <div id="quickModelPickerPopover" class="quick-model-popover" hidden>
+                <div class="quick-popover-header">
+                  <span class="quick-popover-title" data-i18n="picker.title">⚡ Hızlı Model &amp; Sağlayıcı</span>
+                  <button id="btnCloseQuickPicker" class="btn-quick-close" aria-label="Kapat">&times;</button>
+                </div>
+                <div class="quick-popover-body">
+                  <div class="quick-field">
+                    <label for="quickProviderSel" data-i18n="panel.fields.provider">Sağlayıcı</label>
+                    <select id="quickProviderSel" class="quick-select"></select>
+                  </div>
+                  <div class="quick-field">
+                    <label for="quickModelSel" data-i18n="panel.fields.model">Model</label>
+                    <select id="quickModelSel" class="quick-select"></select>
+                    <input id="quickModelCustom" class="quick-input" type="text" placeholder="Özel model adı (opsiyonel)" data-i18n-placeholder="panel.fields.modelManualPlaceholder" hidden />
+                  </div>
+                </div>
+                <div class="quick-popover-footer">
+                  <button id="btnQuickApply" class="btn primary btn-quick-apply" data-i18n="picker.apply">Uygula &amp; Kaydet</button>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div id="outputWrapper" class="output-wrapper">
@@ -178,58 +208,60 @@
 
           <!-- Alt Eylem ve İyileştirme Çubuğu (Yalnızca prompt üretildiğinde görünür) -->
           <div id="bottomActionBar" class="bottom-action-bar bottom-bar--hidden" aria-hidden="true">
-            <div class="out-actions">
-              <button id="btnCopy" class="btn primary" disabled data-i18n="card.btnCopy">Kopyala</button>
-              <button id="btnCopyClose" class="btn" disabled data-i18n="card.btnCopyClose">Kopyala &amp; küçült</button>
-              <button id="btnRegen" class="btn" disabled data-i18n="card.btnRegen">Yeniden</button>
+            <div class="primary-actions">
+              <button id="btnCopy" class="btn primary" data-i18n="card.btnCopy" disabled>Kopyala</button>
+              <button id="btnCopyClose" class="btn ghost" data-i18n="card.btnCopyClose" disabled>Kopyala &amp; küçült</button>
+              <button id="btnRegen" class="btn ghost" data-i18n="card.btnRegenerate" disabled>Yeniden</button>
               <span class="grow"></span>
-              <button id="btnHistory" class="btn ghost" data-i18n="card.btnHistory">Geçmiş</button>
+              <button id="btnHistory" class="btn text" data-i18n="card.btnHistory">Geçmiş</button>
             </div>
 
-            <div class="refine">
-              <input id="refine" placeholder="Düzeltme iste: “daha kısa”, “İngilizce olsun”, “JSON çıktı ekle”…" spellcheck="false" data-i18n="card.refinePlaceholder" data-i18n-attr="placeholder" />
-              <button id="btnRefine" class="btn" disabled data-i18n="card.btnApplyRefine">Uygula</button>
-            </div>
-          </div>
-
-          <div class="card-footer-info status-bar">
-            <div class="status-left">
-              <span id="tokenCounter" class="token-counter" title="Son istek / Toplam oturum token kullanımı">Tokens: 0</span>
-            </div>
-
-            <div class="status-right">
-              <!-- LLM Proje Context Penceresi & Hafıza Donut Göstergesi -->
-              <div id="contextGauge" class="context-gauge-widget hit" data-state="stateless" role="region" aria-label="Context Window & Memory">
-                <div class="donut-container" title="Context: ∅">
-                  <svg class="donut-svg" viewBox="0 0 36 36" aria-hidden="true">
-                    <circle class="donut-track" cx="18" cy="18" r="14" />
-                    <circle id="donutFill" class="donut-fill" cx="18" cy="18" r="14" />
-                  </svg>
-                  <span id="donutLabel" class="donut-center-label">∅</span>
-                </div>
-
-                <!-- Hover & Click Context Popover Card -->
-                <div class="context-tooltip context-popover-card" role="dialog" aria-label="Context &amp; Hafıza Details">
-                  <div class="tooltip-header">
-                    <span class="tooltip-title" data-i18n="gauge.title">Context &amp; Hafıza</span>
-                    <span id="gaugeBadge" class="tooltip-badge status-badge">Hafızasız</span>
-                  </div>
-                  <div class="tooltip-breakdown">
-                    <div class="breakdown-row metric-row"><span data-i18n="gauge.projectNotes">Proje Notları</span><span id="valGaugeProj" class="metric-val">—</span></div>
-                    <div class="breakdown-row metric-row"><span data-i18n="gauge.memorySummary">Özet Hafıza</span><span id="valGaugeMem" class="metric-val">—</span></div>
-                    <div class="breakdown-row metric-row"><span data-i18n="gauge.dialogueHistory">Diyalog Geçmişi</span><span id="valGaugeHist" class="metric-val">0 tk</span></div>
-                    <div class="breakdown-row metric-row"><span data-i18n="gauge.currentInput">Mevcut Girdi</span><span id="valGaugeInput" class="metric-val">0 tk</span></div>
-                    <div class="breakdown-divider"></div>
-                    <div class="breakdown-row total metric-row"><span data-i18n="gauge.totalCapacity">Toplam / Kapasite</span><span id="valGaugeTotal" class="metric-val">0 / 32,768</span></div>
-                  </div>
-                  <div class="tooltip-footer">
-                    <button id="btnClearMem" class="btn-clear-mem reset-action-btn" data-i18n="gauge.clearMemoryBtn" hidden>Hafızayı Sıfırla</button>
-                  </div>
-                </div>
-              </div>
+            <!-- Hızlı Düzeltme / Chat ile İyileştirme Formu -->
+            <div class="refine-row">
+              <input
+                id="refineInput"
+                type="text"
+                placeholder='Düzeltme iste: "daha kısa", "İngilizce olsun", "JSON çıktı ekle"…'
+                data-i18n-placeholder="card.refinePlaceholder"
+              />
+              <button id="btnRefine" class="btn" data-i18n="card.btnRefine" disabled>Uygula</button>
             </div>
           </div>
         </div>
+
+        <footer class="card-foot">
+          <span id="tokenCounter" class="token-counter-text" title="Toplam Oturum Tokenı">Tokens: 0</span>
+          <span class="grow"></span>
+          <!-- Circular Donut Chart Context Gauge Component Container -->
+          <div id="contextGauge" class="context-gauge-root" data-state="stateless">
+            <div class="donut-container" title="Context & Hafıza Durumu">
+              <svg class="donut-svg" viewBox="0 0 36 36">
+                <circle class="donut-track" cx="18" cy="18" r="14" fill="none" stroke-width="3" />
+                <circle id="donutFill" class="donut-fill" cx="18" cy="18" r="14" fill="none" stroke-width="3" />
+              </svg>
+              <span id="donutLabel" class="donut-label">∅</span>
+            </div>
+
+            <!-- Gauge Details Popover -->
+            <div class="gauge-popover">
+              <div class="popover-header">
+                <span class="popover-title" data-i18n="gauge.title">Context &amp; Hafıza</span>
+                <span id="gaugeBadge" class="popover-badge">Hafızasız</span>
+              </div>
+              <div class="popover-breakdown">
+                <div class="breakdown-row"><span data-i18n="gauge.projectNotes">Proje Notları</span><span id="valGaugeProj" class="metric-val">0 tk</span></div>
+                <div class="breakdown-row"><span data-i18n="gauge.memorySummary">Özet Hafıza</span><span id="valGaugeMem" class="metric-val">0 tk</span></div>
+                <div class="breakdown-row metric-row"><span data-i18n="gauge.dialogueHistory">Diyalog Geçmişi</span><span id="valGaugeHist" class="metric-val">0 tk</span></div>
+                <div class="breakdown-row"><span data-i18n="gauge.currentInput">Mevcut Girdi</span><span id="valGaugeInput" class="metric-val">0 tk</span></div>
+                <div class="breakdown-divider"></div>
+                <div class="breakdown-row total-row"><span data-i18n="gauge.totalCapacity">Toplam / Kapasite</span><span id="valGaugeTotal" class="metric-val">0 / 32,768</span></div>
+              </div>
+              <div class="popover-actions">
+                <button id="btnClearMem" class="btn danger btn-sm" data-i18n="gauge.clearMemoryBtn">Hafızayı Sıfırla</button>
+              </div>
+            </div>
+          </div>
+        </footer>
       </section>
     </div>
 
@@ -243,6 +275,7 @@
     <script src="multimodalRenderer.js"></script>
     <script src="contextGauge.js"></script>
     <script src="promptAssistUI.js"></script>
+    <script src="commandEngine.js"></script>
     <script src="app.js"></script>
   </body>
 </html>

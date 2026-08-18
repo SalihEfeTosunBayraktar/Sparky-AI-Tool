@@ -1956,3 +1956,200 @@ select option {
 .context-tooltip .reset-action-btn:hover {
   color: var(--color-danger-hover, #f87171);
 }
+
+/* ------------------------------------------------------------------ */
+/* Hızlı Model & Sağlayıcı Seçici / Quick Model & Provider Picker     */
+/* ------------------------------------------------------------------ */
+
+.meta-picker-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.meta-picker-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 2px 6px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--txt-dim);
+  font-family: inherit;
+  font-size: 11px;
+  transition: all 0.15s ease;
+}
+
+.meta-picker-btn:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--line);
+  color: var(--txt);
+}
+
+.meta-picker-btn .meta {
+  color: inherit;
+  font-weight: 500;
+}
+
+.meta-chevron {
+  color: var(--txt-faint);
+  transition: transform 0.2s ease, color 0.15s ease;
+}
+
+.meta-picker-btn:hover .meta-chevron {
+  color: var(--accent);
+  transform: translateY(1px);
+}
+
+.quick-model-popover {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  width: 240px;
+  background: var(--bg-card, rgba(24, 24, 28, 0.96));
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+  z-index: 1000;
+  animation: popoverFadeIn 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes popoverFadeIn {
+  from { opacity: 0; transform: translateY(-4px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.quick-popover-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--line);
+}
+
+.quick-popover-title {
+  font-size: 11.5px;
+  font-weight: 650;
+  color: var(--txt);
+}
+
+.btn-quick-close {
+  background: transparent;
+  border: none;
+  color: var(--txt-faint);
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 2px;
+  border-radius: 4px;
+}
+
+.btn-quick-close:hover {
+  color: var(--txt);
+}
+
+.quick-popover-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.quick-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.quick-field label {
+  font-size: 10.5px;
+  font-weight: 550;
+  color: var(--txt-dim);
+}
+
+.quick-select,
+.quick-input {
+  width: 100%;
+  height: 28px;
+  padding: 0 8px;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--txt);
+  font-size: 11px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.quick-select:focus,
+.quick-input:focus {
+  border-color: var(--accent);
+}
+
+.quick-popover-footer {
+  margin-top: 10px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn-quick-apply {
+  height: 26px;
+  font-size: 11px;
+  padding: 0 10px;
+}
+
+/* ------------------------------------------------------------------ */
+/* Slash Komut Önerileri / Slash Command Autocomplete Overlay         */
+/* ------------------------------------------------------------------ */
+
+.command-suggestions-overlay {
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 8px;
+  right: 8px;
+  max-height: 180px;
+  overflow-y: auto;
+  background: var(--bg-card, rgba(22, 22, 26, 0.98));
+  backdrop-filter: blur(14px);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 4px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  z-index: 999;
+}
+
+.command-suggestion-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 11px;
+  transition: background 0.12s ease;
+}
+
+.command-suggestion-item:hover,
+.command-suggestion-item.active {
+  background: var(--accent-subtle, rgba(249, 115, 22, 0.15));
+}
+
+.command-item-name {
+  font-weight: 650;
+  color: var(--accent);
+  font-family: monospace;
+}
+
+.command-item-desc {
+  color: var(--txt-dim);
+  font-size: 10.5px;
+  margin-left: 8px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
