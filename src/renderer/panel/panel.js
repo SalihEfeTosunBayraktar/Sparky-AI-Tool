@@ -1069,4 +1069,16 @@ if (api.on.providersChanged) {
   renderAbout();
   refreshShortcutErrors();
   loadModels({ silent: true });
+
+  if (typeof McpUI !== 'undefined') {
+    new McpUI({
+      container: $('mcpServerList'),
+      form: $('mcpServerForm'),
+      api
+    });
+  }
+
+  if (typeof CodeApplierUI !== 'undefined') {
+    window.codeApplierUI = new CodeApplierUI({ api });
+  }
 })();

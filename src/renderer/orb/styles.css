@@ -2729,3 +2729,19 @@ select option {
   overflow: hidden;
   white-space: nowrap;
 }
+
+/* Voice Input (STT) Active Pulsing Animation */
+.chip.voice-active,
+#btnVoiceInput.voice-active {
+  background: var(--accent) !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 14px var(--accent-glow-color) !important;
+  animation: pulseVoiceAnim 1.2s infinite ease-in-out;
+}
+
+@keyframes pulseVoiceAnim {
+  0% { transform: scale(1); box-shadow: 0 0 6px var(--accent-glow-color); }
+  50% { transform: scale(1.12); box-shadow: 0 0 18px var(--accent-glow-color); }
+  100% { transform: scale(1); box-shadow: 0 0 6px var(--accent-glow-color); }
+}
+

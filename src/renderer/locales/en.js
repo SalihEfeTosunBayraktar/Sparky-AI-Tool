@@ -544,6 +544,15 @@ const en = {
     unknownCommand: 'Unknown command:',
     tryHelp: 'Type `/help` to see all available commands.',
     executionError: 'An error occurred while executing command:'
+  },
+  mcp: {
+    title: 'Model Context Protocol (MCP) Servers',
+    desc: 'Connect local filesystem, database, or tool servers to provide live dynamic context to AI.',
+    serverName: 'Server Name',
+    serverCommand: 'Command',
+    serverArgs: 'Arguments',
+    addBtn: '+ Add MCP Server',
+    serversList: 'Configured MCP Servers'
   }
 };
 

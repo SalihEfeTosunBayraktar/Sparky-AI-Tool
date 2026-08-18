@@ -129,6 +129,26 @@ contextBridge.exposeInMainWorld('sparky', {
     deriveVariations: (text, strategies) => ipcRenderer.invoke('assist:deriveVariations', { text, strategies })
   },
 
+  db: {
+    searchHistory: (query, projectId, limit) => ipcRenderer.invoke('db:history:search', { query, projectId, limit }),
+    getHistory: (options) => ipcRenderer.invoke('db:history:get', options),
+    insertHistory: (entry) => ipcRenderer.invoke('db:history:insert', entry),
+    clearHistory: (projectId) => ipcRenderer.invoke('db:history:clear', projectId)
+  },
+
+  mcp: {
+    list: () => ipcRenderer.invoke('mcp:list'),
+    save: (server) => ipcRenderer.invoke('mcp:save', server),
+    delete: (id) => ipcRenderer.invoke('mcp:delete', id),
+    testConnect: (serverConfig) => ipcRenderer.invoke('mcp:testConnect', serverConfig)
+  },
+
+  code: {
+    extract: (markdown) => ipcRenderer.invoke('code:extract', markdown),
+    diff: (original, updated) => ipcRenderer.invoke('code:diff', { original, updated }),
+    apply: (projectPath, filePath, content) => ipcRenderer.invoke('code:apply', { projectPath, filePath, content })
+  },
+
   shell: {
     openUserData: () => ipcRenderer.invoke('shell:openUserData')
   },

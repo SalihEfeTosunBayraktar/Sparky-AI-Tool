@@ -544,6 +544,15 @@ const tr = {
     unknownCommand: 'Bilinmeyen komut:',
     tryHelp: 'Kullanılabilir komutlar için `/help` yazabilirsiniz.',
     executionError: 'Komut çalıştırılırken hata oluştu:'
+  },
+  mcp: {
+    title: 'Model Context Protocol (MCP) Sunucuları',
+    desc: 'Yerel dosya sistemi, veritabanı veya araç sunucularını bağlayarak yapay zekaya canlı bağlam sağlayın.',
+    serverName: 'Sunucu Adı',
+    serverCommand: 'Komut',
+    serverArgs: 'Argümanlar',
+    addBtn: '+ MCP Sunucusu Ekle',
+    serversList: 'Kayıtlı MCP Sunucuları'
   }
 };
 

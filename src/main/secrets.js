@@ -1,28 +1,20 @@
 'use strict';
 
-// API anahtarları Windows DPAPI (safeStorage) ile şifrelenip diskte tutulur.
-// Anahtarın açık hâli hiçbir zaman renderer'a gönderilmez; sadece "var mı",
-// etiket ve son 4 karakterlik maske paylaşılır.
-//
-// Sağlayıcı başına BİRDEN FAZLA anahtar saklanır (kuyruk). Aktif anahtar
-// `activeId` ile işaretlenir; sıralama listedeki sıradır.
-//
-// Disk biçimi:
-//   { "<provider>": { keys: [ { id, label, enc|plain, hint, encrypted, addedAt } ],
-//                     activeId: "k_..." } }
-//
-// Eski tek-anahtar biçimi ({ enc, hint, encrypted }) yüklenirken otomatik
-// olarak bu biçime göç ettirilir — kullanıcı hiçbir anahtarını kaybetmez.
+/**
+ * Secrets Manager / Güvenli Anahtar Deposu
+ * Manages encrypted multi-key rotation pools per AI provider via KeyVault.
+ */
 
 const fs = require('fs');
 const path = require('path');
-const { app, safeStorage } = require('electron');
+const { app } = require('electron');
+const KeyVault = require('./keyVault');
 
 let cache = null;
 let filePath = null;
 
 function file() {
-  if (!filePath) filePath = path.join(app.getPath('userData'), 'secrets.json');
+  if (!filePath) filePath = path.join(app ? app.getPath('userData') : process.cwd(), 'secrets.json');
   return filePath;
 }
 
@@ -30,11 +22,9 @@ function genId() {
   return `k_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`;
 }
 
-/** Eski tek-anahtar kaydını çoklu biçime çevirir. */
 function migrateRecord(rec) {
   if (!rec || typeof rec !== 'object') return { keys: [], activeId: null };
   if (Array.isArray(rec.keys)) {
-    // Zaten yeni biçim; activeId geçersizse ilk anahtara düş.
     const ids = rec.keys.map((k) => k.id);
     const activeId = ids.includes(rec.activeId) ? rec.activeId : ids[0] || null;
     return { keys: rec.keys, activeId };
@@ -77,19 +67,9 @@ function persist() {
   try {
     fs.mkdirSync(path.dirname(file()), { recursive: true });
     fs.writeFileSync(file(), JSON.stringify(cache, null, 2), 'utf8');
-    try {
-      fs.chmodSync(file(), 0o600);
-    } catch {}
+    try { fs.chmodSync(file(), 0o600); } catch {}
   } catch (err) {
     console.error('[secrets] yazılamadı:', err.message);
-  }
-}
-
-function encryptionAvailable() {
-  try {
-    return safeStorage.isEncryptionAvailable();
-  } catch {
-    return false;
   }
 }
 
@@ -99,32 +79,12 @@ function bucket(provider) {
   return store[provider];
 }
 
-function encode(value) {
-  const trimmed = String(value || '').trim();
-  const hint = trimmed.length > 4 ? trimmed.slice(-4) : '••••';
-  if (encryptionAvailable()) {
-    return { enc: safeStorage.encryptString(trimmed).toString('base64'), hint, encrypted: true };
-  }
-  // Şifreleme yoksa yine saklarız ama ayarlar ekranında kullanıcıyı uyarıyoruz.
-  return { plain: Buffer.from(trimmed, 'utf8').toString('base64'), hint, encrypted: false };
-}
-
-function decode(entry) {
+function decodeEntry(entry) {
   if (!entry) return '';
-  try {
-    if (entry.enc) return safeStorage.decryptString(Buffer.from(entry.enc, 'base64'));
-    if (entry.plain) return Buffer.from(entry.plain, 'base64').toString('utf8');
-  } catch (err) {
-    console.error('[secrets] çözülemedi:', err.message);
-  }
-  return '';
+  const cipher = entry.enc || entry.plain || '';
+  return KeyVault.decrypt(cipher, !!entry.encrypted || !!entry.enc);
 }
 
-/* ------------------------------------------------------------------ */
-/* Genel API                                                           */
-/* ------------------------------------------------------------------ */
-
-/** Sağlayıcının anahtar listesi — GİZLİ DEĞER İÇERMEZ. */
 function list(provider) {
   const b = bucket(provider);
   return b.keys.map((k) => ({
@@ -137,7 +97,6 @@ function list(provider) {
   }));
 }
 
-/** Sıralı anahtar kimlikleri — döngü mekanizması bunu kullanır. */
 function ids(provider) {
   return bucket(provider).keys.map((k) => k.id);
 }
@@ -151,18 +110,22 @@ function add(provider, value, label) {
   if (!trimmed) return { ok: false, error: 'empty' };
 
   const b = bucket(provider);
-  const encoded = encode(trimmed);
+  const { cipher, isEncrypted } = KeyVault.encrypt(trimmed);
+  const hint = KeyVault.maskKey(trimmed);
 
-  // Aynı anahtarı iki kez eklemeyi engelle (maske + uzunluk yeterli sinyal).
-  const duplicate = b.keys.find((k) => k.hint === encoded.hint && decode(k) === trimmed);
+  const duplicate = b.keys.find((k) => k.hint === hint && decodeEntry(k) === trimmed);
   if (duplicate) return { ok: false, error: 'duplicate', id: duplicate.id };
 
   const entry = {
     id: genId(),
     label: String(label || '').trim() || `Anahtar ${b.keys.length + 1}`,
     addedAt: Date.now(),
-    ...encoded
+    hint,
+    encrypted: isEncrypted
   };
+  if (isEncrypted) entry.enc = cipher;
+  else entry.plain = cipher;
+
   b.keys.push(entry);
   if (!b.activeId) b.activeId = entry.id;
   persist();
@@ -202,22 +165,16 @@ function getActiveId(provider) {
   return b.keys[0] ? b.keys[0].id : null;
 }
 
-/** Belirli bir anahtarın açık değeri (yalnızca ana süreç içinde kullanılır). */
 function getValue(provider, id) {
   const b = bucket(provider);
-  return decode(b.keys.find((k) => k.id === id));
+  return decodeEntry(b.keys.find((k) => k.id === id));
 }
 
-/** Aktif anahtarın açık değeri. Geriye dönük uyumluluk için korunuyor. */
 function getKey(provider) {
   const id = getActiveId(provider);
   return id ? getValue(provider, id) : '';
 }
 
-/**
- * Eski tek-anahtar çağrısı: mevcut anahtarları temizleyip tek anahtar yazar.
- * Boş değer tüm anahtarları siler.
- */
 function setKey(provider, value) {
   const trimmed = String(value || '').trim();
   const store = load();
@@ -246,7 +203,7 @@ function status() {
       keys
     };
   }
-  return { keys: out, encryptionAvailable: encryptionAvailable() };
+  return { keys: out, encryptionAvailable: KeyVault.isAvailable() };
 }
 
 module.exports = {
@@ -262,5 +219,5 @@ module.exports = {
   getKey,
   setKey,
   status,
-  encryptionAvailable
+  encryptionAvailable: () => KeyVault.isAvailable()
 };

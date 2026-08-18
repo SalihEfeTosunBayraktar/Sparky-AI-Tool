@@ -29,6 +29,7 @@
         <button class="tab" data-tab="modes" data-i18n="panel.tabs.modes">Modlar</button>
         <button class="tab" data-tab="providers" data-i18n="panel.tabs.providers">Model/API</button>
         <button class="tab" data-tab="shortcuts" data-i18n="panel.sections.shortcuts">Kısayollar</button>
+        <button class="tab" data-tab="mcp" data-i18n="panel.tabs.mcp">MCP</button>
         <button class="tab" data-tab="history" data-i18n="panel.tabs.history">Geçmiş</button>
         <button class="tab" data-tab="about" data-i18n="panel.tabs.about">Hakkında</button>
       </nav>
@@ -358,6 +359,36 @@
           </div>
         </section>
 
+        <!-- MCP SUNUCULARI PANE -->
+        <section id="tab-mcp" class="pane">
+          <h2 data-i18n="mcp.title">Model Context Protocol (MCP) Sunucuları</h2>
+          <div class="card">
+            <p class="hint" data-i18n="mcp.desc">Yerel dosya sistemi, veritabanı veya araç sunucularını bağlayarak yapay zekaya canlı bağlam sağlayın.</p>
+            <form id="mcpServerForm" class="mcp-add-form" style="margin-top: 10px;">
+              <div class="field-grid">
+                <div class="field">
+                  <label for="mcpServerName" data-i18n="mcp.serverName">Sunucu Adı</label>
+                  <input type="text" id="mcpServerName" placeholder="örn. Yerel Dosya Sistemi" required />
+                </div>
+                <div class="field">
+                  <label for="mcpServerCommand" data-i18n="mcp.serverCommand">Komut</label>
+                  <input type="text" id="mcpServerCommand" placeholder="örn. npx" required />
+                </div>
+              </div>
+              <div class="field" style="margin-top: 6px;">
+                <label for="mcpServerArgs" data-i18n="mcp.serverArgs">Argümanlar</label>
+                <input type="text" id="mcpServerArgs" placeholder="-y @modelcontextprotocol/server-filesystem C:/Projects" />
+              </div>
+              <div style="margin-top: 10px; display: flex; justify-content: flex-end;">
+                <button type="submit" class="btn primary" data-i18n="mcp.addBtn">+ MCP Sunucusu Ekle</button>
+              </div>
+            </form>
+          </div>
+
+          <h2 data-i18n="mcp.serversList" style="margin-top: 14px;">Kayıtlı MCP Sunucuları</h2>
+          <div id="mcpServerList" class="mcp-list-container"></div>
+        </section>
+
         <!-- 5. GEÇMİŞ PANE -->
         <section id="tab-history" class="pane">
           <div class="card" style="padding: 8px 10px;">
@@ -376,7 +407,7 @@
           <div class="card about">
             <span class="orb-icon-lg">✨</span>
             <h3>Sparky AI</h3>
-            <p class="ver">v0.1.0 · Masaüstü Asistanı</p>
+            <p class="ver">v0.3.0 · Masaüstü Asistanı</p>
             <p class="desc" data-i18n="panel.about.description">Ham notlarınızı ve görsellerinizi yüksek kaliteli promptlara dönüştüren akıllı asistan.</p>
 
             <dl id="aboutList" class="about-dl"></dl>
@@ -397,6 +428,8 @@
     <script src="projectMemoryUI.js"></script>
     <script src="projectUI.js"></script>
     <script src="codeEditor.js"></script>
+    <script src="codeApplierUI.js"></script>
+    <script src="mcpUI.js"></script>
     <script src="modeUI.js"></script>
     <script src="panel.js"></script>
   </body>

@@ -31,6 +31,10 @@ const tokenTracker = new TokenTracker();
 const ProjectMemory = require('./projectMemory');
 const projectMemory = new ProjectMemory({ projectsStore: projects });
 const PromptAssistEngine = require('./promptAssistEngine');
+const DatabaseManager = require('./database');
+const database = new DatabaseManager();
+const McpClient = require('./mcpClient');
+const CodeApplier = require('./codeApplier');
 
 // Windows görev çubuğunda ikonun doğru eşleşmesi için (AppUserModelId)
 if (process.platform === 'win32') {
@@ -1107,6 +1111,36 @@ function registerIpc() {
   ipcMain.handle('assist:deriveVariations', (_e, { text, strategies }) =>
     PromptAssistEngine.deriveVariations(text, strategies)
   );
+
+  // --- Database & FTS5 Full-Text Search ---
+  ipcMain.handle('db:history:search', (_e, { query, projectId, limit }) => database.searchHistory(query, { projectId, limit }));
+  ipcMain.handle('db:history:get', (_e, options) => database.getHistory(options));
+  ipcMain.handle('db:history:insert', (_e, entry) => database.insertHistory(entry));
+  ipcMain.handle('db:history:clear', (_e, projectId) => { database.clearHistory(projectId); return true; });
+
+  // --- MCP Servers ---
+  ipcMain.handle('mcp:list', () => database.getMcpServers());
+  ipcMain.handle('mcp:save', (_e, server) => database.saveMcpServer(server));
+  ipcMain.handle('mcp:delete', (_e, id) => database.deleteMcpServer(id));
+  ipcMain.handle('mcp:testConnect', async (_e, serverConfig) => {
+    const client = new McpClient(serverConfig);
+    try {
+      const res = await client.connect();
+      client.disconnect();
+      return { ok: true, tools: res.tools, resources: res.resources };
+    } catch (err) {
+      client.disconnect();
+      return { ok: false, error: err.message };
+    }
+  });
+
+  // --- Code Applier & File Patching ---
+  ipcMain.handle('code:extract', (_e, markdown) => CodeApplier.extractCodeBlocks(markdown));
+  ipcMain.handle('code:diff', (_e, { original, updated }) => CodeApplier.generateDiff(original, updated));
+  ipcMain.handle('code:apply', (_e, { projectPath, filePath, content }) => {
+    const p = projectPath || (projects.getActive() ? projects.getActive().path : process.cwd());
+    return CodeApplier.applyToFile(p, filePath, content);
+  });
 
   // --- kabuk
   ipcMain.handle('shell:openUserData', () => shell.openPath(app.getPath('userData')));

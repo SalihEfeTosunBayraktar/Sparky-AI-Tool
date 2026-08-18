@@ -105,6 +105,14 @@
                     <polyline points="21 15 16 10 5 21"></polyline>
                   </svg>
                 </button>
+                <button id="btnVoiceInput" class="chip icon-chip" title="Sesle Yazdır (Voice Input)" data-i18n-title="card.btnVoiceInput" aria-label="Sesle Yazdır">
+                  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                    <line x1="12" y1="19" x2="12" y2="23"></line>
+                    <line x1="8" y1="23" x2="16" y2="23"></line>
+                  </svg>
+                </button>
                 <select id="projectSelect" class="chip-select" title="Aktif Proje" data-i18n-title="projects.activeBadge"></select>
                 <select id="modeSelect" class="chip-select" title="Çalışma Modu" data-i18n-title="modes.activeTitle"></select>
                 <select id="style" title="Prompt biçimi"></select>
@@ -281,6 +289,7 @@
     <script src="multimodalRenderer.js"></script>
     <script src="contextGauge.js"></script>
     <script src="promptAssistUI.js"></script>
+    <script src="voiceInput.js"></script>
     <script src="commandEngine.js"></script>
     <script src="app.js"></script>
   </body>

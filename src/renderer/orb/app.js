@@ -1679,6 +1679,41 @@ function initQuickModelPicker() {
     });
   }
 
+  // Voice Input (STT) initialization
+  const btnVoice = $('btnVoiceInput');
+  if (typeof VoiceInput !== 'undefined' && btnVoice) {
+    const voice = new VoiceInput({
+      lang: settings.appLanguage === 'en' ? 'en-US' : 'tr-TR',
+      onResult: (text) => {
+        if (inputEl) {
+          const cur = inputEl.value.trim();
+          inputEl.value = cur ? `${cur} ${text}` : text;
+          updateInputStats();
+        }
+      },
+      onStateChange: (vState) => {
+        if (vState === 'listening') {
+          btnVoice.classList.add('voice-active');
+          setStatus({ text: 'Dinleniyor... (Konuşun)', kind: 'thinking' });
+        } else {
+          btnVoice.classList.remove('voice-active');
+          if (vState === 'idle') {
+            setStatus({ text: i18n.t('app.ready'), kind: 'idle' });
+          }
+        }
+      },
+      onError: (err) => {
+        btnVoice.classList.remove('voice-active');
+        setStatus({ text: `Ses hatası: ${err}`, kind: 'error' });
+      }
+    });
+
+    btnVoice.addEventListener('click', (e) => {
+      e.stopPropagation();
+      voice.toggle();
+    });
+  }
+
   initQuickModelPicker();
   renderEmpty();
   setStatus({ text: settings.model ? i18n.t('app.ready') : i18n.t('app.selectModel'), kind: settings.model ? 'idle' : 'info' });
