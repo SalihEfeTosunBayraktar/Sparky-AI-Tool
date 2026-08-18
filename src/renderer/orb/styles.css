@@ -116,7 +116,7 @@
   --accent-btn: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%);
   --accent-glow: 0 0 16px rgba(0, 242, 254, 0.45);
   --accent-glow-color: rgba(0, 242, 254, 0.45);
-  --orb-gradient: linear-gradient(135deg, #00f2fe 0%, #38ef7d 50%, #4facfe 100%);
+  --orb-gradient: linear-gradient(135deg, #00f2fe 0%, #00c6ff 50%, #4facfe 100%);
 }
 
 [data-accent="emerald"] {

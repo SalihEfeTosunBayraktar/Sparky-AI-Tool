@@ -930,6 +930,7 @@ api.on.stage(() => {
 });
 api.on.token((chunk) => appendToken(chunk));
 api.on.busy((v) => setBusy(v));
+api.on.settingsChanged((s) => applySettings(s));
 
 api.on.autoDecision((res) => {
   if (!res || !res.decision) return;
