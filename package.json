@@ -1,7 +1,7 @@
 {
   "name": "sparky-ai",
   "productName": "Sparky AI",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Yüzen prompt asistanı — girdiğiniz metni yerel (Ollama / LM Studio) veya bulut modelleriyle profesyonel bir prompt'a dönüştürür.",
   "main": "src/main/main.js",
   "author": "Sparky AI",
