@@ -121,17 +121,19 @@ class ModeUI {
     }
     this.initEvents();
 
-    this.mainRuleEditor = new CodeEditor(document.getElementById('modeMainRule'), {
-      getVariables: () => this.getResolvedVariables(),
-      onChange: () => {
-        this.refreshEmptyNotes();
-        this.refreshVariableWarning();
-      }
-    });
+    if (typeof CodeEditor !== 'undefined' && document.getElementById('modeMainRule')) {
+      this.mainRuleEditor = new CodeEditor(document.getElementById('modeMainRule'), {
+        getVariables: () => this.getResolvedVariables(),
+        onChange: () => {
+          this.refreshEmptyNotes();
+          this.refreshVariableWarning();
+        }
+      });
+    }
   }
 
   collapseAllRuleEditors() {
-    for (const ed of this.ruleEditors) ed.collapse();
+    for (const ed of this.ruleEditors) ed?.collapse?.();
   }
 
   ruleRowHtml(value) {
@@ -148,6 +150,7 @@ class ModeUI {
   // Bir satırın <textarea>'sını CodeEditor'e sarar — vurgulama/tooltip/
   // otomatik tamamlama/genişletme tek satırlık kurallarda da çalışsın diye.
   wrapRuleEditor(textarea) {
+    if (typeof CodeEditor === 'undefined' || !textarea) return null;
     const editor = new CodeEditor(textarea, {
       inline: true,
       getVariables: () => this.getResolvedVariables(),
@@ -384,24 +387,25 @@ class ModeUI {
     if (!this.presets) this.presets = await this.api.modes.presets();
     if (!this.variables) this.variables = await this.api.modes.variables();
 
-    const presetListEl = $('presetDropdownList');
-      let categories = [];
-      try {
-        if (this.api.modes.categories) categories = await this.api.modes.categories();
-      } catch {
-        categories = [];
-      }
-      if (!categories || !categories.length) {
-        categories = [
-          { id: 'core', labelKey: 'modes.catCore', icon: '⚡' },
-          { id: 'engineering', labelKey: 'modes.catEngineering', icon: '💻' },
-          { id: 'creative', labelKey: 'modes.catCreative', icon: '🎨' },
-          { id: 'strategy', labelKey: 'modes.catStrategy', icon: '📈' },
-          { id: 'learning', labelKey: 'modes.catLearning', icon: '🎓' },
-          { id: 'productivity', labelKey: 'modes.catProductivity', icon: '🛠️' }
-        ];
-      }
+    let categories = [];
+    try {
+      if (this.api.modes.categories) categories = await this.api.modes.categories();
+    } catch {
+      categories = [];
+    }
+    if (!categories || !categories.length) {
+      categories = [
+        { id: 'core', labelKey: 'modes.catCore', icon: '⚡' },
+        { id: 'engineering', labelKey: 'modes.catEngineering', icon: '💻' },
+        { id: 'creative', labelKey: 'modes.catCreative', icon: '🎨' },
+        { id: 'strategy', labelKey: 'modes.catStrategy', icon: '📈' },
+        { id: 'learning', labelKey: 'modes.catLearning', icon: '🎓' },
+        { id: 'productivity', labelKey: 'modes.catProductivity', icon: '🛠️' }
+      ];
+    }
 
+    const presetListEl = $('presetDropdownList');
+    if (presetListEl) {
       const groupedPresets = {};
       categories.forEach((c) => { groupedPresets[c.id] = []; });
       this.presets.forEach((p) => {
