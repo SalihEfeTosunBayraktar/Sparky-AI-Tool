@@ -1329,6 +1329,51 @@ select option {
   box-shadow: 0 0 0 1px var(--accent);
 }
 
+/* Blok tipi renk kodlu sol kenar / Block type color-coded left border */
+.prompt-block-card[data-block-type="role"] { border-left: 3px solid var(--accent); }
+.prompt-block-card[data-block-type="task"] { border-left: 3px solid #22c55e; }
+.prompt-block-card[data-block-type="context"] { border-left: 3px solid #3b82f6; }
+.prompt-block-card[data-block-type="constraints"] { border-left: 3px solid #f59e0b; }
+.prompt-block-card[data-block-type="output_format"] { border-left: 3px solid #8b5cf6; }
+.prompt-block-card[data-block-type="general"] { border-left: 3px solid var(--txt-dim); }
+
+/* In-place AI blok düzenleme girdisi / In-place refine input */
+.refine-inline {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 6px;
+  padding: 4px 0;
+}
+
+.refine-inline .refine-input {
+  flex: 1;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 6px;
+  border: 1px solid var(--accent-border);
+  background: var(--bg-input);
+  color: var(--text-primary);
+  font-size: 11px;
+  outline: none;
+  transition: border-color 0.12s ease;
+}
+
+.refine-inline .refine-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-glow-color);
+}
+
+.refine-inline .btn-refine-go:hover {
+  background: var(--accent-subtle);
+  color: var(--accent);
+}
+
+.refine-inline .btn-refine-cancel:hover {
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--color-danger);
+}
+
 /* Prompt Çıktı Kartı (Prompt Output Card) */
 .output {
   flex: 1 1 auto;
@@ -1344,6 +1389,14 @@ select option {
   overflow-y: auto;
   color: var(--text-primary);
   transition: all 0.2s ease-in-out;
+}
+
+/* Araç çubuğu aktifken üst köşeleri düzleştir / Flatten top corners when toolbar is active */
+.prompt-assist-toolbar:not([hidden]) ~ .output,
+.prompt-assist-toolbar:not([hidden]) ~ .prompt-blocks-container {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  border-top: none;
 }
 
 .output .empty {

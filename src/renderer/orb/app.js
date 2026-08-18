@@ -994,6 +994,9 @@ async function populateModes() {
     if (m.id === activeMode) opt.selected = true;
     modeSel.appendChild(opt);
   }
+
+  // Prompt Assist: moda göre aç/kapat / Toggle based on active mode
+  if (promptAssistUI) promptAssistUI.setMode(activeMode);
 }
 
 if (modeSel) {
@@ -1115,6 +1118,9 @@ if (api.on.tokensUpdated) {
         }
       }
     });
+    // İlk yüklemede aktif moda göre açma/kapama / Set initial mode
+    const initialMode = await api.modes.getActive();
+    await promptAssistUI.setMode(initialMode);
   }
 
   renderEmpty();
