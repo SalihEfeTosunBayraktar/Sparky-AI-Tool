@@ -1221,19 +1221,21 @@ async function updateQuickModels(providerId, selectedModel) {
   if (!quickModelSel) return;
   quickModelSel.innerHTML = '<option value="">Yükleniyor…</option>';
   try {
-    const rawModels = await api.providers.models(providerId);
+    const res = await api.providers.models(providerId);
     quickModelSel.innerHTML = '';
 
+    // API yanıtını normalize et ({ ok: true, models: [...] } veya doğrudan dizi)
+    // Normalize API response ({ ok: true, models: [...] } or direct array)
+    const rawList = Array.isArray(res) ? res : (res?.ok && Array.isArray(res.models) ? res.models : []);
     const modelsList = [];
-    if (Array.isArray(rawModels)) {
-      rawModels.forEach((m) => {
-        if (typeof m === 'string' && m.trim()) {
-          modelsList.push({ id: m.trim(), name: m.trim() });
-        } else if (m && (m.id || m.name)) {
-          modelsList.push({ id: m.id || m.name, name: m.name || m.id });
-        }
-      });
-    }
+
+    rawList.forEach((m) => {
+      if (typeof m === 'string' && m.trim()) {
+        modelsList.push({ id: m.trim(), name: m.trim() });
+      } else if (m && (m.id || m.name)) {
+        modelsList.push({ id: m.id || m.name, name: m.name || m.id });
+      }
+    });
 
     if (selectedModel && selectedModel !== '__custom__' && !modelsList.some((m) => m.id === selectedModel)) {
       modelsList.unshift({ id: selectedModel, name: selectedModel });
@@ -1249,6 +1251,11 @@ async function updateQuickModels(providerId, selectedModel) {
         if (m.id === resolvedModel) opt.selected = true;
         quickModelSel.appendChild(opt);
       });
+    } else {
+      const optEmpty = document.createElement('option');
+      optEmpty.value = '';
+      optEmpty.textContent = typeof i18n !== 'undefined' ? i18n.t('panel.fields.noModelsFound', '— model bulunamadı —') : '— model bulunamadı —';
+      quickModelSel.appendChild(optEmpty);
     }
 
     const optCustom = document.createElement('option');
