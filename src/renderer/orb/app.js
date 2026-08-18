@@ -1269,6 +1269,14 @@ function groupAndFilterModels(models, filterQuery, activeModel) {
   return groups;
 }
 
+const collapsedGroups = new Set();
+
+function toggleQuickPicker(force) {
+  if (!quickModelPickerPopover) return;
+  const isHidden = typeof force === 'boolean' ? !force : !quickModelPickerPopover.hidden;
+  quickModelPickerPopover.hidden = isHidden;
+}
+
 function renderQuickModelList(models, filterQuery, activeModel, onSelect) {
   if (!quickModelList) return;
   quickModelList.innerHTML = '';
@@ -1288,9 +1296,36 @@ function renderQuickModelList(models, filterQuery, activeModel, onSelect) {
   } else {
     groupKeys.forEach((grp) => {
       const items = groups[grp];
+      const isCollapsed = filterQuery ? false : collapsedGroups.has(grp);
+
       const grpEl = document.createElement('div');
-      grpEl.className = 'quick-group-header';
-      grpEl.innerHTML = `<span class="quick-group-title">📁 ${grp}</span><span class="quick-group-count">${items.length}</span>`;
+      grpEl.className = `quick-group-header${isCollapsed ? ' collapsed' : ''}`;
+      grpEl.title = 'Daralt / Genişlet';
+      grpEl.innerHTML = `
+        <div class="quick-group-left">
+          <svg class="quick-group-chevron" viewBox="0 0 16 16">
+            <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/>
+          </svg>
+          <span class="quick-group-title">📁 ${grp}</span>
+        </div>
+        <span class="quick-group-count">${items.length}</span>
+      `;
+
+      const itemsContainer = document.createElement('div');
+      itemsContainer.className = `quick-group-items${isCollapsed ? ' collapsed' : ''}`;
+
+      grpEl.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (collapsedGroups.has(grp)) {
+          collapsedGroups.delete(grp);
+        } else {
+          collapsedGroups.add(grp);
+        }
+        const nowCollapsed = collapsedGroups.has(grp);
+        grpEl.classList.toggle('collapsed', nowCollapsed);
+        itemsContainer.classList.toggle('collapsed', nowCollapsed);
+      });
+
       quickModelList.appendChild(grpEl);
 
       items.forEach((item) => {
@@ -1301,9 +1336,14 @@ function renderQuickModelList(models, filterQuery, activeModel, onSelect) {
           <span class="quick-model-name">${item.displayName}</span>
           ${item.isActive ? '<span class="quick-model-badge">Aktif</span>' : ''}
         `;
-        itemEl.addEventListener('click', () => onSelect(item.id));
-        quickModelList.appendChild(itemEl);
+        itemEl.addEventListener('click', (e) => {
+          e.stopPropagation();
+          onSelect(item.id);
+        });
+        itemsContainer.appendChild(itemEl);
       });
+
+      quickModelList.appendChild(itemsContainer);
     });
   }
 
@@ -1311,7 +1351,8 @@ function renderQuickModelList(models, filterQuery, activeModel, onSelect) {
   const customBtn = document.createElement('div');
   customBtn.className = 'quick-custom-btn';
   customBtn.innerHTML = `<span>✏️</span><span>${filterQuery ? `"${filterQuery}" modelini kullan` : 'Elle özel model adı girin...'}</span>`;
-  customBtn.addEventListener('click', () => {
+  customBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
     if (filterQuery) {
       onSelect(filterQuery);
     } else if (quickModelCustom) {
@@ -1403,6 +1444,19 @@ function initQuickModelPicker() {
   btnCloseQuickPicker?.addEventListener('click', (e) => {
     e.stopPropagation();
     toggleQuickPicker(false);
+  });
+
+  // Popover içi tıklamaların dışarı sızmasını engelle
+  quickModelPickerPopover?.addEventListener('click', (e) => {
+    e.stopPropagation();
+  });
+
+  // Dışarı tıklandığında popover'ı kapat
+  document.addEventListener('click', (e) => {
+    if (!quickModelPickerPopover || quickModelPickerPopover.hidden) return;
+    if (!quickModelPickerPopover.contains(e.target) && !btnQuickModelPicker?.contains(e.target)) {
+      toggleQuickPicker(false);
+    }
   });
 
   quickModelSearch?.addEventListener('input', () => {
