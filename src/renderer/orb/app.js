@@ -1696,8 +1696,7 @@ function initQuickModelPicker() {
       onAutoSubmit: async () => {
         if (inputEl && inputEl.value.trim() && !state.busy) {
           btnVoice.classList.remove('voice-active');
-          const btnGen = $('btnGenerate');
-          if (btnGen) btnGen.click();
+          await generate();
         }
       },
       onStateChange: (vState) => {

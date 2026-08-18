@@ -140,12 +140,12 @@ class VoiceInput {
     this.cleanupStream();
     this.setState('processing');
 
-    if (this.mediaRecorder) {
-      try { this.mediaRecorder.stop(); } catch {}
+    if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
+      await new Promise((resolve) => {
+        this.mediaRecorder.onstop = resolve;
+        try { this.mediaRecorder.stop(); } catch { resolve(); }
+      });
     }
-
-    // Wait a brief moment for last recorder chunks
-    await new Promise((r) => setTimeout(r, 200));
 
     if (!this.audioChunks.length) {
       this.setState('idle');
