@@ -1310,7 +1310,10 @@ function renderQuickModelList(models, filterQuery, activeModel, onSelect) {
           <svg class="quick-group-chevron" viewBox="0 0 16 16">
             <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/>
           </svg>
-          <span class="quick-group-title">📁 ${grp}</span>
+          <svg class="quick-folder-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+          </svg>
+          <span class="quick-group-title">${grp}</span>
         </div>
         <span class="quick-group-count">${items.length}</span>
       `;
@@ -1354,7 +1357,13 @@ function renderQuickModelList(models, filterQuery, activeModel, onSelect) {
   // Özel model ekleme/yazma seçeneği
   const customBtn = document.createElement('div');
   customBtn.className = 'quick-custom-btn';
-  customBtn.innerHTML = `<span>✏️</span><span>${filterQuery ? `"${filterQuery}" modelini kullan` : 'Elle özel model adı girin...'}</span>`;
+  customBtn.innerHTML = `
+    <svg class="quick-edit-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 20h9"></path>
+      <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+    </svg>
+    <span>${filterQuery ? `"${filterQuery}" modelini kullan` : 'Elle özel model adı girin...'}</span>
+  `;
   customBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     if (filterQuery) {

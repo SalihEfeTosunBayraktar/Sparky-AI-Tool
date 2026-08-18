@@ -2034,9 +2034,17 @@ select option {
 }
 
 .quick-popover-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-size: 11.5px;
   font-weight: 650;
   color: var(--txt);
+}
+
+.quick-header-icon {
+  color: var(--accent);
+  flex-shrink: 0;
 }
 
 .btn-quick-close {
@@ -2299,6 +2307,25 @@ select option {
   background: var(--accent-subtle, rgba(249, 115, 22, 0.15));
   border-color: var(--accent);
   color: var(--accent);
+}
+
+.quick-folder-icon {
+  width: 12px;
+  height: 12px;
+  stroke: var(--accent);
+  flex-shrink: 0;
+}
+
+.quick-edit-icon {
+  width: 12px;
+  height: 12px;
+  stroke: var(--txt-dim);
+  flex-shrink: 0;
+  transition: stroke 0.15s ease;
+}
+
+.quick-custom-btn:hover .quick-edit-icon {
+  stroke: var(--accent);
 }
 
 .quick-model-empty {
