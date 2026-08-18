@@ -1,6 +1,6 @@
 'use strict';
 
-// OpenAI uyumlu uçlar: LM Studio, OpenAI, OpenRouter, Groq, DeepSeek, Together,
+// OpenAI uyumlu uçlar: AgentRouter, OpenRouter, LM Studio, OpenAI, Groq, DeepSeek, Together,
 // llama.cpp server ve benzerleri. API anahtarı opsiyoneldir (yerelde gerekmez).
 const { withV1, request, getJson, readSSE, LlmError } = require('./http');
 
@@ -14,7 +14,21 @@ async function listModels({ endpoint, apiKey, signal, providerId }) {
   const base = withV1(endpoint);
   if (!base) throw new LlmError('Sunucu adresi boş. Ayarlar bölümünden adresi girin.', { provider: providerId });
   const json = await getJson(`${base}/models`, { headers: headers(apiKey), signal, provider: providerId });
-  return (json.data || []).map((m) => m.id).filter(Boolean).sort();
+
+  let rawList = [];
+  if (Array.isArray(json.data)) {
+    rawList = json.data;
+  } else if (Array.isArray(json.models)) {
+    rawList = json.models;
+  } else if (Array.isArray(json)) {
+    rawList = json;
+  }
+
+  const modelIds = rawList
+    .map((m) => (typeof m === 'string' ? m : m?.id || m?.name))
+    .filter(Boolean);
+
+  return [...new Set(modelIds)].sort();
 }
 
 const { toOpenAiContent } = require('./imageUtils');
@@ -65,23 +79,31 @@ async function chat({ endpoint, apiKey, model, system, messages, image, temperat
   let text = '';
   let finishReason = null;
   let totalTokens = null;
+
   await readSSE(res, (obj) => {
     if (obj.error) throw new LlmError(obj.error.message || String(obj.error), { provider: providerId });
     const choice = obj?.choices?.[0];
-    const piece = choice?.delta?.content;
+    const rawPiece = choice?.delta?.content ?? choice?.delta?.text ?? choice?.message?.content ?? choice?.text;
+
+    let piece = '';
+    if (typeof rawPiece === 'string') {
+      piece = rawPiece;
+    } else if (Array.isArray(rawPiece)) {
+      piece = rawPiece.map((p) => (typeof p === 'string' ? p : p?.text || '')).join('');
+    }
+
     if (piece) {
       text += piece;
       onToken?.(piece);
     }
+
     if (choice?.finish_reason) finishReason = choice.finish_reason;
-    // OpenAI ve uyumlu sağlayıcılar son chunk'ta usage nesnesini gönderir.
     if (obj.usage && typeof obj.usage.total_tokens === 'number') {
       totalTokens = obj.usage.total_tokens;
     }
     return true;
   });
 
-  // finish_reason === 'length' → max_tokens'a çarpıldı, yanıt yarım.
   return { text, truncated: finishReason === 'length', totalTokens };
 }
 
