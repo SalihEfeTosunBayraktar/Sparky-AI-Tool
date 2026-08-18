@@ -42,6 +42,10 @@ if (process.platform === 'win32') {
   app.setAppUserModelId('com.sparkyai.app');
 }
 
+// Dahili Chromium ve ANGLE sürücü uyarılarını gizle
+app.commandLine.appendSwitch('log-level', '3');
+app.commandLine.appendSwitch('disable-logging');
+
 const COLLAPSED = { width: 340, height: 152 };
 const EXPANDED = { width: 480, height: 664 };
 
