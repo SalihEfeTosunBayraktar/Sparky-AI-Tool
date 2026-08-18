@@ -113,7 +113,8 @@ contextBridge.exposeInMainWorld('sparky', {
   memory: {
     getMetrics: (currentInput) => ipcRenderer.invoke('memory:getMetrics', currentInput),
     clear: (projectId) => ipcRenderer.invoke('memory:clear', projectId),
-    update: (projectId, data) => ipcRenderer.invoke('memory:update', projectId, data)
+    update: (projectId, data) => ipcRenderer.invoke('memory:update', projectId, data),
+    removeTurn: (projectId, turnId) => ipcRenderer.invoke('memory:removeTurn', { projectId, turnId })
   },
 
   assist: {

@@ -241,6 +241,28 @@ class ProjectMemory {
       this.projectsStore.saveData();
     }
   }
+
+  /**
+   * Removes a specific turn/message from project memory history by ID.
+   * Proje hafıza geçmişinden belirli bir konuşmayı/mesajı ID'sine göre siler.
+   * @param {Object} project
+   * @param {string} turnId
+   * @returns {boolean}
+   */
+  removeTurn(project, turnId) {
+    if (!project || !turnId) return false;
+    const memory = this.getMemory(project);
+    const prevLen = memory.history.length;
+    memory.history = memory.history.filter((m) => m.id !== turnId);
+    if (memory.history.length !== prevLen) {
+      project.updatedAt = Date.now();
+      if (this.projectsStore && typeof this.projectsStore.saveData === 'function') {
+        this.projectsStore.saveData();
+      }
+      return true;
+    }
+    return false;
+  }
 }
 
 module.exports = ProjectMemory;

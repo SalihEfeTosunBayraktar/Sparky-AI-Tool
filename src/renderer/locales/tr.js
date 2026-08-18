@@ -339,7 +339,9 @@ const tr = {
     clearMemoryBtn: 'Hafızayı Sıfırla',
     clearMemoryConfirm: 'Bu projenin yapay zeka hafızası ve diyalog geçmişi sıfırlanacak. Onaylıyor musunuz?',
     historyTitle: 'Diyalog Geçmişi',
-    noHistoryYet: 'Bu projede henüz kayıtlı diyalog geçmişi yok.'
+    noHistoryYet: 'Bu projede henüz kayıtlı diyalog geçmişi yok.',
+    deleteTurnTitle: 'Bu konuşmayı hafızadan sil',
+    deleteTurnConfirm: 'Bu konuşma hafıza geçmişinden silinecek. Onaylıyor musunuz?'
   },
   gauge: {
     title: 'Context & Hafıza',

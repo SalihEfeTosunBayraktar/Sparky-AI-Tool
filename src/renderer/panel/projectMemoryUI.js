@@ -97,16 +97,23 @@ class ProjectMemoryUI {
     }
 
     const itemsHtml = history
-      .slice(-10)
       .map((h) => {
         const roleIcon = h.role === 'user' ? '👤' : '🤖';
         const roleLabel = h.role === 'user' ? 'Kullanıcı' : 'Sparky';
         const timeStr = h.timestamp ? new Date(h.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
         return `
-          <div class="history-turn-item ${h.role}">
+          <div class="history-turn-item ${h.role}" data-id="${h.id || ''}">
             <div class="turn-header">
               <span>${roleIcon} <strong>${roleLabel}</strong></span>
-              <span class="turn-meta">${h.tokens || 0} tk · ${timeStr}</span>
+              <div class="turn-actions">
+                <span class="turn-meta">${h.tokens || 0} tk · ${timeStr}</span>
+                <button class="btn-delete-turn" data-turn-id="${h.id || ''}" title="${this.t('projects.deleteTurnTitle', 'Bu konuşmayı hafızadan sil')}">
+                  <svg viewBox="0 0 16 16" width="11" height="11" fill="currentColor">
+                    <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
+                    <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
+                  </svg>
+                </button>
+              </div>
             </div>
             <div class="turn-content">${escapeHtml(h.content)}</div>
           </div>
@@ -162,6 +169,36 @@ class ProjectMemoryUI {
         await this.api.memory.clear(this.currentProject.id);
         this.unsavedSummary = null;
       }
+    });
+
+    container.querySelectorAll('.btn-delete-turn').forEach((btn) => {
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const turnId = btn.dataset.turnId;
+        if (!turnId || !this.currentProject) return;
+        const confirmMsg = this.t('projects.deleteTurnConfirm', 'Bu konuşma hafıza geçmişinden silinecek. Onaylıyor musunuz?');
+        if (confirm(confirmMsg)) {
+          const res = await this.api.memory.removeTurn(this.currentProject.id, turnId);
+          if (res && res.ok) {
+            if (this.currentProject.memory) {
+              this.currentProject.memory.history = res.history;
+            }
+            const turnEl = btn.closest('.history-turn-item');
+            if (turnEl) {
+              turnEl.style.transition = 'opacity 0.2s, transform 0.2s';
+              turnEl.style.opacity = '0';
+              turnEl.style.transform = 'scale(0.95)';
+              setTimeout(() => {
+                turnEl.remove();
+                const sumEl = container.querySelector('.history-summary-toggle');
+                if (sumEl) {
+                  sumEl.textContent = `${this.t('projects.historyTitle', 'Diyalog Geçmişi')} (${res.history.length})`;
+                }
+              }, 200);
+            }
+          }
+        }
+      });
     });
   }
 }

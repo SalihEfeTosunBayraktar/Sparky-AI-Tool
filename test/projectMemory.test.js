@@ -135,4 +135,31 @@ test('=== Running ProjectMemory Unit Tests ===', async (t) => {
     assert.equal(project.memory.history.length, 0);
     assert.equal(project.memory.lastCompactedAt, 0);
   });
+
+  await t.test('8. Remove Turn: deletes specific message from memory history by ID', () => {
+    const project = {
+      id: 'p1',
+      name: 'Test App',
+      memory: {
+        summary: '',
+        history: [
+          { id: 't1', role: 'user', content: 'Turn 1' },
+          { id: 't2', role: 'assistant', content: 'Turn 2' },
+          { id: 't3', role: 'user', content: 'Turn 3' }
+        ],
+        lastCompactedAt: 0
+      }
+    };
+
+    const removed = memoryManager.removeTurn(project, 't2');
+    assert.equal(removed, true);
+    assert.equal(project.memory.history.length, 2);
+    assert.equal(project.memory.history.some((t) => t.id === 't2'), false);
+    assert.equal(project.memory.history[0].id, 't1');
+    assert.equal(project.memory.history[1].id, 't3');
+
+    // Non-existing ID returns false
+    const notRemoved = memoryManager.removeTurn(project, 'non_existent');
+    assert.equal(notRemoved, false);
+  });
 });

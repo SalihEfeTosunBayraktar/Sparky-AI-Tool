@@ -1031,6 +1031,19 @@ function registerIpc() {
     }
     return { ok: false, error: 'Project not found' };
   });
+  ipcMain.handle('memory:removeTurn', (_e, { projectId, turnId }) => {
+    const p = projectId ? projects.get(projectId) : projects.getActive();
+    if (p) {
+      const ok = projectMemory.removeTurn(p, turnId);
+      if (ok) {
+        broadcast('memory:updated', projectMemory.getMetrics(p));
+        broadcast('projects:changed', projects.getActiveId());
+        projectContext.invalidate('memory-turn-removed');
+      }
+      return { ok, history: p.memory?.history || [] };
+    }
+    return { ok: false, error: 'Project not found' };
+  });
 
   // --- prompt assist (dinamik varyasyonlar, ağırlıklı seçim & blok ayrıştırma)
   ipcMain.handle('assist:getStrategies', (_e, opts = {}) => {

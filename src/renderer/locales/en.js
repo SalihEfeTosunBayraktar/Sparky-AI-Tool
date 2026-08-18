@@ -339,7 +339,9 @@ const en = {
     clearMemoryBtn: 'Clear Memory',
     clearMemoryConfirm: 'The AI episodic memory and dialogue history for this project will be wiped. Do you confirm?',
     historyTitle: 'Dialogue History',
-    noHistoryYet: 'No recorded dialogue history in this project yet.'
+    noHistoryYet: 'No recorded dialogue history in this project yet.',
+    deleteTurnTitle: 'Delete this message from memory',
+    deleteTurnConfirm: 'This message will be removed from the project dialogue history. Do you confirm?'
   },
   gauge: {
     title: 'Context & Memory',

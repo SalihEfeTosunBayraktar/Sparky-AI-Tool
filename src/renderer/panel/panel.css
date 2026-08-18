@@ -1717,6 +1717,31 @@ select option {
   font-size: 9.5px;
 }
 
+.turn-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-delete-turn {
+  background: transparent;
+  border: none;
+  color: var(--txt-faint);
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  transition: all 0.15s ease;
+}
+
+.btn-delete-turn:hover {
+  color: var(--err, #ef4444);
+  background: rgba(239, 68, 68, 0.15);
+}
+
 .turn-content {
   white-space: pre-wrap;
   word-break: break-word;
