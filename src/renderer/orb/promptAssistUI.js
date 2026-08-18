@@ -52,7 +52,9 @@ class PromptAssistUI {
   }
 
   /** Aktif moda ve ayara göre Prompt Assist'i aç/kapat / Enable/disable based on active mode & setting */
-  async setMode(modeId, enableSetting = true) {
+  async setMode(modeIdOrObj, enableSetting = true) {
+    // Hem string hem nesne kabul et / Accept both string ID and mode object
+    const modeId = typeof modeIdOrObj === 'string' ? modeIdOrObj : (modeIdOrObj?.id || '');
     this.enabled = modeId === 'prompt-preparer' && enableSetting !== false;
     if (!this.enabled) {
       this.hide();

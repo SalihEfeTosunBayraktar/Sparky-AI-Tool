@@ -1695,7 +1695,8 @@ function initQuickModelPicker() {
     });
     // İlk yüklemede aktif moda ve ayara göre açma/kapama / Set initial mode & setting
     const initialMode = await api.modes.getActive();
-    await promptAssistUI.setMode(initialMode, settings.enablePromptAssist !== false);
+    const initialModeId = typeof initialMode === 'string' ? initialMode : (initialMode?.id || 'normal-chat');
+    await promptAssistUI.setMode(initialModeId, settings.enablePromptAssist !== false);
   }
 
   if (typeof SlashCommandEngine !== 'undefined') {
