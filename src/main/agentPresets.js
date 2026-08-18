@@ -5,60 +5,39 @@
  * Ajan Temaları ve Ön Modlar Kataloğu — 30 Farklı Uzmanlık Modu
  */
 
-const BASE_RULES = `Role
-You are Sparky, an elite Prompt Engineering System and context synthesizer designed to convert raw human notes, technical specifications, and UI design screenshots into production-ready prompts for Large Language Models.
-
-Task
-Transform unstructured user notes, project memory, and multimodal inputs into a single, highly structured, execution-ready prompt for another AI model to solve.
-
-Context
-Users enter raw thoughts, code snippets, UI mockups, or project documentation into Sparky AI. Direct prompts written by users frequently lack necessary constraints, role definitions, and structural rigor, leading to suboptimal LLM outputs. You act as an intermediate prompt engineering layer that restructures these raw inputs into high-precision instructions without executing the task itself.
-
-Non-Negotiable Requirements
-- FIDELITY: Preserve strict fidelity to all user-supplied domain rules, technical stack details, numbers, constraints, and named entities without inventing facts or drifting off-topic.
-- DO NOT ANSWER: Never solve, answer, or execute the task described in the note. Output ONLY the instruction prompt that enables another model to perform it.
-- NO PREAMBLE / NO META-TALK: Output ONLY the finished prompt in plain text — no conversational filler, no greetings, no explanations, no "Here is your prompt", and no enclosing markdown code fence.
-- MULTIMODAL & MEMORY SYNTHESIS: Synthesize technical and visual context from project memory, code snippets, and UI mockups into concrete actionable instructions.
-- AMBIGUITY RESOLUTION: Resolve ambiguity by inserting standard, widely-accepted industry assumptions explicitly into the prompt, using <angle_bracket_slots> solely for user-dependent parameters.
-- LANGUAGE: Deliver the final prompt in {{LANG}}.
-- CONCISENESS & QUALITY: Ensure all instructions are checkable, concrete, and free of filler or generic fluff.
-
-Output Format
-A structured prompt in plain text formatted with clean markdown headings:
-## Role
-Domain-specific expert persona.
-
-## Task
-One definitive sentence describing what must be produced.
-
-## Context
-Preserved background information, domain specifics, and project parameters.
-
-## Requirements
-Bulleted, concrete, and verifiable output criteria and functional specifications.
-
-## Output Format
-Deliverable structure, layout specifications, tone, and file type.
-
-## Constraints
-Explicit limitations, negative constraints, and domain assumptions.`;
-
-const NORMAL_CHAT_BASE_RULES = `You are Sparky AI, a highly capable desktop AI assistant.
-Your task is to respond DIRECTLY to the user's message, question, or request in a clear, natural, intelligent, and helpful conversational tone.
-
-NON-NEGOTIABLE RULES
-1. DIRECT RESPONSE — Answer the user's question or execute their task directly.
-2. DO NOT WRITE A PROMPT TEMPLATE — Do NOT generate meta-prompts, role headings, or prompt engineering templates. Provide the direct solution or answer.
-3. LANGUAGE — Respond in {{LANG}}.
-4. QUALITY — Be precise, well-formatted, and concise.`;
+const { BASE_RULES, NORMAL_CHAT_BASE_RULES } = require('./promptTemplates');
 
 const CATEGORIES = [
-  { id: 'core', labelKey: 'modes.catCore', icon: '⚡' },
-  { id: 'engineering', labelKey: 'modes.catEngineering', icon: '💻' },
-  { id: 'creative', labelKey: 'modes.catCreative', icon: '🎨' },
-  { id: 'strategy', labelKey: 'modes.catStrategy', icon: '📈' },
-  { id: 'learning', labelKey: 'modes.catLearning', icon: '🎓' },
-  { id: 'productivity', labelKey: 'modes.catProductivity', icon: '🛠️' }
+  {
+    id: 'core',
+    labelKey: 'modes.catCore',
+    icon: '<svg viewBox="0 0 16 16" width="13" height="13" fill="currentColor"><path d="M11.251.068a.5.5 0 0 1 .227.58L9.677 6.5H13a.5.5 0 0 1 .364.843l-8 8.5a.5.5 0 0 1-.842-.49L6.323 9.5H3a.5.5 0 0 1-.364-.843l8-8.5a.5.5 0 0 1 .615-.089z"/></svg>'
+  },
+  {
+    id: 'engineering',
+    labelKey: 'modes.catEngineering',
+    icon: '<svg viewBox="0 0 16 16" width="13" height="13" fill="currentColor"><path d="M10.478 1.647a.5.5 0 1 0-.956-.294l-4 13a.5.5 0 0 0 .956.294l4-13zM4.854 4.146a.5.5 0 0 1 0 .708L1.707 8l3.147 3.146a.5.5 0 0 1-.708.708l-3.5-3.5a.5.5 0 0 1 0-.708l3.5-3.5a.5.5 0 0 1 .708 0zm6.292 0a.5.5 0 0 0 0 .708L14.293 8l-3.147 3.146a.5.5 0 0 0 .708.708l3.5-3.5a.5.5 0 0 0 0-.708l-3.5-3.5a.5.5 0 0 0-.708 0z"/></svg>'
+  },
+  {
+    id: 'creative',
+    labelKey: 'modes.catCreative',
+    icon: '<svg viewBox="0 0 16 16" width="13" height="13" fill="currentColor"><path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0zm.5 5.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-3 2a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm6 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-1.5 3a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/></svg>'
+  },
+  {
+    id: 'strategy',
+    labelKey: 'modes.catStrategy',
+    icon: '<svg viewBox="0 0 16 16" width="13" height="13" fill="currentColor"><path d="M0 0h1v15h15v1H0V0zm10 5.5l3.5 3.5-1.5 1.5H16V6l-1.5 1.5L11 4 7 8 4 5 1 8l.7.7 2.3-2.3 3 3 4-4z"/></svg>'
+  },
+  {
+    id: 'learning',
+    labelKey: 'modes.catLearning',
+    icon: '<svg viewBox="0 0 16 16" width="13" height="13" fill="currentColor"><path d="M8.211.224a.5.5 0 0 0-.422 0l-7.5 3.5a.5.5 0 0 0 0 .904l7.5 3.5a.5.5 0 0 0 .422 0l7.5-3.5a.5.5 0 0 0 0-.904l-7.5-3.5zM1.5 5.378l6.5 3.033 6.5-3.033v2.857a.5.5 0 0 1-.724.447L8 6.5l-5.776 2.185A.5.5 0 0 1 1.5 8.235V5.378z"/></svg>'
+  },
+  {
+    id: 'productivity',
+    labelKey: 'modes.catProductivity',
+    icon: '<svg viewBox="0 0 16 16" width="13" height="13" fill="currentColor"><path d="M1 0 0 1l2.2 3.081a1 1 0 0 0 .815.419h.07a1 1 0 0 1 .708.293l2.675 2.675-2.617 2.654A3.003 3.003 0 0 0 0 13a3 3 0 1 0 5.878-.851l2.654-2.617.968.968-.305.914a1 1 0 0 0 .242 1.023l3.27 3.27a.997.997 0 0 0 1.414 0l1.586-1.586a.997.997 0 0 0 0-1.414l-3.27-3.27a1 1 0 0 0-1.023-.242L10.5 9.5l-.96-.96 2.683-2.683a1 1 0 0 1 .707-.293h.07a1 1 0 0 0 .816-.419L16 2l-1-1-3.081 2.2a1 1 0 0 1-.819.419h-.07a1 1 0 0 1-.707-.293L7.646.646A.5.5 0 0 0 7.293.5H3.5a.5.5 0 0 0-.354.146L1 0z"/></svg>'
+  }
 ];
 
 const PRESETS = [

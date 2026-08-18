@@ -139,14 +139,14 @@ class SlashCommandEngine {
     const matchedCmd = this.commands.find((c) => c.name === commandTrigger || c.aliases.includes(commandTrigger));
 
     if (!matchedCmd) {
-      this.onOutput(`⚠️ ${this.t('commands.unknownCommand', 'Bilinmeyen komut:')} \`${commandTrigger}\`\n\n${this.t('commands.tryHelp', 'Kullanılabilir komutlar için `/help` yazabilirsiniz.')}`, false);
+      this.onOutput(`${this.t('commands.unknownCommand', 'Bilinmeyen komut:')} \`${commandTrigger}\`\n\n${this.t('commands.tryHelp', 'Kullanılabilir komutlar için `/help` yazabilirsiniz.')}`, false);
       return true;
     }
 
     try {
       await matchedCmd.handler(args);
     } catch (err) {
-      this.onOutput(`❌ ${this.t('commands.executionError', 'Komut çalıştırılırken hata oluştu:')}\n${err.message}`, false);
+      this.onOutput(`${this.t('commands.executionError', 'Komut çalıştırılırken hata oluştu:')}\n${err.message}`, false);
     }
 
     return true;
@@ -154,7 +154,7 @@ class SlashCommandEngine {
 
   /** /help komutu / help command handler */
   async handleHelp() {
-    let out = `### ⚡ ${this.t('commands.availableTitle', 'Sparky AI — Yerel Slash Komutları')}\n\n`;
+    let out = `### ${this.t('commands.availableTitle', 'Sparky AI — Yerel Slash Komutları')}\n\n`;
     out += `| ${this.t('commands.colCommand', 'Komut')} | ${this.t('commands.colUsage', 'Kullanım')} | ${this.t('commands.colDesc', 'Açıklama')} |\n`;
     out += `| :--- | :--- | :--- |\n`;
 
@@ -172,10 +172,10 @@ class SlashCommandEngine {
     this.onStatus({ text: this.t('commands.compactingStatus', 'Hafıza sıkıştırılıyor…'), kind: 'thinking' });
     const res = await this.api.memory.compact();
     if (res && res.ok) {
-      this.onOutput(`✅ **${this.t('commands.compactSuccess', 'Proje hafızası başarıyla sıkıştırıldı ve güncellendi.')}**\n\n${res.summary || ''}`, true);
+      this.onOutput(`**${this.t('commands.compactSuccess', 'Proje hafızası başarıyla sıkıştırıldı ve güncellendi.')}**\n\n${res.summary || ''}`, true);
       this.onStatus({ text: this.t('app.ready', 'Hazır'), kind: 'idle' });
     } else {
-      this.onOutput(`ℹ️ ${this.t('commands.compactNotNeeded', 'Sıkıştırma gerekmedi veya aktif proje bulunamadı.')} (${res?.reason || 'Hafıza henüz dolmadı'})`, false);
+      this.onOutput(`${this.t('commands.compactNotNeeded', 'Sıkıştırma gerekmedi veya aktif proje bulunamadı.')} (${res?.reason || 'Hafıza henüz dolmadı'})`, false);
       this.onStatus({ text: this.t('app.ready', 'Hazır'), kind: 'idle' });
     }
   }
@@ -185,7 +185,7 @@ class SlashCommandEngine {
     const target = args[0]?.toLowerCase();
     if (target === 'mem' || target === 'all' || !target) {
       await this.api.memory.clear();
-      this.onOutput(`🧹 **${this.t('commands.clearSuccess', 'Aktif projenin yapay zeka hafızası ve diyalog geçmişi sıfırlandı.')}**`, true);
+      this.onOutput(`**${this.t('commands.clearSuccess', 'Aktif projenin yapay zeka hafızası ve diyalog geçmişi sıfırlandı.')}**`, true);
     }
   }
 
@@ -195,12 +195,12 @@ class SlashCommandEngine {
     if (newModel) {
       await this.api.settings.set({ model: newModel });
       this.onSettingsChange({ model: newModel });
-      this.onOutput(`🤖 **${this.t('commands.modelChanged', 'Model değiştirildi:')}** \`${newModel}\``, true);
+      this.onOutput(`**${this.t('commands.modelChanged', 'Model değiştirildi:')}** \`${newModel}\``, true);
     } else {
       const settings = await this.api.settings.get();
       const catalog = await this.api.providers.models(settings.provider);
       const list = (catalog && catalog.length) ? catalog.map((m) => `- \`${m.id || m.name}\``).join('\n') : this.t('commands.noModelsFound', 'Model listesi alınamadı.');
-      this.onOutput(`🤖 **${this.t('commands.currentModel', 'Aktif Model:')}** \`${settings.model || '—'}\` (${settings.provider})\n\n**${this.t('commands.availableModels', 'Kullanılabilir Modeller:')}**\n${list}\n\n*${this.t('commands.modelUsageHint', 'Değiştirmek için:')}* \`/model <model_adı>\``, true);
+      this.onOutput(`**${this.t('commands.currentModel', 'Aktif Model:')}** \`${settings.model || '—'}\` (${settings.provider})\n\n**${this.t('commands.availableModels', 'Kullanılabilir Modeller:')}**\n${list}\n\n*${this.t('commands.modelUsageHint', 'Değiştirmek için:')}* \`/model <model_adı>\``, true);
     }
   }
 
@@ -213,16 +213,16 @@ class SlashCommandEngine {
       if (found) {
         await this.api.settings.set({ provider: found.id });
         this.onSettingsChange({ provider: found.id });
-        this.onOutput(`🔌 **${this.t('commands.providerChanged', 'Sağlayıcı değiştirildi:')}** \`${found.label}\` (\`${found.id}\`)`, true);
+        this.onOutput(`**${this.t('commands.providerChanged', 'Sağlayıcı değiştirildi:')}** \`${found.label}\` (\`${found.id}\`)`, true);
       } else {
         const available = providers.map((p) => `\`${p.id}\``).join(', ');
-        this.onOutput(`⚠️ ${this.t('commands.providerNotFound', 'Sağlayıcı bulunamadı:')} \`${target}\`\n\n${this.t('commands.availableProviders', 'Kullanılabilir sağlayıcılar:')} ${available}`, false);
+        this.onOutput(`${this.t('commands.providerNotFound', 'Sağlayıcı bulunamadı:')} \`${target}\`\n\n${this.t('commands.availableProviders', 'Kullanılabilir sağlayıcılar:')} ${available}`, false);
       }
     } else {
       const settings = await this.api.settings.get();
       const providers = await this.api.providers.catalog();
-      const list = providers.map((p) => `- \`${p.id}\` — ${p.label}${p.id === settings.provider ? ' ✅ (Aktif)' : ''}`).join('\n');
-      this.onOutput(`🔌 **${this.t('commands.providerListTitle', 'Sağlayıcılar:')}**\n\n${list}\n\n*${this.t('commands.providerUsageHint', 'Değiştirmek için:')}* \`/provider <id>\``, true);
+      const list = providers.map((p) => `- \`${p.id}\` — ${p.label}${p.id === settings.provider ? ' [Aktif]' : ''}`).join('\n');
+      this.onOutput(`**${this.t('commands.providerListTitle', 'Sağlayıcılar:')}**\n\n${list}\n\n*${this.t('commands.providerUsageHint', 'Değiştirmek için:')}* \`/provider <id>\``, true);
     }
   }
 
@@ -234,15 +234,15 @@ class SlashCommandEngine {
       const found = modes.find((m) => m.id.toLowerCase() === target || (m.name && m.name.toLowerCase().includes(target)));
       if (found) {
         await this.api.modes.setActive(found.id);
-        this.onOutput(`🎯 **${this.t('commands.modeChanged', 'Çalışma modu değiştirildi:')}** \`${found.name || found.id}\``, true);
+        this.onOutput(`**${this.t('commands.modeChanged', 'Çalışma modu değiştirildi:')}** \`${found.name || found.id}\``, true);
       } else {
         const list = modes.map((m) => `\`${m.id}\``).join(', ');
-        this.onOutput(`⚠️ ${this.t('commands.modeNotFound', 'Mod bulunamadı:')} \`${target}\`\n\n${this.t('commands.availableModes', 'Mevcut modlar:')} ${list}`, false);
+        this.onOutput(`${this.t('commands.modeNotFound', 'Mod bulunamadı:')} \`${target}\`\n\n${this.t('commands.availableModes', 'Mevcut modlar:')} ${list}`, false);
       }
     } else {
       const active = await this.api.modes.getActive();
-      const list = modes.map((m) => `- \`${m.id}\` — ${m.name || m.id}${m.id === active ? ' ✅ (Aktif)' : ''}`).join('\n');
-      this.onOutput(`🎯 **${this.t('commands.modeListTitle', 'Çalışma Modları:')}**\n\n${list}\n\n*${this.t('commands.modeUsageHint', 'Değiştirmek için:')}* \`/mode <id>\``, true);
+      const list = modes.map((m) => `- \`${m.id}\` — ${m.name || m.id}${m.id === active ? ' [Aktif]' : ''}`).join('\n');
+      this.onOutput(`**${this.t('commands.modeListTitle', 'Çalışma Modları:')}**\n\n${list}\n\n*${this.t('commands.modeUsageHint', 'Değiştirmek için:')}* \`/mode <id>\``, true);
     }
   }
 
@@ -254,15 +254,15 @@ class SlashCommandEngine {
       const found = projects.find((p) => p.id.toLowerCase() === target || p.name.toLowerCase().includes(target));
       if (found) {
         await this.api.projects.setActive(found.id);
-        this.onOutput(`📁 **${this.t('commands.projectChanged', 'Aktif proje değiştirildi:')}** \`${found.name}\``, true);
+        this.onOutput(`**${this.t('commands.projectChanged', 'Aktif proje değiştirildi:')}** \`${found.name}\``, true);
       } else {
         const list = projects.map((p) => `\`${p.name}\``).join(', ');
-        this.onOutput(`⚠️ ${this.t('commands.projectNotFound', 'Proje bulunamadı:')} \`${target}\`\n\n${this.t('commands.availableProjects', 'Mevcut projeler:')} ${list}`, false);
+        this.onOutput(`${this.t('commands.projectNotFound', 'Proje bulunamadı:')} \`${target}\`\n\n${this.t('commands.availableProjects', 'Mevcut projeler:')} ${list}`, false);
       }
     } else {
       const activeId = await this.api.projects.getActiveId();
-      const list = projects.length ? projects.map((p) => `- \`${p.name}\` (${p.id})${p.id === activeId ? ' ✅ (Aktif)' : ''}`).join('\n') : this.t('commands.noProjects', 'Henüz proje yok.');
-      this.onOutput(`📁 **${this.t('commands.projectListTitle', 'Projeler:')}**\n\n${list}\n\n*${this.t('commands.projectUsageHint', 'Geçiş yapmak için:')}* \`/project <proje_adı>\``, true);
+      const list = projects.length ? projects.map((p) => `- \`${p.name}\` (${p.id})${p.id === activeId ? ' [Aktif]' : ''}`).join('\n') : this.t('commands.noProjects', 'Henüz proje yok.');
+      this.onOutput(`**${this.t('commands.projectListTitle', 'Projeler:')}**\n\n${list}\n\n*${this.t('commands.projectUsageHint', 'Geçiş yapmak için:')}* \`/project <proje_adı>\``, true);
     }
   }
 }

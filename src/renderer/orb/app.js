@@ -1156,7 +1156,7 @@ async function populateModes() {
       if (!items.length) return;
       const groupEl = document.createElement('optgroup');
       const catLabel = i18n.t(c.labelKey) || c.id;
-      groupEl.label = `${c.icon || ''} ${catLabel}`.trim();
+      groupEl.label = catLabel;
       items.forEach((m) => {
         const opt = document.createElement('option');
         opt.value = m.id;
