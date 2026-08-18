@@ -153,9 +153,26 @@ function notifyThreshold(level) {
   return { minimal: 3, normal: 2, all: 1 }[level] ?? 2;
 }
 
+function applyOrbStateVisual(kind) {
+  if (!orbEl) return;
+  orbEl.classList.remove('state-error', 'state-warning', 'state-success', 'state-compacting', 'state-asking');
+  if (kind === 'error') {
+    orbEl.classList.add('state-error');
+  } else if (kind === 'warning' || kind === 'ratelimit') {
+    orbEl.classList.add('state-warning');
+  } else if (kind === 'success') {
+    orbEl.classList.add('state-success');
+  } else if (kind === 'compacting') {
+    orbEl.classList.add('state-compacting');
+  } else if (kind === 'asking') {
+    orbEl.classList.add('state-asking');
+  }
+}
+
 const bubbleQueue = new NotificationQueue({
   onShow(item, meta) {
     renderBubbleItem(item, meta);
+    applyOrbStateVisual(item.kind);
     if (item.kind === 'success') setBadge('ok');
     if (item.kind === 'error') setBadge('error');
   },
@@ -167,6 +184,9 @@ const bubbleQueue = new NotificationQueue({
     bubbleExitTimer = setTimeout(() => {
       bubble.hidden = true;
       bubble.classList.remove('anim-exit');
+      if (!state.busy && !orbEl.classList.contains('voice-active')) {
+        orbEl.classList.remove('state-error', 'state-warning', 'state-success', 'state-compacting', 'state-asking');
+      }
     }, 150);
   },
   onQueueChange(pending) {
@@ -962,6 +982,7 @@ function isStaleGen(genId) {
 api.on.questions(({ questions, genId }) => {
   if (isStaleGen(genId)) return;
   showQuestions(questions);
+  queueBubble(typeof i18n !== 'undefined' ? i18n.t('status.haveQuestions', { count: questions.length }) : `${questions.length} netleştirme sorusu var`, 'asking', { priority: 'high' });
   // Akış cevap bekliyor; panel kapalıysa kendiliğinden açılmalı.
   if (!state.expanded) setExpanded(true);
 });
@@ -1002,7 +1023,7 @@ api.on.error(({ message, genId }) => {
     d.textContent = message;
     outputEl.appendChild(d);
   }
-  queueBubble(message.split('\n')[0], 'error');
+  queueBubble(`🚨 ${message.split('\n')[0]}`, 'error', { priority: 'critical' });
 });
 
 api.on.playSound((type) => {

@@ -546,6 +546,65 @@ body {
   animation: orbVoicePulse 1.2s ease-in-out infinite !important;
 }
 
+/* 1. Hata & Sunucu Başarısızlığı (Kırmızı Sarsıntılı Uyarı Aurası) */
+.orb.state-error {
+  filter: drop-shadow(0 0 24px #ef4444) drop-shadow(0 0 44px rgba(239, 68, 68, 0.8)) drop-shadow(0 0 8px #ffffff) !important;
+  animation: orbErrorShake 0.45s cubic-bezier(0.36, 0.07, 0.19, 0.97) infinite !important;
+}
+
+@keyframes orbErrorShake {
+  0%, 100% { transform: scale(1.04) rotate(0deg); }
+  20% { transform: scale(1.06) rotate(-3deg); }
+  40% { transform: scale(1.04) rotate(3deg); }
+  60% { transform: scale(1.06) rotate(-2deg); }
+  80% { transform: scale(1.04) rotate(2deg); }
+}
+
+/* 2. Uyarı & Limit Aşımı (Kehribar / Turuncu Nabız Aurası) */
+.orb.state-warning {
+  filter: drop-shadow(0 0 24px #f59e0b) drop-shadow(0 0 44px rgba(245, 158, 11, 0.75)) drop-shadow(0 0 8px #ffffff) !important;
+  animation: orbWarningPulse 1.2s ease-in-out infinite !important;
+}
+
+@keyframes orbWarningPulse {
+  0%, 100% { transform: scale(1.02); }
+  50% { transform: scale(1.09); }
+}
+
+/* 3. Başarı & Hazır (Zümrüt Yeşili Işıma Aurası) */
+.orb.state-success {
+  filter: drop-shadow(0 0 26px #10b981) drop-shadow(0 0 48px rgba(16, 185, 129, 0.85)) drop-shadow(0 0 10px #ffffff) !important;
+  animation: orbSuccessPop 0.8s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+@keyframes orbSuccessPop {
+  0% { transform: scale(0.96); }
+  40% { transform: scale(1.14); }
+  100% { transform: scale(1.03); }
+}
+
+/* 4. Hafıza Sıkıştırma (Elektrik Mavisi Kozmik Sıkıştırma Aurası) */
+.orb.state-compacting {
+  filter: drop-shadow(0 0 24px #3b82f6) drop-shadow(0 0 44px rgba(59, 130, 246, 0.8)) drop-shadow(0 0 8px #ffffff) !important;
+  animation: orbCompactingBreath 1.4s ease-in-out infinite !important;
+}
+
+@keyframes orbCompactingBreath {
+  0%, 100% { transform: scale(1.02) rotate(0deg); }
+  50% { transform: scale(1.1) rotate(180deg); }
+}
+
+/* 5. Netleştirme Sorusu Bekleme (Mistik Mor Işıma Aurası) */
+.orb.state-asking {
+  filter: drop-shadow(0 0 24px #8b5cf6) drop-shadow(0 0 44px rgba(139, 92, 246, 0.8)) drop-shadow(0 0 8px #ffffff) !important;
+  animation: orbAskingGlow 1.6s ease-in-out infinite !important;
+}
+
+@keyframes orbAskingGlow {
+  0%, 100% { transform: scale(1.02); }
+  50% { transform: scale(1.1); }
+}
+
 @keyframes orbVoicePulse {
   0%, 100% {
     transform: scale(1.02);
