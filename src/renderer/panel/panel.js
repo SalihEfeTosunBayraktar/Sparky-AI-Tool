@@ -262,35 +262,55 @@ function buildKeySection(p, keys, rotator) {
   const providerKeyHint = p.id === 'custom' ? T('provider.customKeyHint', p.keyHint || '') : p.keyHint || '';
   const cooldownById = new Map((rotator?.keys || []).map((k) => [k.id, k]));
 
-  const section = document.createElement('div');
-  section.className = 'keygroup';
+  const section = document.createElement('details');
+  section.className = 'keygroup-details';
+  if (p.id === settings?.provider || keys.length > 0) {
+    section.open = true;
+  }
 
-  const head = document.createElement('div');
-  head.className = 'keygroup-head';
+  const summary = document.createElement('summary');
+  summary.className = 'keygroup-summary';
+
+  const titleGroup = document.createElement('div');
+  titleGroup.className = 'keygroup-title-group';
+
+  const chevron = document.createElement('span');
+  chevron.className = 'keygroup-chevron';
+  chevron.textContent = '▾';
+  titleGroup.appendChild(chevron);
+
   const title = document.createElement('span');
   title.className = 'name';
   title.textContent = providerLabel;
   title.title = providerKeyHint;
-  head.appendChild(title);
+  titleGroup.appendChild(title);
+
+  const countTag = document.createElement('span');
+  countTag.className = `keycount${keys.some((k) => k.active) ? ' is-active-key' : ''}`;
+  countTag.textContent = keys.length
+    ? T('panel.fields.keyCount', '{n} anahtar', { n: keys.length })
+    : T('panel.fields.noKeysShort', '0 anahtar');
+  titleGroup.appendChild(countTag);
+
+  summary.appendChild(titleGroup);
 
   if (keys.length > 1) {
-    const countTag = document.createElement('span');
-    countTag.className = 'keycount';
-    countTag.textContent = T('panel.fields.keyCount', '{n} anahtar', { n: keys.length });
-    head.appendChild(countTag);
-
     const rotateBtn = document.createElement('button');
-    rotateBtn.className = 'btn ghost';
+    rotateBtn.className = 'btn ghost sm';
     rotateBtn.textContent = T('panel.fields.btnRotateNext', 'Sıradakine geç');
     rotateBtn.title = T('panel.fields.btnRotateNextHint', 'Aktif anahtarı listedeki bir sonrakiyle değiştir');
-    rotateBtn.addEventListener('click', async () => {
+    rotateBtn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
       const r = await api.secrets.rotateNext(p.id);
       if (!r.ok) showResult($('testResult'), r.error, 'bad');
-      // renderKeys() burada YOK — 'secrets:changed' zaten tetikleyecek.
     });
-    head.appendChild(rotateBtn);
+    summary.appendChild(rotateBtn);
   }
-  section.appendChild(head);
+  section.appendChild(summary);
+
+  const body = document.createElement('div');
+  body.className = 'keygroup-body';
 
   if (keys.length) {
     const list = document.createElement('div');
@@ -333,12 +353,12 @@ function buildKeySection(p, keys, rotator) {
 
       list.appendChild(row);
     }
-    section.appendChild(list);
+    body.appendChild(list);
   } else {
     const empty = document.createElement('p');
     empty.className = 'hint';
     empty.textContent = T('panel.fields.noKeysYet', 'Henüz anahtar eklenmedi.');
-    section.appendChild(empty);
+    body.appendChild(empty);
   }
 
   const addRow = document.createElement('div');
@@ -360,7 +380,6 @@ function buildKeySection(p, keys, rotator) {
       showResult($('testResult'), T('panel.fields.keyDuplicate', 'Bu anahtar zaten kayıtlı.'), 'bad');
     }
     input.value = '';
-    // secrets:changed zaten providers'ı ve listeyi tazeleyecek.
   };
   addBtn.addEventListener('click', doAdd);
   input.addEventListener('keydown', (e) => {
@@ -368,7 +387,8 @@ function buildKeySection(p, keys, rotator) {
   });
 
   addRow.append(input, addBtn);
-  section.appendChild(addRow);
+  body.appendChild(addRow);
+  section.appendChild(body);
 
   return section;
 }

@@ -246,6 +246,7 @@ const en = {
       keyStateLimited: 'Rate limited ({{secs}}s)',
       keyStateInvalid: 'Invalid',
       keyCount: '{{n}} keys',
+      noKeysShort: '0 keys',
       btnRotateNext: 'Switch to next',
       btnRotateNextHint: 'Replace the active key with the next one in the list',
       keyIsActive: 'Currently in use',

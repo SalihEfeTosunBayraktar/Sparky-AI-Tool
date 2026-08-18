@@ -246,6 +246,7 @@ const tr = {
       keyStateLimited: 'Limit aşımında ({{secs}}sn)',
       keyStateInvalid: 'Geçersiz',
       keyCount: '{{n}} anahtar',
+      noKeysShort: '0 anahtar',
       btnRotateNext: 'Sıradakine geç',
       btnRotateNextHint: 'Aktif anahtarı listedeki bir sonrakiyle değiştir',
       keyIsActive: 'Şu an kullanılan anahtar',

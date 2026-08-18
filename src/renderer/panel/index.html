@@ -204,40 +204,42 @@
 
         <!-- 3. MODEL VE API PANE -->
         <section id="tab-providers" class="pane">
-          <h2 data-i18n="panel.sections.providerAndModel">Sağlayıcı ve Model Seçimi</h2>
-          <div class="card">
-            <div class="field">
-              <label for="provider" data-i18n="panel.fields.provider">Sağlayıcı</label>
-              <div class="inline">
-                <select id="provider"></select>
-                <button id="btnProbe" class="btn" data-i18n="panel.fields.btnProbe">Sunucuları tara</button>
+          <details class="accordion" open>
+            <summary><span data-i18n="panel.sections.providerAndModel">Sağlayıcı ve Model Seçimi</span> ▾</summary>
+            <div class="accordion-body">
+              <div class="field">
+                <label for="provider" data-i18n="panel.fields.provider">Sağlayıcı</label>
+                <div class="inline">
+                  <select id="provider"></select>
+                  <button id="btnProbe" class="btn" data-i18n="panel.fields.btnProbe">Sunucuları tara</button>
+                </div>
+                <p class="hint" id="providerHint"></p>
               </div>
-              <p class="hint" id="providerHint"></p>
-            </div>
 
-            <div class="field">
-              <label for="endpoint" data-i18n="panel.fields.endpoint">Sunucu Adresi</label>
-              <div class="inline">
-                <input id="endpoint" spellcheck="false" />
-                <button id="btnTest" class="btn" data-i18n="panel.fields.btnTest">Test et</button>
+              <div class="field">
+                <label for="endpoint" data-i18n="panel.fields.endpoint">Sunucu Adresi</label>
+                <div class="inline">
+                  <input id="endpoint" spellcheck="false" />
+                  <button id="btnTest" class="btn" data-i18n="panel.fields.btnTest">Test et</button>
+                </div>
+                <p class="hint" id="endpointHint"></p>
+                <p class="result" id="testResult" hidden></p>
               </div>
-              <p class="hint" id="endpointHint"></p>
-              <p class="result" id="testResult" hidden></p>
-            </div>
 
-            <div class="field">
-              <label for="model" data-i18n="panel.fields.model">Model</label>
-              <div class="inline">
-                <select id="model"></select>
-                <button id="btnModels" class="btn" data-i18n="panel.fields.btnModelsRefresh">Yenile</button>
+              <div class="field">
+                <label for="model" data-i18n="panel.fields.model">Model</label>
+                <div class="inline">
+                  <select id="model"></select>
+                  <button id="btnModels" class="btn" data-i18n="panel.fields.btnModelsRefresh">Yenile</button>
+                </div>
+                <p class="hint" data-i18n="panel.fields.modelManualHint">Model listede yoksa aşağıya elle yazabilirsiniz.</p>
+                <input id="modelManual" placeholder="Elle model adı (opsiyonel)" spellcheck="false" data-i18n-placeholder="panel.fields.modelManualPlaceholder" />
               </div>
-              <p class="hint" data-i18n="panel.fields.modelManualHint">Model listede yoksa aşağıya elle yazabilirsiniz.</p>
-              <input id="modelManual" placeholder="Elle model adı (opsiyonel)" spellcheck="false" data-i18n-placeholder="panel.fields.modelManualPlaceholder" />
             </div>
-          </div>
+          </details>
 
           <!-- Akordiyon Detaylar / Accordion Sections -->
-          <details class="accordion">
+          <details class="accordion" open>
             <summary><span data-i18n="panel.sections.apiKeys">API Anahtarları</span> ▾</summary>
             <div class="accordion-body">
               <p class="hint" id="cryptoNote"></p>

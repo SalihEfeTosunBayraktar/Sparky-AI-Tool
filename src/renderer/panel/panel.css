@@ -1008,24 +1008,64 @@ select option {
   padding-right: 6px;
 }
 
-.keygroup {
-  margin-bottom: 14px;
+.keygroup-details {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bg-field);
+  margin-bottom: 8px;
+  overflow: hidden;
+  transition: border-color 0.15s ease, background 0.15s ease;
 }
 
-.keygroup:last-child {
+.keygroup-details:last-child {
   margin-bottom: 0;
 }
 
-.keygroup-head {
+.keygroup-details[open] {
+  border-color: var(--line-strong, var(--line));
+}
+
+.keygroup-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+  background: transparent;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.keygroup-summary::-webkit-details-marker {
+  display: none;
+}
+
+.keygroup-summary:hover {
+  background: var(--accent-subtle);
+}
+
+.keygroup-title-group {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 2px;
+  flex: 1;
 }
 
-.keygroup-head .name {
-  flex: 1;
-  width: auto;
+.keygroup-chevron {
+  font-size: 10px;
+  color: var(--txt-dim);
+  display: inline-block;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: rotate(-90deg);
+}
+
+.keygroup-details[open] > .keygroup-summary .keygroup-chevron {
+  transform: rotate(0deg);
+  color: var(--accent);
+}
+
+.keygroup-summary .name {
   font-weight: 650;
   font-size: 12px;
   color: var(--txt);
@@ -1039,6 +1079,20 @@ select option {
   padding: 2px 7px;
   border-radius: 999px;
   flex: 0 0 auto;
+}
+
+.keycount.is-active-key {
+  color: var(--ok);
+  background: rgba(61, 220, 151, 0.12);
+  border: 1px solid rgba(61, 220, 151, 0.25);
+}
+
+.keygroup-body {
+  padding: 6px 10px 10px 10px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .keylist {
