@@ -12,7 +12,6 @@ const DEFAULTS = {
     ollama: 'http://127.0.0.1:11434',
     lmstudio: 'http://127.0.0.1:1234/v1',
     openai: 'https://api.openai.com/v1',
-    agentrouter: 'https://agentrouter.org/v1',
     anthropic: '',
     gemini: 'https://generativelanguage.googleapis.com/v1beta',
     custom: ''

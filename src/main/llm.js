@@ -38,15 +38,6 @@ const PROVIDERS = {
     defaultEndpoint: 'https://api.openai.com/v1',
     keyHint: 'platform.openai.com → API keys'
   },
-  agentrouter: {
-    id: 'agentrouter',
-    label: 'AgentRouter',
-    kind: 'openai',
-    needsKey: true,
-    defaultEndpoint: 'https://agentrouter.org/v1',
-    endpointHint: 'https://agentrouter.org/v1',
-    keyHint: 'agentrouter.org → API Keys'
-  },
   anthropic: {
     id: 'anthropic',
     label: 'Anthropic (Claude)',
@@ -70,7 +61,7 @@ const PROVIDERS = {
     kind: 'openai',
     needsKey: false,
     defaultEndpoint: '',
-    endpointHint: 'OpenRouter, AgentRouter, Groq, DeepSeek, Together, llama.cpp…',
+    endpointHint: 'OpenRouter, Groq, DeepSeek, Together, llama.cpp…',
     keyHint: 'Gerekiyorsa anahtar girin'
   }
 };
