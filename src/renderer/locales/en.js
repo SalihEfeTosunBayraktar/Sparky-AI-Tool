@@ -406,7 +406,7 @@ const en = {
   },
   picker: {
     btnTitle: 'Change Provider & Model',
-    title: '⚡ Quick Model & Provider',
+    title: 'Quick Model & Provider',
     apply: 'Apply & Save'
   },
   commands: {

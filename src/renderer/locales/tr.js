@@ -406,7 +406,7 @@ const tr = {
   },
   picker: {
     btnTitle: 'Sağlayıcı ve Model Değiştir',
-    title: '⚡ Hızlı Model & Sağlayıcı',
+    title: 'Hızlı Model & Sağlayıcı',
     apply: 'Uygula & Kaydet'
   },
   commands: {
