@@ -935,6 +935,26 @@ function populateProviderSelect() {
 
 const themeManager = typeof ThemeManager !== 'undefined' ? new ThemeManager() : null;
 
+function setupThemeAccordions() {
+  const accentSec = $('accentAccordion');
+  const accentToggle = $('accentAccordionToggle');
+  if (accentToggle && accentSec && !accentToggle.dataset.bound) {
+    accentToggle.dataset.bound = '1';
+    accentToggle.addEventListener('click', () => {
+      accentSec.classList.toggle('collapsed');
+    });
+  }
+
+  const shapeSec = $('shapeAccordion');
+  const shapeToggle = $('shapeAccordionToggle');
+  if (shapeToggle && shapeSec && !shapeToggle.dataset.bound) {
+    shapeToggle.dataset.bound = '1';
+    shapeToggle.addEventListener('click', () => {
+      shapeSec.classList.toggle('collapsed');
+    });
+  }
+}
+
 function renderAll() {
   if (typeof i18n !== 'undefined') {
     i18n.init(settings.appLanguage || 'tr');
@@ -961,6 +981,8 @@ function renderAll() {
       }, typeof i18n !== 'undefined' ? i18n : null);
     }
   }
+
+  setupThemeAccordions();
 
   renderProviderFields();
   renderKeys();

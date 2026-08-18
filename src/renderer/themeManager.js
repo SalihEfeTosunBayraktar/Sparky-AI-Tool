@@ -5,65 +5,25 @@
  * Tema, Vurgu Rengi ve Küre Geometrisi yöneticisi.
  */
 
-const ACCENT_PRESETS = [
-  {
-    id: 'sunset',
-    labelKey: 'theme.sunset',
-    gradient: 'linear-gradient(135deg, #FF6B4A, #E0287D)',
-    glow: 'rgba(255, 107, 74, 0.45)'
-  },
-  {
-    id: 'cyber',
-    labelKey: 'theme.cyber',
-    gradient: 'linear-gradient(135deg, #00F2FE, #4FACFE)',
-    glow: 'rgba(0, 242, 254, 0.45)'
-  },
-  {
-    id: 'emerald',
-    labelKey: 'theme.emerald',
-    gradient: 'linear-gradient(135deg, #10B981, #059669)',
-    glow: 'rgba(16, 185, 129, 0.45)'
-  },
-  {
-    id: 'amethyst',
-    labelKey: 'theme.amethyst',
-    gradient: 'linear-gradient(135deg, #8B5CF6, #EC4899)',
-    glow: 'rgba(139, 92, 246, 0.45)'
-  },
-  {
-    id: 'solar',
-    labelKey: 'theme.solar',
-    gradient: 'linear-gradient(135deg, #F59E0B, #EF4444)',
-    glow: 'rgba(245, 158, 11, 0.45)'
-  },
-  {
-    id: 'cosmic',
-    labelKey: 'theme.cosmic',
-    gradient: 'linear-gradient(135deg, #6366F1, #A855F7)',
-    glow: 'rgba(99, 102, 241, 0.45)'
-  },
-  {
-    id: 'ocean',
-    labelKey: 'theme.ocean',
-    gradient: 'linear-gradient(135deg, #06B6D4, #3B82F6)',
-    glow: 'rgba(6, 182, 212, 0.45)'
-  },
-  {
-    id: 'midnight',
-    labelKey: 'theme.midnight',
-    gradient: 'linear-gradient(135deg, #64748B, #334155)',
-    glow: 'rgba(100, 116, 139, 0.45)'
-  }
-];
+let ACCENT_PRESETS = [];
+let SHAPE_PRESETS = [];
 
-const SHAPE_PRESETS = [
-  { id: 'circle', labelKey: 'theme.shapeCircle', svgPath: '<circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="2"/>' },
-  { id: 'squircle', labelKey: 'theme.shapeSquircle', svgPath: '<rect x="4" y="4" width="16" height="16" rx="5" fill="none" stroke="currentColor" stroke-width="2"/>' },
-  { id: 'hexagon', labelKey: 'theme.shapeHexagon', svgPath: '<polygon points="12,3 20,7.5 20,16.5 12,21 4,16.5 4,7.5" fill="none" stroke="currentColor" stroke-width="2"/>' },
-  { id: 'diamond', labelKey: 'theme.shapeDiamond', svgPath: '<polygon points="12,3 21,12 12,21 3,12" fill="none" stroke="currentColor" stroke-width="2"/>' },
-  { id: 'octagon', labelKey: 'theme.shapeOctagon', svgPath: '<polygon points="8,3 16,3 21,8 21,16 16,21 8,21 3,16 3,8" fill="none" stroke="currentColor" stroke-width="2"/>' },
-  { id: 'triangle', labelKey: 'theme.shapeTriangle', svgPath: '<polygon points="12,3 21,19 3,19" fill="none" stroke="currentColor" stroke-width="2"/>' }
-];
+if (typeof require !== 'undefined') {
+  try {
+    const presets = require('./themePresets');
+    ACCENT_PRESETS = presets.ACCENT_PRESETS || [];
+    SHAPE_PRESETS = presets.SHAPE_PRESETS || [];
+  } catch {
+    // Browser global fallback
+  }
+}
+
+if (!ACCENT_PRESETS.length && typeof window !== 'undefined' && window.ACCENT_PRESETS) {
+  ACCENT_PRESETS = window.ACCENT_PRESETS;
+}
+if (!SHAPE_PRESETS.length && typeof window !== 'undefined' && window.SHAPE_PRESETS) {
+  SHAPE_PRESETS = window.SHAPE_PRESETS;
+}
 
 class ThemeManager {
   /**
@@ -122,7 +82,9 @@ class ThemeManager {
     if (!container) return;
     container.innerHTML = '';
 
-    for (const preset of ACCENT_PRESETS) {
+    const list = ACCENT_PRESETS.length ? ACCENT_PRESETS : (typeof window !== 'undefined' && window.ACCENT_PRESETS ? window.ACCENT_PRESETS : []);
+
+    for (const preset of list) {
       const isSelected = preset.id === this.currentAccent;
       const label = i18n && typeof i18n.t === 'function' ? (i18n.t(preset.labelKey) || preset.id) : preset.id;
 
@@ -158,9 +120,15 @@ class ThemeManager {
     if (!container) return;
     container.innerHTML = '';
 
-    const currentPreset = ACCENT_PRESETS.find((p) => p.id === this.currentAccent) || ACCENT_PRESETS[0];
+    const accList = ACCENT_PRESETS.length ? ACCENT_PRESETS : (typeof window !== 'undefined' && window.ACCENT_PRESETS ? window.ACCENT_PRESETS : []);
+    const shapeList = SHAPE_PRESETS.length ? SHAPE_PRESETS : (typeof window !== 'undefined' && window.SHAPE_PRESETS ? window.SHAPE_PRESETS : []);
 
-    for (const shape of SHAPE_PRESETS) {
+    const currentPreset = accList.find((p) => p.id === this.currentAccent) || accList[0] || {
+      gradient: 'linear-gradient(135deg, #FF6B4A, #E0287D)',
+      glow: 'rgba(255, 107, 74, 0.45)'
+    };
+
+    for (const shape of shapeList) {
       const isSelected = shape.id === this.currentShape;
       const label = i18n && typeof i18n.t === 'function' ? (i18n.t(shape.labelKey) || shape.id) : shape.id;
 

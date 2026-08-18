@@ -124,15 +124,38 @@
               </select>
             </div>
 
-            <div class="field" style="margin-top: 10px;">
-              <label data-i18n="theme.accentLabel">Vurgu Rengi &amp; Küre Avatarı (Accent &amp; Orb Skin)</label>
-              <div id="accentPicker" class="accent-picker-grid"></div>
+            <!-- Vurgu Rengi Akordeon Bölümü -->
+            <div id="accentAccordion" class="theme-accordion-section">
+              <div class="theme-accordion-header" id="accentAccordionToggle" role="button" tabindex="0" title="Genişlet / Daralt">
+                <div class="theme-accordion-title-group">
+                  <span class="theme-accordion-title" data-i18n="theme.accentLabel">Vurgu Rengi &amp; Küre Avatarı</span>
+                  <span class="theme-accordion-badge" id="accentsCountBadge">23 Renk</span>
+                </div>
+                <svg viewBox="0 0 24 24" class="theme-accordion-chevron" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </div>
+              <div class="theme-accordion-body">
+                <p class="hint" data-i18n="theme.accentSectionDesc" style="margin-top: 0; margin-bottom: 8px;">Arayüzün ve kürenin parlayan renk paletini belirleyin.</p>
+                <div id="accentPicker" class="accent-picker-grid"></div>
+              </div>
             </div>
 
-            <div class="field" style="margin-top: 14px;">
-              <label data-i18n="theme.shapeSectionTitle">Küre Geometrisi (Orb Shape)</label>
-              <p class="hint" data-i18n="theme.shapeSectionDesc">Yüzen kürenin geometrik şeklini özelleştirin; tüm renk paletleri ve ışımalar korunur.</p>
-              <div id="shapePicker" class="shape-picker-grid"></div>
+            <!-- Küre Geometrisi Akordeon Bölümü -->
+            <div id="shapeAccordion" class="theme-accordion-section">
+              <div class="theme-accordion-header" id="shapeAccordionToggle" role="button" tabindex="0" title="Genişlet / Daralt">
+                <div class="theme-accordion-title-group">
+                  <span class="theme-accordion-title" data-i18n="theme.shapeSectionTitle">Küre Geometrisi (Orb Shape)</span>
+                  <span class="theme-accordion-badge" id="shapesCountBadge">12 Geometri</span>
+                </div>
+                <svg viewBox="0 0 24 24" class="theme-accordion-chevron" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </div>
+              <div class="theme-accordion-body">
+                <p class="hint" data-i18n="theme.shapeSectionDesc" style="margin-top: 0; margin-bottom: 8px;">Yüzen kürenin geometrik şeklini özelleştirin; tüm renk paletleri ve ışımalar korunur.</p>
+                <div id="shapePicker" class="shape-picker-grid"></div>
+              </div>
             </div>
           </div>
 
@@ -370,6 +393,7 @@
     <script src="../locales/tr.js"></script>
     <script src="../locales/en.js"></script>
     <script src="../i18n.js"></script>
+    <script src="../themePresets.js"></script>
     <script src="../themeManager.js"></script>
     <script src="projectMemoryUI.js"></script>
     <script src="projectUI.js"></script>
