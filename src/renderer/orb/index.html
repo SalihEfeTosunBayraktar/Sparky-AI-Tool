@@ -135,11 +135,29 @@
           </div>
 
           <div class="row-label out">
-            <label for="output" data-i18n="card.promptOutputLabel">Prompt</label>
-            <span id="meta" class="meta"></span>
+            <div class="out-left-group">
+              <label for="output" data-i18n="card.promptOutputLabel">Prompt</label>
+              <!-- 3-Way Strategic Variation Tabs -->
+              <div id="variationTabs" class="variation-tabs" hidden>
+                <button class="var-tab" data-var="concise" data-i18n="assist.varConcise">⚡ Kısa</button>
+                <button class="var-tab active" data-var="structured" data-i18n="assist.varStructured">📐 Yapılandırılmış</button>
+                <button class="var-tab" data-var="deep" data-i18n="assist.varDeep">🧠 Derin</button>
+              </div>
+            </div>
+            <div class="out-right-group">
+              <button id="btnToggleViewMode" class="btn-toggle-view" title="Bloklar ve Ham Metin arasında geçiş yap" data-i18n-title="assist.toggleViewTitle" hidden>
+                <svg viewBox="0 0 16 16" width="12" height="12" fill="currentColor"><path d="M1 2.5A1.5 1.5 0 0 1 2.5 1h3A1.5 1.5 0 0 1 7 2.5v3A1.5 1.5 0 0 1 5.5 7h-3A1.5 1.5 0 0 1 1 5.5v-3zm8 0A1.5 1.5 0 0 1 10.5 1h3A1.5 1.5 0 0 1 15 2.5v3A1.5 1.5 0 0 1 13.5 7h-3A1.5 1.5 0 0 1 9 5.5v-3zm-8 8A1.5 1.5 0 0 1 2.5 9h3A1.5 1.5 0 0 1 7 10.5v3A1.5 1.5 0 0 1 5.5 15h-3A1.5 1.5 0 0 1 1 13.5v-3zm8 0A1.5 1.5 0 0 1 10.5 9h3a1.5 1.5 0 0 1 1.5 1.5v3a1.5 1.5 0 0 1-1.5 1.5h-3A1.5 1.5 0 0 1 9 13.5v-3z"/></svg>
+                <span data-i18n="assist.blockMode">Bloklar</span>
+              </button>
+              <span id="meta" class="meta"></span>
+            </div>
           </div>
-          <div id="output" class="output" tabindex="0">
-            <div class="empty" data-i18n="card.emptyPrompt">Üretilen prompt burada belirecek.</div>
+
+          <div id="outputWrapper" class="output-wrapper">
+            <div id="promptBlocksContainer" class="prompt-blocks-container" hidden></div>
+            <div id="output" class="output" tabindex="0">
+              <div class="empty" data-i18n="card.emptyPrompt">Üretilen prompt burada belirecek.</div>
+            </div>
           </div>
 
           <!-- Model netleştirme sorusu sorduğunda çıktının yerini alır -->
@@ -220,6 +238,7 @@
     <script src="notificationQueue.js"></script>
     <script src="multimodalRenderer.js"></script>
     <script src="contextGauge.js"></script>
+    <script src="promptAssistUI.js"></script>
     <script src="app.js"></script>
   </body>
 </html>

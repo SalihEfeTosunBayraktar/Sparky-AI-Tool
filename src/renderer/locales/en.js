@@ -78,6 +78,17 @@ const en = {
     imageLimitReached: 'Image limit reached',
     duplicateImageWarning: 'This image has already been attached.'
   },
+  assist: {
+    varConcise: '⚡ Concise',
+    varStructured: '📐 Structured',
+    varDeep: '🧠 Deep',
+    blockMode: 'Blocks',
+    rawMode: 'Raw Text',
+    toggleViewTitle: 'Toggle between Blocks and Raw Markdown',
+    refineBlock: 'Rewrite / Refine this section',
+    deleteBlock: 'Delete this section',
+    refinePromptQuestion: 'How should we refine this section? (e.g. make it shorter, add negative constraints)'
+  },
   modes: {
     activeTitle: 'Operation Mode',
     normalChat: '💬 Normal Chat',

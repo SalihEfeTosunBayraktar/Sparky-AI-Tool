@@ -78,6 +78,17 @@ const tr = {
     imageLimitReached: 'Görsel sınırına ulaşıldı',
     duplicateImageWarning: 'Bu görsel zaten eklenmiş.'
   },
+  assist: {
+    varConcise: '⚡ Kısa',
+    varStructured: '📐 Yapılandırılmış',
+    varDeep: '🧠 Derin',
+    blockMode: 'Bloklar',
+    rawMode: 'Ham Metin',
+    toggleViewTitle: 'Bloklar ve Ham Metin arasında geçiş yap',
+    refineBlock: 'Bu Bölümü Yeniden Yaz / Düzenle',
+    deleteBlock: 'Bu Bölümü Sil',
+    refinePromptQuestion: 'Bu bölümü nasıl düzenleyelim? (Örn: daha kısa yap, negatif kural ekle)'
+  },
   modes: {
     activeTitle: 'Çalışma Modu',
     normalChat: '💬 Normal Sohbet',

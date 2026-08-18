@@ -414,16 +414,20 @@ function appendToken(chunk) {
 }
 
 const multimodalRenderer = typeof MultimodalRenderer !== 'undefined' ? new MultimodalRenderer() : null;
+let promptAssistUI = null;
 
 function setOutput(text) {
   state.output = text;
   state.hasResult = !!text;
   if (!text) {
     renderEmpty();
+    if (promptAssistUI) promptAssistUI.setContent('');
   } else if (multimodalRenderer && (text.includes('![') || text.includes('data:image/'))) {
     multimodalRenderer.render(outputEl, text);
+    if (promptAssistUI) promptAssistUI.setContent('');
   } else {
     outputEl.textContent = text;
+    if (promptAssistUI) promptAssistUI.setContent(text);
   }
   outputEl.scrollTop = 0;
   for (const id of ['btnCopy', 'btnCopyClose', 'btnRegen', 'btnRefine']) {
@@ -1077,6 +1081,46 @@ if (api.on.tokensUpdated) {
     contextGauge = new ContextGauge(gaugeEl, { api, i18n });
     await refreshContextGauge();
   }
+
+  if (typeof PromptAssistUI !== 'undefined') {
+    promptAssistUI = new PromptAssistUI({
+      tabsContainer: $('variationTabs'),
+      blocksContainer: $('promptBlocksContainer'),
+      rawTextarea: outputEl,
+      toggleViewBtn: $('btnToggleViewMode')
+    }, {
+      api,
+      i18n,
+      onPromptChange: (updatedText) => {
+        state.output = updatedText;
+        for (const id of ['btnCopy', 'btnCopyClose', 'btnRegen', 'btnRefine']) {
+          const el = $(id);
+          if (el) el.disabled = !updatedText;
+        }
+      }
+    });
+
+    document.querySelectorAll('.var-tab').forEach((tab) => {
+      tab.addEventListener('click', async () => {
+        document.querySelectorAll('.var-tab').forEach((t) => t.classList.remove('active'));
+        tab.classList.add('active');
+        const varType = tab.dataset.var;
+        if (promptAssistUI) {
+          promptAssistUI.activeVariation = varType;
+          if (promptAssistUI.variations[varType]) {
+            promptAssistUI.setContent(promptAssistUI.variations[varType]);
+          } else {
+            const raw = state.lastInput || inputEl.value.trim();
+            if (raw) {
+              const targetStyle = varType === 'concise' ? 'concise' : (varType === 'deep' ? 'research' : 'detailed');
+              await startGeneration({ raw, image: imageHandler.getImage(), mode: 'create', styleOverride: targetStyle });
+            }
+          }
+        }
+      });
+    });
+  }
+
   renderEmpty();
   setStatus({ text: settings.model ? i18n.t('app.ready') : i18n.t('app.selectModel'), kind: settings.model ? 'idle' : 'info' });
 })();

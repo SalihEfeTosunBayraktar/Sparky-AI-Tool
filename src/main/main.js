@@ -30,6 +30,7 @@ const TokenTracker = require('./tokenTracker');
 const tokenTracker = new TokenTracker();
 const ProjectMemory = require('./projectMemory');
 const projectMemory = new ProjectMemory({ projectsStore: projects });
+const PromptAssistEngine = require('./promptAssistEngine');
 
 // Windows görev çubuğunda ikonun doğru eşleşmesi için (AppUserModelId)
 if (process.platform === 'win32') {
@@ -1007,6 +1008,22 @@ function registerIpc() {
       return { ok: true, memory: p.memory };
     }
     return { ok: false, error: 'Project not found' };
+  });
+
+  // --- prompt assist (3 varyasyon & blok ayrıştırma/düzenleme)
+  ipcMain.handle('assist:getStrategies', () => PromptAssistEngine.getStrategies());
+  ipcMain.handle('assist:parseBlocks', (_e, text) => PromptAssistEngine.parseBlocks(text));
+  ipcMain.handle('assist:serializeBlocks', (_e, blocks) => PromptAssistEngine.serializeBlocks(blocks));
+  ipcMain.handle('assist:refineBlock', async (_e, { fullText, blockType, currentContent, instruction }) => {
+    const cfg = settings.all();
+    return PromptAssistEngine.refineBlock({
+      fullText,
+      blockType,
+      currentContent,
+      instruction,
+      chat: (params) => chatWithRotationNotice(params),
+      cfg
+    });
   });
 
   // --- kabuk

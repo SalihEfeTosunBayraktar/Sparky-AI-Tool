@@ -113,6 +113,13 @@ contextBridge.exposeInMainWorld('sparky', {
     update: (projectId, data) => ipcRenderer.invoke('memory:update', projectId, data)
   },
 
+  assist: {
+    getStrategies: () => ipcRenderer.invoke('assist:getStrategies'),
+    parseBlocks: (text) => ipcRenderer.invoke('assist:parseBlocks', text),
+    serializeBlocks: (blocks) => ipcRenderer.invoke('assist:serializeBlocks', blocks),
+    refineBlock: (payload) => ipcRenderer.invoke('assist:refineBlock', payload)
+  },
+
   shell: {
     openUserData: () => ipcRenderer.invoke('shell:openUserData')
   },
