@@ -24,125 +24,11 @@
 const fs = require('fs');
 const path = require('path');
 const { app } = require('electron');
-const { NORMAL_CHAT_BASE_RULES, BASE_RULES } = require('./promptEngine');
+const { CATEGORIES, PRESETS, getPreset } = require('./agentPresets');
 
 const FILE_PATH = path.join(app.getPath('userData'), 'modes.json');
 
-// Yeni bir (özel) mod oluştururken seçilebilen ön modlar. Her biri
-// mainRule/additionalRules/useStyleGuide için başlangıç şablonu sağlar VE
-// bir örnek galerisi gibi işlev görür: her preset, 20 değişkenin (bkz.
-// VARIABLES) bir alt kümesini SOMUT olarak kullanarak kullanıcıya "bununla
-// neler yapabilirim" sorusuna doğrudan cevap verir. `descriptionKey`, hem
-// ön mod seçicide alt başlık olarak hem de o presetten yeni mod
-// oluşturulduğunda modun başlangıç açıklaması olarak kullanılır.
-const PRESETS = [
-  {
-    id: 'blank',
-    labelKey: 'modes.presetBlank',
-    descriptionKey: 'modes.presetBlankDesc',
-    mainRule: '',
-    additionalRules: [],
-    useStyleGuide: false
-  },
-  {
-    id: 'plain',
-    labelKey: 'modes.presetPlain',
-    descriptionKey: 'modes.presetPlainDesc',
-    mainRule: NORMAL_CHAT_BASE_RULES,
-    additionalRules: [],
-    useStyleGuide: false
-  },
-  {
-    id: 'technical',
-    labelKey: 'modes.presetTechnical',
-    descriptionKey: 'modes.presetTechnicalDesc',
-    mainRule: BASE_RULES,
-    additionalRules: [
-      'Prefer precise, unambiguous technical vocabulary; assume an experienced practitioner audience.',
-      'Include concrete technical details (versions, protocols, data shapes) whenever the note implies them.'
-    ],
-    useStyleGuide: true
-  },
-  {
-    id: 'summary',
-    labelKey: 'modes.presetSummary',
-    descriptionKey: 'modes.presetSummaryDesc',
-    mainRule: "You are Sparky AI. Read the user's note and respond with a clear, faithful summary of it.",
-    additionalRules: [
-      'Preserve key facts, numbers, names, and constraints exactly as given.',
-      'Prefer bullet points over long paragraphs.',
-      'Target well under 150 words unless the note is long enough that this would lose essential information.'
-    ],
-    useStyleGuide: false
-  },
-  {
-    id: 'creative',
-    labelKey: 'modes.presetCreative',
-    descriptionKey: 'modes.presetCreativeDesc',
-    mainRule:
-      "You are Sparky AI in creative mode. Turn the user's note into something imaginative and unexpected — a vivid scene, a punchy tagline, a bold reframing, a short story beat — while staying true to its core idea. Surprise the reader; don't just restate the note.",
-    additionalRules: [
-      'Avoid the obvious or clichéd angle; find a fresher one.',
-      'Keep it vivid and concrete — no generic filler adjectives.',
-      'Respond in {{LANG}}.'
-    ],
-    useStyleGuide: false
-  },
-  {
-    id: 'daily',
-    labelKey: 'modes.presetDaily',
-    descriptionKey: 'modes.presetDailyDesc',
-    mainRule:
-      "You are Sparky AI in daily-note mode. It is {{WEEKDAY}}, {{DATE}} ({{TIME}}). Turn the user's raw note into a clear, dated journal-style entry that a future reader could skim and understand instantly.",
-    additionalRules: [
-      'Start with a one-line date/time header.',
-      'Keep the tone personal and direct, as if written by the user themself.'
-    ],
-    useStyleGuide: false
-  },
-  {
-    id: 'project_aware',
-    labelKey: 'modes.presetProjectAware',
-    descriptionKey: 'modes.presetProjectAwareDesc',
-    mainRule:
-      "You are a specialist consultant embedded in the '{{PROJECT}}' project ({{PROJECT_DESC}}). Use the project's own notes as ground truth context:\n{{PROJECT_NOTES}}\n\nAnswer the user's request with this context in mind — don't ask them to repeat what's already in the notes.",
-    additionalRules: ["If the notes contradict the request, point out the conflict instead of silently picking one."],
-    useStyleGuide: false
-  },
-  {
-    id: 'transparent',
-    labelKey: 'modes.presetTransparent',
-    descriptionKey: 'modes.presetTransparentDesc',
-    mainRule:
-      'You are Sparky AI. Current run configuration: model {{MODEL}} via {{PROVIDER}}, temperature {{TEMPERATURE}}, effort {{EFFORT}}, deep mode {{DEEP_MODE}}, generation type {{GENERATION_MODE}}. Briefly note this configuration in one line, then respond directly and helpfully to the user\'s request.',
-    additionalRules: [],
-    useStyleGuide: false
-  },
-  {
-    id: 'interview',
-    labelKey: 'modes.presetInterview',
-    descriptionKey: 'modes.presetInterviewDesc',
-    mainRule:
-      'You are Sparky AI, synthesizing a brief from a note and any clarifying answers.\n\nRAW NOTE:\n{{INPUT}}\n\n{{ANSWERS}}\n\nProduce ONE unified, well-organized brief that folds any answers into the note seamlessly.',
-    additionalRules: ['If there are no clarifying answers, work from the raw note alone.'],
-    useStyleGuide: false
-  },
-  {
-    id: 'style_aware',
-    labelKey: 'modes.presetStyleAware',
-    descriptionKey: 'modes.presetStyleAwareDesc',
-    mainRule:
-      "You are Sparky AI. The user selected the '{{STYLE}}' output format ({{STYLE_HINT}}). Shape your response to match that format's intent precisely, in your own words — you are not using the built-in style engine, so make the format choice count.",
-    additionalRules: [],
-    useStyleGuide: false
-  }
-];
-
-// Mod metinlerinde ({{KEY}} biçiminde) yazılıp kullanılabilen, gerçekten
-// üretim anında yerine geçen değişkenler. modeUI.js bunları hem bir IDE/liste
-// panelinde gösterir hem de metinde bilinmeyen bir {{...}} token'ı varsa
-// uyarmak için kullanır. Buraya yeni bir değişken eklerseniz karşılığını
-// promptEngine.js'deki buildSystem()'in tokenMap'ine de eklemeniz gerekir.
+// Mod metinlerinde ({{KEY}} biçiminde) yazılıp kullanılabilen değişkenler
 const VARIABLES = [
   { key: 'LANG', type: 'string', descriptionKey: 'modes.varLangDesc' },
   { key: 'PROJECT', type: 'string', descriptionKey: 'modes.varProjectDesc' },
@@ -170,6 +56,7 @@ const BUILTIN_SEEDS = [
   {
     id: 'normal-chat',
     builtin: true,
+    category: 'core',
     labelKey: 'modes.normalChat',
     name: 'Normal Sohbet',
     description: '',
@@ -178,16 +65,13 @@ const BUILTIN_SEEDS = [
   {
     id: 'prompt-preparer',
     builtin: true,
+    category: 'core',
     labelKey: 'modes.promptPreparer',
     name: 'Prompt Hazırlayıcı',
     description: '',
     basePreset: 'technical'
   }
 ];
-
-function getPreset(id) {
-  return PRESETS.find((p) => p.id === id) || PRESETS.find((p) => p.id === 'blank');
-}
 
 function seededFields(basePreset) {
   const preset = getPreset(basePreset);
@@ -278,7 +162,16 @@ function nameTaken(data, name, excludeId) {
 
 const modes = {
   presets() {
-    return PRESETS.map((p) => ({ id: p.id, labelKey: p.labelKey, descriptionKey: p.descriptionKey }));
+    return PRESETS.map((p) => ({
+      id: p.id,
+      category: p.category || 'core',
+      labelKey: p.labelKey,
+      descriptionKey: p.descriptionKey
+    }));
+  },
+
+  categories() {
+    return CATEGORIES;
   },
 
   variables() {
@@ -286,7 +179,14 @@ const modes = {
   },
 
   list() {
-    return loadData().modes;
+    const data = loadData();
+    return data.modes.map((m) => {
+      const preset = getPreset(m.basePreset);
+      return {
+        ...m,
+        category: m.category || (preset ? preset.category : 'core') || 'core'
+      };
+    });
   },
 
   get(id) {

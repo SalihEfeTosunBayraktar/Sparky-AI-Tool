@@ -895,7 +895,7 @@ function applySettings(s) {
   if (!s) return;
   state.settings = s;
   if (themeManager) {
-    themeManager.applyTheme(s.theme || 'dark', s.accent || 'sunset');
+    themeManager.applyTheme(s.theme || 'dark', s.accent || 'sunset', s.orbShape || 'circle');
   }
   if (typeof i18n !== 'undefined' && s.appLanguage) {
     i18n.init(s.appLanguage);
@@ -1097,14 +1097,47 @@ async function populateModes() {
   if (!modeSel) return;
   const catalog = await api.modes.catalog();
   const activeMode = await api.modes.getActive();
+  let categories = [];
+  try {
+    if (api.modes.categories) categories = await api.modes.categories();
+  } catch {
+    categories = [];
+  }
 
   modeSel.innerHTML = '';
-  for (const m of catalog) {
-    const opt = document.createElement('option');
-    opt.value = m.id;
-    opt.textContent = m.labelKey ? (i18n.t(m.labelKey) || m.id) : m.name;
-    if (m.id === activeMode) opt.selected = true;
-    modeSel.appendChild(opt);
+
+  if (categories && categories.length) {
+    const grouped = {};
+    categories.forEach((c) => { grouped[c.id] = []; });
+    (catalog || []).forEach((m) => {
+      const catId = m.category || 'core';
+      if (!grouped[catId]) grouped[catId] = [];
+      grouped[catId].push(m);
+    });
+
+    categories.forEach((c) => {
+      const items = grouped[c.id] || [];
+      if (!items.length) return;
+      const groupEl = document.createElement('optgroup');
+      const catLabel = i18n.t(c.labelKey) || c.id;
+      groupEl.label = `${c.icon || ''} ${catLabel}`.trim();
+      items.forEach((m) => {
+        const opt = document.createElement('option');
+        opt.value = m.id;
+        opt.textContent = m.labelKey ? (i18n.t(m.labelKey) || m.id) : m.name;
+        if (m.id === activeMode) opt.selected = true;
+        groupEl.appendChild(opt);
+      });
+      modeSel.appendChild(groupEl);
+    });
+  } else {
+    for (const m of (catalog || [])) {
+      const opt = document.createElement('option');
+      opt.value = m.id;
+      opt.textContent = m.labelKey ? (i18n.t(m.labelKey) || m.id) : m.name;
+      if (m.id === activeMode) opt.selected = true;
+      modeSel.appendChild(opt);
+    }
   }
 
   updateModeLayout(activeMode);

@@ -104,6 +104,7 @@ contextBridge.exposeInMainWorld('sparky', {
     export: () => ipcRenderer.invoke('modes:export'),
     import: () => ipcRenderer.invoke('modes:import'),
     presets: () => ipcRenderer.invoke('modes:presets'),
+    categories: () => ipcRenderer.invoke('modes:categories'),
     variables: () => ipcRenderer.invoke('modes:variables')
   },
 

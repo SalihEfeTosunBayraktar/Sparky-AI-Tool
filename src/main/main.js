@@ -954,8 +954,9 @@ function registerIpc() {
 
   // --- modlar (modes) — projeler ile aynı CRUD deseni (bkz. src/main/modes.js)
   ipcMain.handle('modes:catalog', () =>
-    modes.list().map((m) => ({ id: m.id, labelKey: m.labelKey || null, name: m.name, builtin: !!m.builtin }))
+    modes.list().map((m) => ({ id: m.id, labelKey: m.labelKey || null, name: m.name, builtin: !!m.builtin, category: m.category || 'core' }))
   );
+  ipcMain.handle('modes:categories', () => modes.categories());
   ipcMain.handle('modes:presets', () => modes.presets());
   ipcMain.handle('modes:variables', () => modes.variables());
   ipcMain.handle('modes:getActive', () => modes.getActiveId());

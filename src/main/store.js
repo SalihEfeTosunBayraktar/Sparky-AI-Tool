@@ -23,6 +23,7 @@ const DEFAULTS = {
   appLanguage: 'en',
   theme: 'dark',
   accent: 'sunset',
+  orbShape: 'circle',
   appMode: 'normal-chat',
   deepMode: false,
   autoMode: false,

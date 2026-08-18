@@ -385,21 +385,47 @@ class ModeUI {
     if (!this.variables) this.variables = await this.api.modes.variables();
 
     const presetListEl = $('presetDropdownList');
-    if (presetListEl && !presetListEl.dataset.built) {
-      presetListEl.dataset.built = '1';
-      // Her preset, adının altında hangi değişkenleri gösterdiğini anlatan
-      // bir alt satırla birlikte listelenir — kullanıcı seçmeden önce "bu
-      // örnekle neler yapabilirim" sorusuna cevap görsün diye.
-      presetListEl.innerHTML = this.presets
-        .map(
-          (p) => `
+      let categories = [];
+      try {
+        if (this.api.modes.categories) categories = await this.api.modes.categories();
+      } catch {
+        categories = [];
+      }
+      if (!categories || !categories.length) {
+        categories = [
+          { id: 'core', labelKey: 'modes.catCore', icon: '⚡' },
+          { id: 'engineering', labelKey: 'modes.catEngineering', icon: '💻' },
+          { id: 'creative', labelKey: 'modes.catCreative', icon: '🎨' },
+          { id: 'strategy', labelKey: 'modes.catStrategy', icon: '📈' },
+          { id: 'learning', labelKey: 'modes.catLearning', icon: '🎓' },
+          { id: 'productivity', labelKey: 'modes.catProductivity', icon: '🛠️' }
+        ];
+      }
+
+      const groupedPresets = {};
+      categories.forEach((c) => { groupedPresets[c.id] = []; });
+      this.presets.forEach((p) => {
+        const cat = p.category || 'core';
+        if (!groupedPresets[cat]) groupedPresets[cat] = [];
+        groupedPresets[cat].push(p);
+      });
+
+      let html = '';
+      categories.forEach((c) => {
+        const items = groupedPresets[c.id] || [];
+        if (!items.length) return;
+        const catTitle = this.i18n.t(c.labelKey) || c.id;
+        html += `<div class="mode-dropdown-group-header">${c.icon || ''} ${escapeHtml(catTitle)}</div>`;
+        items.forEach((p) => {
+          html += `
             <div class="mode-dropdown-item preset-item" data-id="${p.id}">
               <div class="preset-item-name">${escapeHtml(this.i18n.t(p.labelKey) || p.id)}</div>
               <div class="preset-item-desc">${escapeHtml(this.i18n.t(p.descriptionKey) || '')}</div>
             </div>
-          `
-        )
-        .join('');
+          `;
+        });
+      });
+      presetListEl.innerHTML = html;
       if (!this.selectedPresetId) this.selectedPresetId = this.presets[0] && this.presets[0].id;
       this.updatePresetDropdownButton();
     }
@@ -415,13 +441,27 @@ class ModeUI {
       this.activeEditingId = activeId || (list[0] && list[0].id);
     }
 
-    modeListEl.innerHTML = list
-      .map((m) => {
+    const groupedModes = {};
+    categories.forEach((c) => { groupedModes[c.id] = []; });
+    list.forEach((m) => {
+      const cat = m.category || 'core';
+      if (!groupedModes[cat]) groupedModes[cat] = [];
+      groupedModes[cat].push(m);
+    });
+
+    let modeHtml = '';
+    categories.forEach((c) => {
+      const items = groupedModes[c.id] || [];
+      if (!items.length) return;
+      const catTitle = this.i18n.t(c.labelKey) || c.id;
+      modeHtml += `<div class="mode-dropdown-group-header">${c.icon || ''} ${escapeHtml(catTitle)}</div>`;
+      items.forEach((m) => {
         const label = m.labelKey ? this.i18n.t(m.labelKey) : m.name;
         const suffix = m.id === activeId ? ` (${this.i18n.t('modes.activeLabel') || 'Aktif'})` : '';
-        return `<div class="mode-dropdown-item" data-id="${m.id}">${m.id === activeId ? '★ ' : ''}${escapeHtml(label)}${escapeHtml(suffix)}</div>`;
-      })
-      .join('');
+        modeHtml += `<div class="mode-dropdown-item" data-id="${m.id}">${m.id === activeId ? '★ ' : ''}${escapeHtml(label)}${escapeHtml(suffix)}</div>`;
+      });
+    });
+    modeListEl.innerHTML = modeHtml;
 
     const currentForBtn = list.find((m) => m.id === this.activeEditingId);
     if (currentForBtn) {

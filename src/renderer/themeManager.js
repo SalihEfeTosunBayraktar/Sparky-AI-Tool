@@ -1,8 +1,8 @@
 'use strict';
 
 /**
- * ThemeManager — Dynamic Theme & Accent Palette Controller for Sparky AI.
- * Tema ve Vurgu Rengi / Küre Avatarı yöneticisi.
+ * ThemeManager — Dynamic Theme, Accent Palette & Geometric Shape Controller for Sparky AI.
+ * Tema, Vurgu Rengi ve Küre Geometrisi yöneticisi.
  */
 
 const ACCENT_PRESETS = [
@@ -56,10 +56,19 @@ const ACCENT_PRESETS = [
   }
 ];
 
+const SHAPE_PRESETS = [
+  { id: 'circle', labelKey: 'theme.shapeCircle', svgPath: '<circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="2"/>' },
+  { id: 'squircle', labelKey: 'theme.shapeSquircle', svgPath: '<rect x="4" y="4" width="16" height="16" rx="5" fill="none" stroke="currentColor" stroke-width="2"/>' },
+  { id: 'hexagon', labelKey: 'theme.shapeHexagon', svgPath: '<polygon points="12,3 20,7.5 20,16.5 12,21 4,16.5 4,7.5" fill="none" stroke="currentColor" stroke-width="2"/>' },
+  { id: 'diamond', labelKey: 'theme.shapeDiamond', svgPath: '<polygon points="12,3 21,12 12,21 3,12" fill="none" stroke="currentColor" stroke-width="2"/>' },
+  { id: 'octagon', labelKey: 'theme.shapeOctagon', svgPath: '<polygon points="8,3 16,3 21,8 21,16 16,21 8,21 3,16 3,8" fill="none" stroke="currentColor" stroke-width="2"/>' },
+  { id: 'triangle', labelKey: 'theme.shapeTriangle', svgPath: '<polygon points="12,3 21,19 3,19" fill="none" stroke="currentColor" stroke-width="2"/>' }
+];
+
 class ThemeManager {
   /**
    * @param {Object} [options]
-   * @param {HTMLElement} [options.targetEl] - Element to apply data-theme and data-accent (defaults to html)
+   * @param {HTMLElement} [options.targetEl] - Element to apply data-theme and data-accent
    * @param {Function} [options.onChange] - Callback when theme or accent updates
    */
   constructor(options = {}) {
@@ -67,22 +76,18 @@ class ThemeManager {
     this.onChange = options.onChange || null;
     this.currentMode = 'dark';
     this.currentAccent = 'sunset';
+    this.currentShape = 'circle';
     this.mediaQuery = typeof window !== 'undefined' && window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
 
     if (this.mediaQuery) {
       this.mediaQuery.addEventListener('change', () => {
         if (this.currentMode === 'system') {
-          this.applyTheme(this.currentMode, this.currentAccent);
+          this.applyTheme(this.currentMode, this.currentAccent, this.currentShape);
         }
       });
     }
   }
 
-  /**
-   * Resolves effective theme mode taking 'system' into account.
-   * @param {string} mode - 'dark' | 'light' | 'system'
-   * @returns {'dark' | 'light'}
-   */
   resolveMode(mode) {
     if (mode === 'system') {
       return this.mediaQuery && this.mediaQuery.matches ? 'dark' : 'light';
@@ -90,33 +95,29 @@ class ThemeManager {
     return mode === 'light' ? 'light' : 'dark';
   }
 
-  /**
-   * Applies the theme and accent palette to the DOM.
-   * @param {string} mode - 'dark' | 'light' | 'system'
-   * @param {string} accent - 'sunset' | 'cyber' | 'emerald' | 'amethyst'
-   */
-  applyTheme(mode = 'dark', accent = 'sunset') {
+  applyTheme(mode = 'dark', accent = 'sunset', shape = 'circle') {
     this.currentMode = mode || 'dark';
     this.currentAccent = accent || 'sunset';
+    this.currentShape = shape || 'circle';
 
     const effectiveMode = this.resolveMode(this.currentMode);
 
     if (this.targetEl) {
       this.targetEl.setAttribute('data-theme', effectiveMode);
       this.targetEl.setAttribute('data-accent', this.currentAccent);
+      this.targetEl.setAttribute('data-shape', this.currentShape);
     }
 
     if (typeof this.onChange === 'function') {
-      this.onChange({ mode: this.currentMode, effectiveMode, accent: this.currentAccent });
+      this.onChange({
+        mode: this.currentMode,
+        effectiveMode,
+        accent: this.currentAccent,
+        shape: this.currentShape
+      });
     }
   }
 
-  /**
-   * Renders the circular accent avatar swatches inside a container.
-   * @param {HTMLElement} container
-   * @param {Function} onSelect - Callback when user clicks a swatch
-   * @param {Object} [i18n] - Localization helper
-   */
   renderPicker(container, onSelect, i18n) {
     if (!container) return;
     container.innerHTML = '';
@@ -143,9 +144,47 @@ class ThemeManager {
       swatch.addEventListener('click', () => {
         container.querySelectorAll('.accent-swatch-item').forEach((el) => el.classList.remove('active'));
         swatch.classList.add('active');
-        this.applyTheme(this.currentMode, preset.id);
+        this.applyTheme(this.currentMode, preset.id, this.currentShape);
         if (typeof onSelect === 'function') {
           onSelect(preset.id);
+        }
+      });
+
+      container.appendChild(swatch);
+    }
+  }
+
+  renderShapePicker(container, onSelect, i18n) {
+    if (!container) return;
+    container.innerHTML = '';
+
+    const currentPreset = ACCENT_PRESETS.find((p) => p.id === this.currentAccent) || ACCENT_PRESETS[0];
+
+    for (const shape of SHAPE_PRESETS) {
+      const isSelected = shape.id === this.currentShape;
+      const label = i18n && typeof i18n.t === 'function' ? (i18n.t(shape.labelKey) || shape.id) : shape.id;
+
+      const swatch = document.createElement('button');
+      swatch.type = 'button';
+      swatch.className = `shape-swatch-item${isSelected ? ' active' : ''}`;
+      swatch.dataset.shape = shape.id;
+      swatch.title = label;
+
+      swatch.innerHTML = `
+        <span class="swatch-shape-preview shape-${shape.id}" style="background: ${currentPreset.gradient}; box-shadow: 0 0 10px ${currentPreset.glow};">
+          <svg viewBox="0 0 24 24" class="shape-icon" aria-hidden="true">
+            ${shape.svgPath}
+          </svg>
+        </span>
+        <span class="swatch-label">${label}</span>
+      `;
+
+      swatch.addEventListener('click', () => {
+        container.querySelectorAll('.shape-swatch-item').forEach((el) => el.classList.remove('active'));
+        swatch.classList.add('active');
+        this.applyTheme(this.currentMode, this.currentAccent, shape.id);
+        if (typeof onSelect === 'function') {
+          onSelect(shape.id);
         }
       });
 
@@ -155,5 +194,5 @@ class ThemeManager {
 }
 
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { ThemeManager, ACCENT_PRESETS };
+  module.exports = { ThemeManager, ACCENT_PRESETS, SHAPE_PRESETS };
 }

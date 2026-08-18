@@ -944,11 +944,22 @@ function renderAll() {
   }
 
   if (themeManager) {
-    themeManager.applyTheme(settings.theme || 'dark', settings.accent || 'sunset');
+    themeManager.applyTheme(settings.theme || 'dark', settings.accent || 'sunset', settings.orbShape || 'circle');
     if ($('themeMode')) $('themeMode').value = settings.theme || 'dark';
     themeManager.renderPicker($('accentPicker'), async (newAccent) => {
       await save({ accent: newAccent });
+      if ($('shapePicker')) {
+        themeManager.renderShapePicker($('shapePicker'), async (newShape) => {
+          await save({ orbShape: newShape });
+        }, typeof i18n !== 'undefined' ? i18n : null);
+      }
     }, typeof i18n !== 'undefined' ? i18n : null);
+
+    if ($('shapePicker')) {
+      themeManager.renderShapePicker($('shapePicker'), async (newShape) => {
+        await save({ orbShape: newShape });
+      }, typeof i18n !== 'undefined' ? i18n : null);
+    }
   }
 
   renderProviderFields();

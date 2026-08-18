@@ -3,7 +3,7 @@
 const test = require('node:test');
 const assert = require('node:assert');
 
-const { ThemeManager, ACCENT_PRESETS } = require('../src/renderer/themeManager');
+const { ThemeManager, ACCENT_PRESETS, SHAPE_PRESETS } = require('../src/renderer/themeManager');
 
 function createMockElement() {
   const attrs = {};
@@ -30,18 +30,27 @@ test('=== Running ThemeManager Unit Tests ===', async (t) => {
     }
   });
 
-  await t.test('2. Mode Resolution: resolves dark, light, and fallback correctly', () => {
+  await t.test('2. Shape Presets: contains all 6 geometric shapes', () => {
+    assert.strictEqual(SHAPE_PRESETS.length, 6);
+    const shapeIds = SHAPE_PRESETS.map((s) => s.id);
+    assert.deepStrictEqual(shapeIds, ['circle', 'squircle', 'hexagon', 'diamond', 'octagon', 'triangle']);
+    for (const shape of SHAPE_PRESETS) {
+      assert.ok(shape.svgPath);
+      assert.ok(shape.labelKey);
+    }
+  });
+
+  await t.test('3. Mode Resolution: resolves dark, light, and fallback correctly', () => {
     const targetEl = createMockElement();
     const mgr = new ThemeManager({ targetEl });
 
     assert.strictEqual(mgr.resolveMode('dark'), 'dark');
     assert.strictEqual(mgr.resolveMode('light'), 'light');
-    // Without matchMedia mock in node environment, system defaults to light/dark
     const sysMode = mgr.resolveMode('system');
     assert.ok(sysMode === 'dark' || sysMode === 'light');
   });
 
-  await t.test('3. DOM Theme Application: sets data-theme and data-accent attributes and triggers callback', () => {
+  await t.test('4. DOM Theme Application: sets data-theme, data-accent, and data-shape attributes', () => {
     const targetEl = createMockElement();
     let callbackData = null;
 
@@ -50,19 +59,20 @@ test('=== Running ThemeManager Unit Tests ===', async (t) => {
       onChange: (data) => { callbackData = data; }
     });
 
-    mgr.applyTheme('dark', 'amethyst');
+    mgr.applyTheme('dark', 'amethyst', 'hexagon');
     assert.strictEqual(targetEl.getAttribute('data-theme'), 'dark');
     assert.strictEqual(targetEl.getAttribute('data-accent'), 'amethyst');
-    assert.deepStrictEqual(callbackData, { mode: 'dark', effectiveMode: 'dark', accent: 'amethyst' });
+    assert.strictEqual(targetEl.getAttribute('data-shape'), 'hexagon');
+    assert.deepStrictEqual(callbackData, { mode: 'dark', effectiveMode: 'dark', accent: 'amethyst', shape: 'hexagon' });
 
-    mgr.applyTheme('light', 'cyber');
+    mgr.applyTheme('light', 'cyber', 'diamond');
     assert.strictEqual(targetEl.getAttribute('data-theme'), 'light');
     assert.strictEqual(targetEl.getAttribute('data-accent'), 'cyber');
-    assert.deepStrictEqual(callbackData, { mode: 'light', effectiveMode: 'light', accent: 'cyber' });
+    assert.strictEqual(targetEl.getAttribute('data-shape'), 'diamond');
+    assert.deepStrictEqual(callbackData, { mode: 'light', effectiveMode: 'light', accent: 'cyber', shape: 'diamond' });
   });
 
-  await t.test('4. Swatch Rendering: renders interactive swatches for all presets', () => {
-    // Provide document.createElement mock for Node.js test environment
+  await t.test('5. Swatch & Shape Rendering: renders interactive swatches for accents and shapes', () => {
     const prevDoc = global.document;
     global.document = {
       createElement: () => ({
@@ -77,21 +87,21 @@ test('=== Running ThemeManager Unit Tests ===', async (t) => {
 
     try {
       const targetEl = createMockElement();
-      const container = createMockElement();
+      const accentContainer = createMockElement();
+      const shapeContainer = createMockElement();
       const mgr = new ThemeManager({ targetEl });
 
-      let selectedAccent = null;
-      mgr.renderPicker(container, (acc) => { selectedAccent = acc; });
+      mgr.renderPicker(accentContainer, () => {});
+      mgr.renderShapePicker(shapeContainer, () => {});
 
-      assert.strictEqual(container.children.length, 8);
-      assert.strictEqual(container.children[0].dataset.accent, 'sunset');
-      assert.strictEqual(container.children[1].dataset.accent, 'cyber');
-      assert.strictEqual(container.children[2].dataset.accent, 'emerald');
-      assert.strictEqual(container.children[3].dataset.accent, 'amethyst');
-      assert.strictEqual(container.children[4].dataset.accent, 'solar');
-      assert.strictEqual(container.children[5].dataset.accent, 'cosmic');
-      assert.strictEqual(container.children[6].dataset.accent, 'ocean');
-      assert.strictEqual(container.children[7].dataset.accent, 'midnight');
+      assert.strictEqual(accentContainer.children.length, 8);
+      assert.strictEqual(shapeContainer.children.length, 6);
+      assert.strictEqual(shapeContainer.children[0].dataset.shape, 'circle');
+      assert.strictEqual(shapeContainer.children[1].dataset.shape, 'squircle');
+      assert.strictEqual(shapeContainer.children[2].dataset.shape, 'hexagon');
+      assert.strictEqual(shapeContainer.children[3].dataset.shape, 'diamond');
+      assert.strictEqual(shapeContainer.children[4].dataset.shape, 'octagon');
+      assert.strictEqual(shapeContainer.children[5].dataset.shape, 'triangle');
     } finally {
       global.document = prevDoc;
     }
