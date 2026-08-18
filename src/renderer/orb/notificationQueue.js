@@ -209,6 +209,13 @@ class NotificationQueue {
   }
 }
 
+if (typeof window !== 'undefined') {
+  // Tarayıcı ortamı için window nesnesine ata / Attach to window in browser environment
+  window.NotificationQueue = NotificationQueue;
+  window.PRIORITY = PRIORITY;
+  window.KIND_PRIORITY = KIND_PRIORITY;
+}
+
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = { NotificationQueue, PRIORITY, KIND_PRIORITY };
 }

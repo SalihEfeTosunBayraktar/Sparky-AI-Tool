@@ -35,6 +35,8 @@ const quickModelSearch = $('quickModelSearch');
 const quickModelList = $('quickModelList');
 const quickModelCustom = $('quickModelCustom');
 const commandSuggestionsOverlay = $('commandSuggestionsOverlay');
+const projectSel = $('projectSelect');
+const modeSel = $('modeSelect');
 
 let quickModelsCache = [];
 let quickActiveProvider = '';
@@ -210,10 +212,22 @@ function renderBubbleItem(item, meta) {
  * @param {string} kind idle|thinking|prep|info|success|error
  * @param {{priority?: string, dedupeKey?: string}} [extra]
  */
+const LOCAL_PRIORITY = { critical: 4, high: 3, normal: 2, low: 1 };
+const LOCAL_KIND_PRIORITY = {
+  error: 'critical',
+  success: 'high',
+  info: 'normal',
+  thinking: 'normal',
+  prep: 'normal',
+  idle: 'low'
+};
+
 function queueBubble(text, kind, extra = {}) {
-  const priority = extra.priority || KIND_PRIORITY[kind] || 'normal';
+  const kindMap = typeof KIND_PRIORITY !== 'undefined' ? KIND_PRIORITY : ((typeof window !== 'undefined' && window.KIND_PRIORITY) || LOCAL_KIND_PRIORITY);
+  const prioMap = typeof PRIORITY !== 'undefined' ? PRIORITY : ((typeof window !== 'undefined' && window.PRIORITY) || LOCAL_PRIORITY);
+  const priority = extra.priority || kindMap[kind] || 'normal';
   const level = (state.settings && state.settings.notifyLevel) || 'normal';
-  if (PRIORITY[priority] < notifyThreshold(level)) return;
+  if ((prioMap[priority] || 2) < notifyThreshold(level)) return;
   bubbleQueue.push({ text, kind, priority, dedupeKey: extra.dedupeKey || null });
 }
 
@@ -878,6 +892,7 @@ function getModelConfig(provider, model) {
 const themeManager = typeof ThemeManager !== 'undefined' ? new ThemeManager() : null;
 
 function applySettings(s) {
+  if (!s) return;
   state.settings = s;
   if (themeManager) {
     themeManager.applyTheme(s.theme || 'dark', s.accent || 'sunset');
@@ -889,13 +904,14 @@ function applySettings(s) {
   }
   populateStyles();
   populateProjects();
-  if (styleSel.value !== s.style) styleSel.value = s.style;
-  deepBtn.setAttribute('aria-pressed', String(!!s.deepMode));
-  clarifyBtn.setAttribute('aria-pressed', String(!!s.clarify));
+  if (styleSel && styleSel.value !== s.style) styleSel.value = s.style;
+  if (deepBtn) deepBtn.setAttribute('aria-pressed', String(!!s.deepMode));
+  if (clarifyBtn) clarifyBtn.setAttribute('aria-pressed', String(!!s.clarify));
   if (autoModeBtn) autoModeBtn.setAttribute('aria-pressed', String(!!s.autoMode));
   renderMeta();
-  if (promptAssistUI && modeSel) {
-    promptAssistUI.setMode(modeSel.value, s.enablePromptAssist !== false);
+  if (typeof promptAssistUI !== 'undefined' && promptAssistUI) {
+    const activeMode = (modeSel && modeSel.value) || 'general';
+    promptAssistUI.setMode(activeMode, s.enablePromptAssist !== false);
   }
   if (imageHandler) {
     const config = getModelConfig(s.provider, s.model);
@@ -1030,9 +1046,6 @@ if (api.on.providersChanged) {
     renderMeta();
   });
 }
-
-const projectSel = $('projectSelect');
-const modeSel = $('modeSelect');
 
 function updateModeLayout(modeId) {
   const isPrompter = modeId === 'prompt-preparer';
@@ -1400,17 +1413,23 @@ async function updateQuickModels(providerId, targetModel) {
     quickActiveModel = resolved;
 
     const selectModelHandler = async (chosenModel) => {
-      quickActiveModel = chosenModel;
-      if (quickModelCustom) quickModelCustom.hidden = true;
-      const patch = {
-        provider: providerId,
-        model: chosenModel,
-        modelByProvider: { ...(state.settings?.modelByProvider || {}), [providerId]: chosenModel }
-      };
-      const updated = await api.settings.set(patch);
-      applySettings(updated);
-      toggleQuickPicker(false);
-      setStatus({ text: `${i18n.t('app.ready')} (${chosenModel})`, kind: 'success' });
+      try {
+        quickActiveModel = chosenModel;
+        if (quickModelCustom) quickModelCustom.hidden = true;
+        const patch = {
+          provider: providerId,
+          model: chosenModel,
+          modelByProvider: { ...(state.settings?.modelByProvider || {}), [providerId]: chosenModel }
+        };
+        const updated = await api.settings.set(patch);
+        applySettings(updated || { ...(state.settings || {}), ...patch });
+        toggleQuickPicker(false);
+        renderMeta();
+        setStatus({ text: `${i18n.t('app.ready')} (${chosenModel})`, kind: 'success' });
+      } catch (err) {
+        console.error('[QuickPicker] Model seçimi kaydedilemedi:', err);
+        toggleQuickPicker(false);
+      }
     };
 
     renderQuickModelList(quickModelsCache, quickModelSearch?.value || '', quickActiveModel, selectModelHandler);
@@ -1418,20 +1437,45 @@ async function updateQuickModels(providerId, targetModel) {
   } catch {
     quickModelsCache = [];
     renderQuickModelList([], '', targetModel, async (chosenModel) => {
-      const patch = {
-        provider: providerId,
-        model: chosenModel,
-        modelByProvider: { ...(state.settings?.modelByProvider || {}), [providerId]: chosenModel }
-      };
-      const updated = await api.settings.set(patch);
-      applySettings(updated);
-      toggleQuickPicker(false);
+      try {
+        const patch = {
+          provider: providerId,
+          model: chosenModel,
+          modelByProvider: { ...(state.settings?.modelByProvider || {}), [providerId]: chosenModel }
+        };
+        const updated = await api.settings.set(patch);
+        applySettings(updated || { ...(state.settings || {}), ...patch });
+        toggleQuickPicker(false);
+        renderMeta();
+      } catch {
+        toggleQuickPicker(false);
+      }
     });
     return targetModel || '';
   }
 }
 
 function initQuickModelPicker() {
+  const handleModelSelection = async (chosenModel) => {
+    try {
+      quickActiveModel = chosenModel;
+      if (quickModelCustom) quickModelCustom.hidden = true;
+      const patch = {
+        provider: quickActiveProvider,
+        model: chosenModel,
+        modelByProvider: { ...(state.settings?.modelByProvider || {}), [quickActiveProvider]: chosenModel }
+      };
+      const updated = await api.settings.set(patch);
+      applySettings(updated || { ...(state.settings || {}), ...patch });
+      toggleQuickPicker(false);
+      renderMeta();
+      setStatus({ text: `${i18n.t('app.ready')} (${chosenModel})`, kind: 'success' });
+    } catch (err) {
+      console.error('[QuickPicker] Model seçimi uygulanamadı:', err);
+      toggleQuickPicker(false);
+    }
+  };
+
   btnQuickModelPicker?.addEventListener('click', async (e) => {
     e.stopPropagation();
     await toggleQuickPicker();
@@ -1457,19 +1501,7 @@ function initQuickModelPicker() {
 
   quickModelSearch?.addEventListener('input', () => {
     const q = quickModelSearch.value;
-    renderQuickModelList(quickModelsCache, q, quickActiveModel, async (chosenModel) => {
-      quickActiveModel = chosenModel;
-      if (quickModelCustom) quickModelCustom.hidden = true;
-      const patch = {
-        provider: quickActiveProvider,
-        model: chosenModel,
-        modelByProvider: { ...(state.settings?.modelByProvider || {}), [quickActiveProvider]: chosenModel }
-      };
-      const updated = await api.settings.set(patch);
-      applySettings(updated);
-      toggleQuickPicker(false);
-      setStatus({ text: `${i18n.t('app.ready')} (${chosenModel})`, kind: 'success' });
-    });
+    renderQuickModelList(quickModelsCache, q, quickActiveModel, handleModelSelection);
   });
 
   quickModelSearch?.addEventListener('keydown', async (e) => {
@@ -1477,16 +1509,7 @@ function initQuickModelPicker() {
       e.preventDefault();
       const q = quickModelSearch.value.trim();
       if (q) {
-        quickActiveModel = q;
-        const patch = {
-          provider: quickActiveProvider,
-          model: q,
-          modelByProvider: { ...(state.settings?.modelByProvider || {}), [quickActiveProvider]: q }
-        };
-        const updated = await api.settings.set(patch);
-        applySettings(updated);
-        toggleQuickPicker(false);
-        setStatus({ text: `${i18n.t('app.ready')} (${q})`, kind: 'success' });
+        await handleModelSelection(q);
       }
     }
   });
@@ -1503,22 +1526,15 @@ function initQuickModelPicker() {
       modelByProvider: { ...(state.settings?.modelByProvider || {}), [provId]: newModel }
     };
     const updated = await api.settings.set(patch);
-    applySettings(updated);
+    applySettings(updated || { ...(state.settings || {}), ...patch });
+    renderMeta();
     setStatus({ text: `${i18n.t('app.ready')} (${newModel || provId})`, kind: 'success' });
   });
 
   const applyCustomModel = async () => {
     const customVal = quickModelCustom ? quickModelCustom.value.trim() : '';
     if (customVal && customVal !== state.settings?.model) {
-      const patch = {
-        provider: quickActiveProvider,
-        model: customVal,
-        modelByProvider: { ...(state.settings?.modelByProvider || {}), [quickActiveProvider]: customVal }
-      };
-      const updated = await api.settings.set(patch);
-      applySettings(updated);
-      toggleQuickPicker(false);
-      setStatus({ text: `${i18n.t('app.ready')} (${customVal})`, kind: 'success' });
+      await handleModelSelection(customVal);
     }
   };
 
