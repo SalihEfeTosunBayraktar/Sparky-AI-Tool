@@ -176,26 +176,23 @@ class ProjectMemoryUI {
         e.stopPropagation();
         const turnId = btn.dataset.turnId;
         if (!turnId || !this.currentProject) return;
-        const confirmMsg = this.t('projects.deleteTurnConfirm', 'Bu konuşma hafıza geçmişinden silinecek. Onaylıyor musunuz?');
-        if (confirm(confirmMsg)) {
-          const res = await this.api.memory.removeTurn(this.currentProject.id, turnId);
-          if (res && res.ok) {
-            if (this.currentProject.memory) {
-              this.currentProject.memory.history = res.history;
-            }
-            const turnEl = btn.closest('.history-turn-item');
-            if (turnEl) {
-              turnEl.style.transition = 'opacity 0.2s, transform 0.2s';
-              turnEl.style.opacity = '0';
-              turnEl.style.transform = 'scale(0.95)';
-              setTimeout(() => {
-                turnEl.remove();
-                const sumEl = container.querySelector('.history-summary-toggle');
-                if (sumEl) {
-                  sumEl.textContent = `${this.t('projects.historyTitle', 'Diyalog Geçmişi')} (${res.history.length})`;
-                }
-              }, 200);
-            }
+        const res = await this.api.memory.removeTurn(this.currentProject.id, turnId);
+        if (res && res.ok) {
+          if (this.currentProject.memory) {
+            this.currentProject.memory.history = res.history;
+          }
+          const turnEl = btn.closest('.history-turn-item');
+          if (turnEl) {
+            turnEl.style.transition = 'opacity 0.15s, transform 0.15s';
+            turnEl.style.opacity = '0';
+            turnEl.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+              turnEl.remove();
+              const sumEl = container.querySelector('.history-summary-toggle');
+              if (sumEl) {
+                sumEl.textContent = `${this.t('projects.historyTitle', 'Diyalog Geçmişi')} (${res.history.length})`;
+              }
+            }, 150);
           }
         }
       });

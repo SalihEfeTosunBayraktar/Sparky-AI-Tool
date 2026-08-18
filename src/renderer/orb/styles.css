@@ -2091,18 +2091,6 @@ select option {
   border-color: var(--accent);
 }
 
-.quick-popover-footer {
-  margin-top: 10px;
-  display: flex;
-  justify-content: flex-end;
-}
-
-.btn-quick-apply {
-  height: 26px;
-  font-size: 11px;
-  padding: 0 10px;
-}
-
 /* ------------------------------------------------------------------ */
 /* Slash Komut Önerileri / Slash Command Autocomplete Overlay         */
 /* ------------------------------------------------------------------ */
