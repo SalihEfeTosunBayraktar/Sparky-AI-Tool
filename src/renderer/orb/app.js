@@ -977,7 +977,14 @@ api.on.done(({ output, copied, genId }) => {
   // Rozet artık bubbleQueue.onShow içinde ayarlanıyor — bu öğe fiilen
   // gösterildiği anda (kesme/kuyruk nedeniyle hemen olmayabilir).
   if (!state.expanded) {
-    queueBubble(copied ? i18n.t('app.bubbleCopied') : i18n.t('app.bubbleReady'), 'success');
+    if (output) {
+      const clean = output.trim().replace(/\s+/g, ' ');
+      const preview = clean.length > 55 ? `${clean.slice(0, 52)}...` : clean;
+      const bubbleText = copied ? `📋 ${preview}` : `✨ ${preview}`;
+      queueBubble(bubbleText, 'success', { priority: 'high' });
+    } else {
+      queueBubble(copied ? i18n.t('app.bubbleCopied') : i18n.t('app.bubbleReady'), 'success');
+    }
   }
 });
 

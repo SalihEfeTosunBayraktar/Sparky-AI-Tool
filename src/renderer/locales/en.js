@@ -17,6 +17,28 @@ const en = {
     copiedToClipboard: 'Copied to clipboard',
     loadedFromHistory: 'Loaded from history'
   },
+  status: {
+    preparing: 'Preparing…',
+    autoAnalyzing: 'Analysing the request (Auto mode)…',
+    scanningAmbiguity: 'Scanning for ambiguity…',
+    haveQuestions: 'I have {{count}} question(s)',
+    thinking: 'Thinking…',
+    analyzingIntent: 'Working out the intent…',
+    writing: 'Writing the prompt…',
+    polishing: 'Polishing…',
+    polishRejected: 'Polish rejected',
+    refining: 'Applying your edit…',
+    continuing: 'Response was cut off, continuing ({{n}}/{{max}})…',
+    ready: 'Prompt ready',
+    readyCopied: 'Ready — copied to clipboard',
+    copied: 'Copied to clipboard',
+    clipboardEmpty: 'Clipboard is empty',
+    nothingToCopy: 'No result to copy',
+    stopped: 'Stopped',
+    error: 'Error',
+    listening: '🎙️ Listening… (Speak)',
+    transcribing: '⚡ Transcribing audio…'
+  },
   gauge: {
     title: 'Context Window & Memory',
     stateless: 'Stateless (One-off)',

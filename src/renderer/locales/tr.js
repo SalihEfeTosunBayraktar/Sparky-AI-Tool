@@ -17,6 +17,28 @@ const tr = {
     copiedToClipboard: 'Panoya kopyalandı',
     loadedFromHistory: 'Geçmişten yüklendi'
   },
+  status: {
+    preparing: 'Hazırlanıyor…',
+    autoAnalyzing: 'İstek analiz ediliyor (Oto mod)…',
+    scanningAmbiguity: 'Belirsizlikler taranıyor…',
+    haveQuestions: '{{count}} sorum var',
+    thinking: 'Düşünüyor…',
+    analyzingIntent: 'Niyet çözümleniyor…',
+    writing: 'Prompt yazılıyor…',
+    polishing: 'Cilalanıyor…',
+    polishRejected: 'Cilalama reddedildi',
+    refining: 'Düzeltme uygulanıyor…',
+    continuing: 'Yanıt kesildi, devam ettiriliyor ({{n}}/{{max}})…',
+    ready: 'Prompt hazır',
+    readyCopied: 'Hazır — panoya kopyalandı',
+    copied: 'Panoya kopyalandı',
+    clipboardEmpty: 'Pano boş',
+    nothingToCopy: 'Kopyalanacak sonuç yok',
+    stopped: 'Durduruldu',
+    error: 'Hata',
+    listening: '🎙️ Dinliyorum… (Konuşun)',
+    transcribing: '⚡ Ses çözümleniyor…'
+  },
   gauge: {
     title: 'Context Penceresi & Hafıza',
     stateless: 'Hafızasız (Tek Seferlik)',

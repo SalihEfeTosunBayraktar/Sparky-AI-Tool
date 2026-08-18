@@ -48,19 +48,26 @@ class I18nManager {
   /**
    * Gets translated value by dot-notation key.
    * @param {string} path - e.g. "card.btnGenerate"
-   * @param {object} [params] - Replacement variables
+   * @param {string|object} [fallbackOrParams] - Fallback text if key not found OR replacement variables
+   * @param {object} [params] - Replacement variables when fallback text provided
    * @returns {string}
    */
-  t(path, params = {}) {
+  t(path, fallbackOrParams = {}, params = {}) {
+    let fallback = null;
+    let actualParams = fallbackOrParams;
+    if (typeof fallbackOrParams === 'string') {
+      fallback = fallbackOrParams;
+      actualParams = params;
+    }
     let val = this.resolvePath(LOCALES[this.currentLang], path);
     if (val === undefined && this.currentLang !== this.fallbackLang) {
       val = this.resolvePath(LOCALES[this.fallbackLang], path);
     }
     if (val === undefined) {
-      val = path;
+      val = fallback !== null ? fallback : path;
     }
-    if (typeof val === 'string' && params) {
-      for (const [k, v] of Object.entries(params)) {
+    if (typeof val === 'string' && actualParams && typeof actualParams === 'object') {
+      for (const [k, v] of Object.entries(actualParams)) {
         val = val.replace(new RegExp(`{{\\s*${k}\\s*}}`, 'g'), String(v));
       }
     }
