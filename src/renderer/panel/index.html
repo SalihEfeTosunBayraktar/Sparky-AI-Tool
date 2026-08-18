@@ -163,6 +163,24 @@
             </div>
           </div>
 
+          <h2 data-i18n="panel.sections.memoryAndContext">Hafıza &amp; Context Yönetimi</h2>
+          <div class="card">
+            <div class="field">
+              <label class="switch">
+                <input id="autoCompactEnabled" type="checkbox" />
+                <span class="track"><span class="knob"></span></span>
+                <span class="switch-label" data-i18n="panel.fields.autoCompactEnabled">Otomatik hafıza sıkıştırmayı etkinleştir</span>
+              </label>
+            </div>
+            <div class="field">
+              <label for="autoCompactThreshold"><span data-i18n="panel.fields.autoCompactThreshold">Otomatik Sıkıştırma Eşiği</span> — <span id="autoCompactThresholdVal">%75</span></label>
+              <input id="autoCompactThreshold" type="range" min="30" max="95" step="5" />
+              <p class="hint" data-i18n="panel.fields.autoCompactThresholdHint">
+                Proje hafızası context kapasitesinin bu yüzdesine ulaştığında (varsayılan: %75), eski konuşmalar otomatik olarak özetlenip sıkıştırılır.
+              </p>
+            </div>
+          </div>
+
           <h2 data-i18n="panel.sections.notificationsAndSound">Bildirimler ve Ses</h2>
           <div class="card">
             <div class="field">

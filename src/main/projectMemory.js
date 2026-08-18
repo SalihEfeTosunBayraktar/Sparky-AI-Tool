@@ -32,12 +32,12 @@ class ProjectMemory {
   /**
    * @param {Object} options
    * @param {Object} [options.projectsStore] - Projects manager reference for persistence
-   * @param {number} [options.threshold=0.80] - Utilization threshold to trigger compaction (default 80%)
+   * @param {number} [options.threshold=0.75] - Utilization threshold to trigger compaction (default 75%)
    * @param {number} [options.protectedTurns=4] - Number of recent raw messages to keep intact (2 user-assistant pairs)
    */
   constructor(options = {}) {
     this.projectsStore = options.projectsStore || null;
-    this.threshold = typeof options.threshold === 'number' ? options.threshold : 0.80;
+    this.threshold = typeof options.threshold === 'number' ? options.threshold : 0.75;
     this.protectedTurns = typeof options.protectedTurns === 'number' ? options.protectedTurns : 4;
     /** @type {Set<string>} Active compaction locks per project to prevent race conditions */
     this.compactingLocks = new Set();

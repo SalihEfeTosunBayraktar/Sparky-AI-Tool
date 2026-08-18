@@ -423,7 +423,27 @@ async function runGeneration(payload) {
     if (activeProject) {
       projectMemory.appendTurn(activeProject, payload.raw, output);
       const maxCtx = Number(cfg.maxTokens) * 4 || 32768;
-      broadcast('memory:updated', projectMemory.getMetrics(activeProject, maxCtx));
+      const metrics = projectMemory.getMetrics(activeProject, maxCtx);
+      broadcast('memory:updated', metrics);
+
+      // Otomatik Sıkıştırma: Eşik aşıldığında (%75 varsayılan) arka planda hafızayı sıkıştır
+      const thresholdPercent = typeof cfg.autoCompactThreshold === 'number' ? cfg.autoCompactThreshold : 75;
+      const isAutoCompactEnabled = cfg.autoCompactEnabled !== false;
+
+      if (isAutoCompactEnabled && metrics.ratio >= (thresholdPercent / 100)) {
+        (async () => {
+          try {
+            const compacted = await projectMemory.compact(activeProject, chatWithRotationNotice, cfg);
+            if (compacted) {
+              broadcast('memory:updated', projectMemory.getMetrics(activeProject, maxCtx));
+              broadcast('projects:changed', projects.getActiveId());
+              projectContext.invalidate('memory-compacted');
+            }
+          } catch (e) {
+            console.warn('[AutoCompact] Sıkıştırma hatası:', e.message);
+          }
+        })();
+      }
     }
 
     const entry = history.add({

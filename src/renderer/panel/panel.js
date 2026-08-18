@@ -461,6 +461,29 @@ function bindNumber(id, key, { min, max } = {}) {
   });
 }
 
+bindCheck('deepMode', 'deepMode');
+bindCheck('autoMode', 'autoMode');
+bindCheck('clarify', 'clarify');
+bindCheck('suggestions', 'suggestions');
+bindCheck('enablePromptAssist', 'enablePromptAssist');
+bindCheck('alwaysOnTop', 'alwaysOnTop');
+bindCheck('autoCopy', 'autoCopy');
+bindCheck('autoCompactEnabled', 'autoCompactEnabled');
+bindCheck('launchAtStartup', 'launchAtStartup');
+bindCheck('enableNotifications', 'enableNotifications');
+bindCheck('enableSound', 'enableSound');
+bindCheck('notifyOnlyWhenBackground', 'notifyOnlyWhenBackground');
+
+$('autoCompactThreshold')?.addEventListener('input', () => {
+  const v = $('autoCompactThreshold').value;
+  if ($('autoCompactThresholdVal')) $('autoCompactThresholdVal').textContent = `%${v}`;
+  updateSliderProgress($('autoCompactThreshold'));
+});
+
+$('autoCompactThreshold')?.addEventListener('change', () =>
+  save({ autoCompactThreshold: Number($('autoCompactThreshold').value) })
+);
+
 
 /* ------------------------------------------------------------------ */
 /* Kısayol yakalama                                                    */
@@ -955,6 +978,13 @@ function renderAll() {
   if ($('enablePromptAssist')) $('enablePromptAssist').checked = settings.enablePromptAssist !== false;
   if ($('alwaysOnTop')) $('alwaysOnTop').checked = !!settings.alwaysOnTop;
   if ($('autoCopy')) $('autoCopy').checked = !!settings.autoCopy;
+  if ($('autoCompactEnabled')) $('autoCompactEnabled').checked = settings.autoCompactEnabled !== false;
+  if ($('autoCompactThreshold')) {
+    const thresh = Number(settings.autoCompactThreshold) || 75;
+    $('autoCompactThreshold').value = thresh;
+    if ($('autoCompactThresholdVal')) $('autoCompactThresholdVal').textContent = `%${thresh}`;
+    updateSliderProgress($('autoCompactThreshold'));
+  }
   if ($('launchAtStartup')) $('launchAtStartup').checked = !!settings.launchAtStartup;
   if ($('enableNotifications')) $('enableNotifications').checked = !!settings.enableNotifications;
   if ($('enableSound')) $('enableSound').checked = !!settings.enableSound;

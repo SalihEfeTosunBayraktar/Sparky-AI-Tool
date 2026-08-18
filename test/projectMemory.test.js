@@ -162,4 +162,21 @@ test('=== Running ProjectMemory Unit Tests ===', async (t) => {
     const notRemoved = memoryManager.removeTurn(project, 'non_existent');
     assert.equal(notRemoved, false);
   });
+
+  await t.test('9. Auto-Compaction Threshold: verifies default 75% threshold triggers', () => {
+    const defaultManager = new ProjectMemory();
+    assert.equal(defaultManager.threshold, 0.75);
+
+    const project = {
+      id: 'p1',
+      name: 'High Memory App',
+      memory: {
+        summary: 'Existing notes',
+        history: new Array(20).fill({ role: 'user', content: 'Long conversation turn', tokens: 1000 })
+      }
+    };
+
+    const metrics = defaultManager.getMetrics(project, 25000);
+    assert.ok(metrics.ratio >= 0.75);
+  });
 });

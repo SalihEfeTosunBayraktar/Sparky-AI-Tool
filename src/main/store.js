@@ -45,6 +45,10 @@ const DEFAULTS = {
   assistWeights: {},
   // Prompt Asistanı (varyasyonlar & blok düzenleyici) aktif mi?
   enablePromptAssist: true,
+  // Otomatik hafıza sıkıştırma açık mı?
+  autoCompactEnabled: true,
+  // Hafıza kapasitesinin % kaçı aşılınca oto-sıkıştırma tetiklensin (varsayılan: %75)
+  autoCompactThreshold: 75,
   // Kullanıcının eklediği özel sağlayıcılar — her biri { id, label, kind, needsKey, endpoint, endpointHint, keyHint }
   customProviders: [],
   // Küredeki bilgi baloncuğu kuyruğunun önem eşiği. 'minimal' yalnızca

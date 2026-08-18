@@ -192,6 +192,7 @@ const en = {
       advancedParams: 'Advanced Model Parameters',
       generation: 'Generation',
       behavior: 'Behavior',
+      memoryAndContext: 'Memory & Context Management',
       notificationsAndSound: 'Notifications & Sound',
       shortcuts: 'Shortcuts'
     },
@@ -229,6 +230,9 @@ const en = {
       enablePromptAssistHint: 'Enables multi-strategy variation tabs and block-level editing toolbar in Prompt Preparer mode.',
       alwaysOnTop: 'Always on top',
       autoCopy: 'Auto copy result',
+      autoCompactEnabled: 'Enable automatic memory compaction',
+      autoCompactThreshold: 'Auto-Compaction Threshold',
+      autoCompactThresholdHint: 'When project memory reaches this percentage of context capacity (default: 75%), older conversations are automatically summarized and compacted.',
       launchAtStartup: 'Launch with Windows',
       enableNotifications: 'Enable desktop notifications',
       enableSound: 'Enable sound effects',

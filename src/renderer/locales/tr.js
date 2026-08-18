@@ -192,6 +192,7 @@ const tr = {
       advancedParams: 'Gelişmiş Model Parametreleri',
       generation: 'Üretim',
       behavior: 'Davranış',
+      memoryAndContext: 'Hafıza & Context Yönetimi',
       notificationsAndSound: 'Bildirimler ve ses',
       shortcuts: 'Kısayollar'
     },
@@ -229,6 +230,9 @@ const tr = {
       enablePromptAssistHint: 'Prompt Hazırlayıcı modunda çoklu strateji sekmelerini ve blok bazlı düzenleme çubuğunu etkinleştirir.',
       alwaysOnTop: 'Her zaman üstte kal',
       autoCopy: 'Sonucu otomatik kopyala',
+      autoCompactEnabled: 'Otomatik hafıza sıkıştırmayı etkinleştir',
+      autoCompactThreshold: 'Otomatik Sıkıştırma Eşiği',
+      autoCompactThresholdHint: 'Proje hafızası context kapasitesinin bu yüzdesine ulaştığında (varsayılan: %75), eski konuşmalar otomatik olarak özetlenip sıkıştırılır.',
       launchAtStartup: 'Windows ile başlat',
       enableNotifications: 'Masaüstü bildirimlerini etkinleştir',
       enableSound: 'Sesli uyarıları etkinleştir',
