@@ -461,7 +461,6 @@ async function runGeneration(payload) {
     if (panel && !panel.isDestroyed()) panel.webContents.send('history:changed');
 
     // 3) Öneriler — yalnızca prompt hazırlama modunda çalıştır (normal sohbette gereksiz)
-    const isNormalChat = modes.getActive()?.id === 'normal-chat';
     if (cfg.suggestions && !isNormalChat) {
       send('gen:busy', false);
       send('gen:suggestions', { pending: true, items: [], genId });
