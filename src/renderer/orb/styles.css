@@ -2075,13 +2075,13 @@ select option {
 .quick-select {
   width: 100% !important;
   max-width: 100% !important;
-  height: 30px;
+  height: 28px;
   padding: 0 8px;
   background: var(--bg-input, rgba(0, 0, 0, 0.25));
   border: 1px solid var(--border-color);
   border-radius: 6px;
   color: var(--txt);
-  font-size: 11.5px;
+  font-size: 11px;
   font-family: inherit;
   outline: none;
   box-sizing: border-box;
@@ -2091,14 +2091,14 @@ select option {
 .quick-input {
   width: 100% !important;
   max-width: 100% !important;
-  height: 30px;
+  height: 28px;
   padding: 0 8px;
   margin-top: 4px;
   background: var(--bg-input, rgba(0, 0, 0, 0.25));
   border: 1px solid var(--border-color);
   border-radius: 6px;
   color: var(--txt);
-  font-size: 11.5px;
+  font-size: 11px;
   font-family: inherit;
   outline: none;
   box-sizing: border-box;
@@ -2108,6 +2108,170 @@ select option {
 .quick-select:focus,
 .quick-input:focus {
   border-color: var(--accent);
+}
+
+.quick-search-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.quick-search-icon {
+  position: absolute;
+  left: 8px;
+  color: var(--txt-dim);
+  pointer-events: none;
+}
+
+.quick-search-input {
+  width: 100% !important;
+  max-width: 100% !important;
+  height: 28px;
+  padding: 0 8px 0 24px;
+  background: var(--bg-input, rgba(0, 0, 0, 0.25));
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  color: var(--txt);
+  font-size: 11px;
+  font-family: inherit;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.quick-search-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent-subtle, rgba(249, 115, 22, 0.2));
+}
+
+.quick-model-scroll-list {
+  max-height: 180px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: rgba(0, 0, 0, 0.18);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 2px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.quick-model-scroll-list::-webkit-scrollbar {
+  width: 5px;
+}
+
+.quick-model-scroll-list::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
+}
+
+.quick-group-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 3px 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--txt-dim);
+  user-select: none;
+  position: sticky;
+  top: 0;
+  backdrop-filter: blur(10px);
+  z-index: 2;
+}
+
+.quick-group-header:first-child {
+  border-top: none;
+}
+
+.quick-group-count {
+  font-size: 9px;
+  background: var(--accent-subtle, rgba(249, 115, 22, 0.12));
+  color: var(--accent);
+  padding: 1px 5px;
+  border-radius: 999px;
+}
+
+.quick-model-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 8px;
+  border-radius: 4px;
+  margin: 0 2px;
+  cursor: pointer;
+  font-size: 11px;
+  color: var(--txt);
+  transition: all 0.12s ease;
+  user-select: none;
+}
+
+.quick-model-item:hover {
+  background: var(--accent-subtle, rgba(249, 115, 22, 0.15));
+  color: var(--accent);
+}
+
+.quick-model-item.active {
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+
+.quick-model-item.active .quick-model-badge {
+  background: rgba(255, 255, 255, 0.25);
+  color: #fff;
+}
+
+.quick-model-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+.quick-model-badge {
+  font-size: 9px;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--txt-dim);
+  margin-left: 6px;
+  flex-shrink: 0;
+}
+
+.quick-custom-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  margin: 3px 2px 2px 2px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px dashed var(--border-color);
+  color: var(--txt-dim);
+  font-size: 10.5px;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.quick-custom-btn:hover {
+  background: var(--accent-subtle, rgba(249, 115, 22, 0.15));
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.quick-model-empty {
+  padding: 12px 8px;
+  text-align: center;
+  font-size: 11px;
+  color: var(--txt-faint);
 }
 
 /* ------------------------------------------------------------------ */

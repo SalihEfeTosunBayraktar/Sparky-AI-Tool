@@ -157,9 +157,15 @@
                     <select id="quickProviderSel" class="quick-select"></select>
                   </div>
                   <div class="quick-field">
-                    <label for="quickModelSel" data-i18n="panel.fields.model">Model</label>
-                    <select id="quickModelSel" class="quick-select"></select>
-                    <input id="quickModelCustom" class="quick-input" type="text" placeholder="Özel model adı (opsiyonel)" data-i18n-placeholder="panel.fields.modelManualPlaceholder" hidden />
+                    <label data-i18n="panel.fields.model">Model</label>
+                    <div class="quick-search-box">
+                      <svg class="quick-search-icon" viewBox="0 0 16 16" width="11" height="11" fill="currentColor">
+                        <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+                      </svg>
+                      <input id="quickModelSearch" class="quick-search-input" type="text" placeholder="Model ara veya elle yaz..." autocomplete="off" spellcheck="false" />
+                    </div>
+                    <div id="quickModelList" class="quick-model-scroll-list"></div>
+                    <input id="quickModelCustom" class="quick-input" type="text" placeholder="Elle model adı girin (Enter)" data-i18n-placeholder="panel.fields.modelManualPlaceholder" hidden />
                   </div>
                 </div>
               </div>

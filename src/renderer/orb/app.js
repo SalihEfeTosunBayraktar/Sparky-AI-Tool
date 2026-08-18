@@ -31,9 +31,14 @@ const btnQuickModelPicker = $('btnQuickModelPicker');
 const quickModelPickerPopover = $('quickModelPickerPopover');
 const btnCloseQuickPicker = $('btnCloseQuickPicker');
 const quickProviderSel = $('quickProviderSel');
-const quickModelSel = $('quickModelSel');
+const quickModelSearch = $('quickModelSearch');
+const quickModelList = $('quickModelList');
 const quickModelCustom = $('quickModelCustom');
 const commandSuggestionsOverlay = $('commandSuggestionsOverlay');
+
+let quickModelsCache = [];
+let quickActiveProvider = '';
+let quickActiveModel = '';
 
 let slashCommands = null;
 
@@ -1217,77 +1222,158 @@ async function populateQuickPicker() {
   await updateQuickModels(currentProvider, currentModel);
 }
 
-async function updateQuickModels(providerId, selectedModel) {
-  if (!quickModelSel) return;
-  quickModelSel.innerHTML = '<option value="">Yükleniyor…</option>';
+function groupAndFilterModels(models, filterQuery, activeModel) {
+  const query = (filterQuery || '').trim().toLowerCase();
+  const groups = {};
+
+  models.forEach((m) => {
+    const id = typeof m === 'string' ? m : (m.id || m.name || '');
+    if (!id) return;
+
+    if (query && !id.toLowerCase().includes(query)) {
+      return;
+    }
+
+    let groupName = 'GENEL';
+    let displayName = id;
+
+    if (id.includes('/')) {
+      const parts = id.split('/');
+      groupName = parts[0].toUpperCase();
+      displayName = parts.slice(1).join('/');
+    } else if (id.startsWith('gemini-') || id.startsWith('deep-research') || id.startsWith('antigravity')) {
+      groupName = 'GOOGLE GEMINI';
+      displayName = id;
+    } else if (id.startsWith('gpt-') || id.startsWith('o1') || id.startsWith('o3') || id.startsWith('chatgpt')) {
+      groupName = 'OPENAI';
+      displayName = id;
+    } else if (id.startsWith('claude-')) {
+      groupName = 'ANTHROPIC';
+      displayName = id;
+    } else if (id.includes(':')) {
+      const parts = id.split(':');
+      groupName = parts[0].toUpperCase();
+      displayName = id;
+    }
+
+    if (!groups[groupName]) {
+      groups[groupName] = [];
+    }
+    groups[groupName].push({
+      id,
+      displayName,
+      isActive: id === activeModel
+    });
+  });
+
+  return groups;
+}
+
+function renderQuickModelList(models, filterQuery, activeModel, onSelect) {
+  if (!quickModelList) return;
+  quickModelList.innerHTML = '';
+
+  const groups = groupAndFilterModels(models, filterQuery, activeModel);
+  const groupKeys = Object.keys(groups).sort((a, b) => {
+    if (a === 'GENEL') return 1;
+    if (b === 'GENEL') return -1;
+    return a.localeCompare(b);
+  });
+
+  if (groupKeys.length === 0) {
+    const emptyEl = document.createElement('div');
+    emptyEl.className = 'quick-model-empty';
+    emptyEl.textContent = filterQuery ? `"${filterQuery}" ile eşleşen model bulunamadı.` : 'Model bulunamadı.';
+    quickModelList.appendChild(emptyEl);
+  } else {
+    groupKeys.forEach((grp) => {
+      const items = groups[grp];
+      const grpEl = document.createElement('div');
+      grpEl.className = 'quick-group-header';
+      grpEl.innerHTML = `<span class="quick-group-title">📁 ${grp}</span><span class="quick-group-count">${items.length}</span>`;
+      quickModelList.appendChild(grpEl);
+
+      items.forEach((item) => {
+        const itemEl = document.createElement('div');
+        itemEl.className = `quick-model-item${item.isActive ? ' active' : ''}`;
+        itemEl.title = item.id;
+        itemEl.innerHTML = `
+          <span class="quick-model-name">${item.displayName}</span>
+          ${item.isActive ? '<span class="quick-model-badge">Aktif</span>' : ''}
+        `;
+        itemEl.addEventListener('click', () => onSelect(item.id));
+        quickModelList.appendChild(itemEl);
+      });
+    });
+  }
+
+  // Özel model ekleme/yazma seçeneği
+  const customBtn = document.createElement('div');
+  customBtn.className = 'quick-custom-btn';
+  customBtn.innerHTML = `<span>✏️</span><span>${filterQuery ? `"${filterQuery}" modelini kullan` : 'Elle özel model adı girin...'}</span>`;
+  customBtn.addEventListener('click', () => {
+    if (filterQuery) {
+      onSelect(filterQuery);
+    } else if (quickModelCustom) {
+      quickModelCustom.hidden = false;
+      quickModelCustom.focus();
+    }
+  });
+  quickModelList.appendChild(customBtn);
+}
+
+async function updateQuickModels(providerId, targetModel) {
+  quickActiveProvider = providerId;
+  if (quickModelList) {
+    quickModelList.innerHTML = '<div class="quick-model-empty">Yükleniyor…</div>';
+  }
+
   try {
     const res = await api.providers.models(providerId);
-    quickModelSel.innerHTML = '';
-
-    // API yanıtını normalize et ({ ok: true, models: [...] } veya doğrudan dizi)
-    // Normalize API response ({ ok: true, models: [...] } or direct array)
     const rawList = Array.isArray(res) ? res : (res?.ok && Array.isArray(res.models) ? res.models : []);
-    const modelsList = [];
 
-    rawList.forEach((m) => {
-      if (typeof m === 'string' && m.trim()) {
-        modelsList.push({ id: m.trim(), name: m.trim() });
-      } else if (m && (m.id || m.name)) {
-        modelsList.push({ id: m.id || m.name, name: m.name || m.id });
-      }
-    });
+    quickModelsCache = rawList.map((m) => {
+      if (typeof m === 'string') return m.trim();
+      return (m.id || m.name || '').trim();
+    }).filter(Boolean);
 
-    if (selectedModel && selectedModel !== '__custom__' && !modelsList.some((m) => m.id === selectedModel)) {
-      modelsList.unshift({ id: selectedModel, name: selectedModel });
-    }
+    // Sağlayıcıya özel model hatırlama — başka sağlayıcının modeli içeri sızmaz
+    const remembered = state.settings?.modelByProvider?.[providerId] || '';
+    let resolved = (targetModel && quickModelsCache.includes(targetModel))
+      ? targetModel
+      : (remembered && quickModelsCache.includes(remembered) ? remembered : (quickModelsCache[0] || targetModel || ''));
 
-    let resolvedModel = selectedModel || (modelsList[0] ? modelsList[0].id : '');
+    quickActiveModel = resolved;
 
-    if (modelsList.length > 0) {
-      modelsList.forEach((m) => {
-        const opt = document.createElement('option');
-        opt.value = m.id;
-        opt.textContent = m.name;
-        if (m.id === resolvedModel) opt.selected = true;
-        quickModelSel.appendChild(opt);
-      });
-    } else {
-      const optEmpty = document.createElement('option');
-      optEmpty.value = '';
-      optEmpty.textContent = typeof i18n !== 'undefined' ? i18n.t('panel.fields.noModelsFound', '— model bulunamadı —') : '— model bulunamadı —';
-      quickModelSel.appendChild(optEmpty);
-    }
+    const selectModelHandler = async (chosenModel) => {
+      quickActiveModel = chosenModel;
+      if (quickModelCustom) quickModelCustom.hidden = true;
+      const patch = {
+        provider: providerId,
+        model: chosenModel,
+        modelByProvider: { ...(state.settings?.modelByProvider || {}), [providerId]: chosenModel }
+      };
+      const updated = await api.settings.set(patch);
+      applySettings(updated);
+      toggleQuickPicker(false);
+      setStatus({ text: `${i18n.t('app.ready')} (${chosenModel})`, kind: 'success' });
+    };
 
-    const optCustom = document.createElement('option');
-    optCustom.value = '__custom__';
-    optCustom.textContent = '✏️ ' + (typeof i18n !== 'undefined' ? i18n.t('panel.fields.modelManualPlaceholder', 'Elle model adı...') : 'Elle model adı...');
-    quickModelSel.appendChild(optCustom);
-
-    if (resolvedModel && !modelsList.some((m) => m.id === resolvedModel)) {
-      optCustom.selected = true;
-      if (quickModelCustom) {
-        quickModelCustom.hidden = false;
-        quickModelCustom.value = resolvedModel;
-      }
-    } else if (quickModelCustom) {
-      quickModelCustom.hidden = true;
-    }
-
-    return resolvedModel;
+    renderQuickModelList(quickModelsCache, quickModelSearch?.value || '', quickActiveModel, selectModelHandler);
+    return resolved;
   } catch {
-    quickModelSel.innerHTML = '';
-    if (selectedModel) {
-      const optActive = document.createElement('option');
-      optActive.value = selectedModel;
-      optActive.textContent = selectedModel;
-      optActive.selected = true;
-      quickModelSel.appendChild(optActive);
-    }
-    const optCustom = document.createElement('option');
-    optCustom.value = '__custom__';
-    optCustom.textContent = '✏️ ' + (typeof i18n !== 'undefined' ? i18n.t('panel.fields.modelManualPlaceholder', 'Elle model adı...') : 'Elle model adı...');
-    quickModelSel.appendChild(optCustom);
-    return selectedModel || '';
+    quickModelsCache = [];
+    renderQuickModelList([], '', targetModel, async (chosenModel) => {
+      const patch = {
+        provider: providerId,
+        model: chosenModel,
+        modelByProvider: { ...(state.settings?.modelByProvider || {}), [providerId]: chosenModel }
+      };
+      const updated = await api.settings.set(patch);
+      applySettings(updated);
+      toggleQuickPicker(false);
+    });
+    return targetModel || '';
   }
 }
 
@@ -1295,6 +1381,23 @@ function initQuickModelPicker() {
   btnQuickModelPicker?.addEventListener('click', (e) => {
     e.stopPropagation();
     toggleQuickPicker();
+    if (quickModelSearch) {
+      quickModelSearch.value = '';
+      renderQuickModelList(quickModelsCache, '', quickActiveModel, async (chosenModel) => {
+        quickActiveModel = chosenModel;
+        if (quickModelCustom) quickModelCustom.hidden = true;
+        const patch = {
+          provider: quickActiveProvider,
+          model: chosenModel,
+          modelByProvider: { ...(state.settings?.modelByProvider || {}), [quickActiveProvider]: chosenModel }
+        };
+        const updated = await api.settings.set(patch);
+        applySettings(updated);
+        toggleQuickPicker(false);
+        setStatus({ text: `${i18n.t('app.ready')} (${chosenModel})`, kind: 'success' });
+      });
+      setTimeout(() => quickModelSearch.focus(), 50);
+    }
   });
 
   btnCloseQuickPicker?.addEventListener('click', (e) => {
@@ -1302,38 +1405,66 @@ function initQuickModelPicker() {
     toggleQuickPicker(false);
   });
 
+  quickModelSearch?.addEventListener('input', () => {
+    const q = quickModelSearch.value;
+    renderQuickModelList(quickModelsCache, q, quickActiveModel, async (chosenModel) => {
+      quickActiveModel = chosenModel;
+      if (quickModelCustom) quickModelCustom.hidden = true;
+      const patch = {
+        provider: quickActiveProvider,
+        model: chosenModel,
+        modelByProvider: { ...(state.settings?.modelByProvider || {}), [quickActiveProvider]: chosenModel }
+      };
+      const updated = await api.settings.set(patch);
+      applySettings(updated);
+      toggleQuickPicker(false);
+      setStatus({ text: `${i18n.t('app.ready')} (${chosenModel})`, kind: 'success' });
+    });
+  });
+
+  quickModelSearch?.addEventListener('keydown', async (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const q = quickModelSearch.value.trim();
+      if (q) {
+        quickActiveModel = q;
+        const patch = {
+          provider: quickActiveProvider,
+          model: q,
+          modelByProvider: { ...(state.settings?.modelByProvider || {}), [quickActiveProvider]: q }
+        };
+        const updated = await api.settings.set(patch);
+        applySettings(updated);
+        toggleQuickPicker(false);
+        setStatus({ text: `${i18n.t('app.ready')} (${q})`, kind: 'success' });
+      }
+    }
+  });
+
   quickProviderSel?.addEventListener('change', async () => {
     const provId = quickProviderSel.value;
     if (!provId) return;
-    const currentModel = state.settings?.model || '';
-    const newModel = await updateQuickModels(provId, currentModel);
-    const patch = { provider: provId };
-    if (newModel && newModel !== '__custom__') patch.model = newModel;
+    const rememberedModel = state.settings?.modelByProvider?.[provId] || '';
+    const newModel = await updateQuickModels(provId, rememberedModel);
+    const patch = {
+      provider: provId,
+      model: newModel,
+      modelByProvider: { ...(state.settings?.modelByProvider || {}), [provId]: newModel }
+    };
     const updated = await api.settings.set(patch);
     applySettings(updated);
-    setStatus({ text: `${i18n.t('app.ready')} (${patch.model || provId})`, kind: 'success' });
-  });
-
-  quickModelSel?.addEventListener('change', async () => {
-    const val = quickModelSel.value;
-    if (val === '__custom__') {
-      if (quickModelCustom) {
-        quickModelCustom.hidden = false;
-        quickModelCustom.focus();
-      }
-    } else if (val) {
-      if (quickModelCustom) quickModelCustom.hidden = true;
-      const updated = await api.settings.set({ model: val });
-      applySettings(updated);
-      toggleQuickPicker(false);
-      setStatus({ text: `${i18n.t('app.ready')} (${val})`, kind: 'success' });
-    }
+    setStatus({ text: `${i18n.t('app.ready')} (${newModel || provId})`, kind: 'success' });
   });
 
   const applyCustomModel = async () => {
     const customVal = quickModelCustom ? quickModelCustom.value.trim() : '';
     if (customVal && customVal !== state.settings?.model) {
-      const updated = await api.settings.set({ model: customVal });
+      const patch = {
+        provider: quickActiveProvider,
+        model: customVal,
+        modelByProvider: { ...(state.settings?.modelByProvider || {}), [quickActiveProvider]: customVal }
+      };
+      const updated = await api.settings.set(patch);
       applySettings(updated);
       toggleQuickPicker(false);
       setStatus({ text: `${i18n.t('app.ready')} (${customVal})`, kind: 'success' });
