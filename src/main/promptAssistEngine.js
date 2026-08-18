@@ -66,11 +66,11 @@ const STRATEGY_POOL = [
 
 function detectBlockType(rawTitle) {
   const t = String(rawTitle || '').toLowerCase();
-  if (t.includes('role') || t.includes('rol') || t.includes('persona') || t.includes('kimlik')) return 'role';
-  if (t.includes('context') || t.includes('bağlam') || t.includes('background') || t.includes('arka plan')) return 'context';
-  if (t.includes('task') || t.includes('görev') || t.includes('objective') || t.includes('amaç') || t.includes('hedef')) return 'task';
-  if (t.includes('constraint') || t.includes('kısıt') || t.includes('rule') || t.includes('kural') || t.includes('gereksinim')) return 'constraints';
-  if (t.includes('output') || t.includes('çıktı') || t.includes('format') || t.includes('deliverable')) return 'output_format';
+  if (t.includes('role') || t.includes('rol') || t.includes('persona') || t.includes('kimlik') || t.includes('expert') || t.includes('uzman')) return 'role';
+  if (t.includes('context') || t.includes('bağlam') || t.includes('background') || t.includes('arka plan') || t.includes('senaryo') || t.includes('scope')) return 'context';
+  if (t.includes('task') || t.includes('görev') || t.includes('objective') || t.includes('amaç') || t.includes('hedef') || t.includes('goal') || t.includes('mission')) return 'task';
+  if (t.includes('requirement') || t.includes('gereksinim') || t.includes('constraint') || t.includes('kısıt') || t.includes('rule') || t.includes('kural') || t.includes('guardrail') || t.includes('criteria') || t.includes('criterion')) return 'constraints';
+  if (t.includes('output') || t.includes('çıktı') || t.includes('format') || t.includes('biçim') || t.includes('deliverable') || t.includes('layout')) return 'output_format';
   return 'general';
 }
 

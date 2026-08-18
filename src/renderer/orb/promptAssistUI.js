@@ -131,8 +131,20 @@ class PromptAssistUI {
       this.api.assist.recordSelection(strategyId).catch(() => {});
     }
 
-    // Önbellekteki varyasyonu anında göster (yeniden üretim tetiklemez)
-    const content = this.variations[strategyId] || this.variations['structured'] || '';
+    // Önbellekteki varyasyonu al veya anında türet
+    let content = this.variations[strategyId];
+    if (!content || !content.trim()) {
+      const baseText = this.rawTextarea?.textContent || this.rawTextarea?.value || '';
+      if (baseText && this.api?.assist?.deriveVariations) {
+        const pool = this.strategies.length > 0 ? this.strategies : [{ id: strategyId }];
+        const derived = await this.api.assist.deriveVariations(baseText, pool);
+        this.variations = { ...this.variations, ...derived };
+        content = this.variations[strategyId] || baseText;
+      } else {
+        content = baseText;
+      }
+    }
+
     if (content) {
       await this._displayContent(content);
       this.onPromptChange(content);
@@ -181,6 +193,19 @@ class PromptAssistUI {
       this.parsedBlocks = [];
       this.hide();
       return;
+    }
+
+    // Ensure strategies are loaded
+    if (this.strategies.length === 0 && this.api?.assist?.getStrategies) {
+      try {
+        this.strategies = await this.api.assist.getStrategies();
+        if (this.strategies.length > 0 && !this.activeStrategyId) {
+          this.activeStrategyId = this.strategies[0].id;
+        }
+        this.renderTabs();
+      } catch (err) {
+        console.warn('[PromptAssistUI] Strateji yüklenemedi:', err);
+      }
     }
 
     // 3 aktif stratejinin tamamı için varyasyonları anında türet / Pre-derive all 3 variations at once
