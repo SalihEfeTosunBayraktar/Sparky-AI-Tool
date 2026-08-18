@@ -458,8 +458,9 @@ async function runGeneration(payload) {
     });
     if (panel && !panel.isDestroyed()) panel.webContents.send('history:changed');
 
-    // 3) Öneriler — sonuç zaten teslim edildi, bu tur arayüzü kilitlemesin.
-    if (cfg.suggestions) {
+    // 3) Öneriler — yalnızca prompt hazırlama modunda çalıştır (normal sohbette gereksiz)
+    const isNormalChat = modes.getActive()?.id === 'normal-chat';
+    if (cfg.suggestions && !isNormalChat) {
       send('gen:busy', false);
       send('gen:suggestions', { pending: true, items: [], genId });
       try {
@@ -475,6 +476,8 @@ async function runGeneration(payload) {
         // Öneri turu başarısız olursa sessizce geç — asıl sonuç elimizde.
         send('gen:suggestions', { pending: false, items: [], genId });
       }
+    } else {
+      send('gen:suggestions', { pending: false, items: [], genId });
     }
 
     return { ok: true, output };

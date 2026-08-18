@@ -390,8 +390,12 @@ function renderEmpty() {
   outputEl.textContent = '';
   const d = document.createElement('div');
   d.className = 'empty';
-  d.textContent = typeof i18n !== 'undefined' ? i18n.t('card.emptyPrompt') : 'Üretilen prompt burada belirecek.';
+  const isChat = modeSel ? modeSel.value === 'normal-chat' : false;
+  d.textContent = isChat
+    ? (typeof i18n !== 'undefined' ? i18n.t('card.emptyChat', 'Yanıt burada belirecek.') : 'Yanıt burada belirecek.')
+    : (typeof i18n !== 'undefined' ? i18n.t('card.emptyPrompt', 'Üretilen prompt burada belirecek.') : 'Üretilen prompt burada belirecek.');
   outputEl.appendChild(d);
+  if (promptAssistUI) promptAssistUI.setContent('');
   updateBottomActionBarVisibility();
 }
 
@@ -711,10 +715,7 @@ btnClearInput?.addEventListener('click', () => {
   inputEl.value = '';
   state.lastInput = '';
   imageHandler.clearImage();
-  state.output = '';
-  state.streaming = '';
-  state.hasResult = false;
-  renderEmpty();
+  setOutput('');
   hideSuggestions();
   hideQuestions();
   setStatus({ text: '', kind: 'info' });
@@ -775,7 +776,7 @@ if (autoModeBtn) bindChip(autoModeBtn, 'autoMode');
 function renderMeta() {
   const s = state.settings;
   if (!s) return;
-  const prov = state.providers.find((p) => p.id === s.provider);
+  const prov = (state.providers || []).find((p) => p.id === s.provider);
   const label = prov ? prov.label.replace(/\s*\(.*\)$/, '') : s.provider;
   const selectModelTxt = i18n.t('app.selectModel');
   metaEl.textContent = s.model ? `${label} · ${s.model}` : `${label} · ${selectModelTxt}`;
@@ -971,15 +972,74 @@ api.on.loadEntry((item) => {
   updateInputStats();
 });
 
-api.on.settingsChanged((s) => applySettings(s));
+api.on.settingsChanged(async (s) => {
+  if (api.providers?.catalog) {
+    state.providers = await api.providers.catalog();
+  }
+  applySettings(s);
+});
 api.on.projectsChanged(async () => {
   await populateProjects();
   await refreshContextGauge();
 });
 api.on.modeChanged(() => populateModes());
 
+if (api.on.providersChanged) {
+  api.on.providersChanged(async () => {
+    if (api.providers?.catalog) {
+      state.providers = await api.providers.catalog();
+    }
+    renderMeta();
+  });
+}
+
 const projectSel = $('projectSelect');
 const modeSel = $('modeSelect');
+
+function updateModeLayout(modeId) {
+  const isChat = modeId === 'normal-chat';
+
+  // Prompt biçim seçicisi
+  if (styleSel) styleSel.hidden = isChat;
+
+  // Prompt hazırlama çipleri
+  if (deepBtn) deepBtn.hidden = isChat;
+  if (autoModeBtn) autoModeBtn.hidden = isChat;
+  if (clarifyBtn) clarifyBtn.hidden = isChat;
+
+  // Çıktı başlığı ("Prompt" vs "Yanıt")
+  const outLabel = $('outputLabel') || document.querySelector('label[for="output"]');
+  if (outLabel) {
+    outLabel.textContent = isChat
+      ? (typeof i18n !== 'undefined' ? i18n.t('card.chatOutputLabel', 'Yanıt') : 'Yanıt')
+      : (typeof i18n !== 'undefined' ? i18n.t('card.promptOutputLabel', 'Prompt') : 'Prompt');
+  }
+
+  // Giriş placeholder'ı
+  if (inputEl) {
+    inputEl.placeholder = isChat
+      ? (typeof i18n !== 'undefined' ? i18n.t('card.chatInputPlaceholder', 'Mesajınızı yazın...\nCtrl+Enter → gönder') : 'Mesajınızı yazın...\nCtrl+Enter → gönder')
+      : (typeof i18n !== 'undefined' ? i18n.t('card.inputPlaceholder') : 'Ne istediğinizi yazın veya UI tasarım görseli yükleyin.\nCtrl+Enter → üret');
+  }
+
+  // Buton metni ("Gönder" vs "Üret")
+  const genBtnSpan = document.querySelector('#btnGen span');
+  if (genBtnSpan) {
+    genBtnSpan.textContent = isChat
+      ? (typeof i18n !== 'undefined' ? i18n.t('card.btnSend', 'Gönder') : 'Gönder')
+      : (typeof i18n !== 'undefined' ? i18n.t('card.btnGenerate', 'Üret') : 'Üret');
+  }
+
+  // Boşsa placeholder'ı güncelle
+  if (!state.output) {
+    renderEmpty();
+  }
+
+  // Prompt Assist açma/kapama
+  if (promptAssistUI) {
+    promptAssistUI.setMode(modeId);
+  }
+}
 
 async function populateModes() {
   if (!modeSel) return;
@@ -995,13 +1055,13 @@ async function populateModes() {
     modeSel.appendChild(opt);
   }
 
-  // Prompt Assist: moda göre aç/kapat / Toggle based on active mode
-  if (promptAssistUI) promptAssistUI.setMode(activeMode);
+  updateModeLayout(activeMode);
 }
 
 if (modeSel) {
   modeSel.addEventListener('change', async (e) => {
     const mode = e.target.value;
+    updateModeLayout(mode);
     await api.modes.setActive(mode);
   });
 }

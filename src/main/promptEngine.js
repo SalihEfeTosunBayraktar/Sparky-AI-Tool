@@ -5,7 +5,7 @@
 // üretilen prompt'un dili ise ayardan belirlenir.
 
 const projectContext = require('./projectContext');
-const { PROVIDERS } = require('./llm');
+const { allProviders } = require('./llm');
 
 const STYLES = {
   detailed: {
@@ -122,7 +122,8 @@ function buildSystem({ styleId, languageId, modeConfig, project, raw, cfg, mode,
   const isTr = languageId === 'tr';
   const locale = isTr ? 'tr-TR' : 'en-US';
   const now = new Date();
-  const providerLabel = (cfg && PROVIDERS[cfg.provider]?.label) || (cfg && cfg.provider) || '';
+  const allP = typeof allProviders === 'function' ? allProviders() : {};
+  const providerLabel = (cfg && allP[cfg.provider]?.label) || (cfg && cfg.provider) || '';
   const projectNotes = project && Array.isArray(project.texts)
     ? project.texts.map((t) => `${t.title}: ${t.content}`.trim()).filter(Boolean).join('\n')
     : '';
@@ -175,9 +176,10 @@ function buildSystem({ styleId, languageId, modeConfig, project, raw, cfg, mode,
   return sys;
 }
 
-// Model yine de kod bloğu / önsöz eklerse temizle.
-function clean(text) {
+// Model yine de kod bloğu / önsöz eklerse temizle (normal sohbette biçimlendirme korunur).
+function clean(text, isChat = false) {
   let out = String(text || '').trim();
+  if (isChat) return out;
   const fence = out.match(/^```[a-zA-Z0-9_-]*\s*\n([\s\S]*?)\n?```$/);
   if (fence) out = fence[1].trim();
   out = out.replace(/^(?:işte|i̇şte|here(?:'s| is))\b[^\n]*:\s*\n+/i, '');
@@ -641,23 +643,31 @@ async function run({
     }
   }
 
+  const isChat = modeConfig?.id === 'normal-chat' || (modeConfig && !modeConfig.useStyleGuide && modeConfig.basePreset === 'plain');
+
   onStatus?.({
-    key: effectiveDeepMode ? 'status.writing' : 'status.thinking',
-    text: effectiveDeepMode ? 'Prompt yazılıyor…' : 'Düşünüyor…',
+    key: effectiveDeepMode && !isChat ? 'status.writing' : 'status.thinking',
+    text: effectiveDeepMode && !isChat ? 'Prompt yazılıyor…' : 'Düşünüyor…',
     kind: 'thinking'
   });
   onStage?.();
 
   // Proje bloğu sistem isteminde; kullanıcı mesajı yalnızca değişen kısmı taşır.
-  const userParts = [`RAW NOTE:\n${note}`];
-  if (analysis) {
-    userParts.push(
-      `ANALYSIS (use it, but the raw note always wins if they disagree):\n${JSON.stringify(analysis, null, 2)}`
-    );
+  let userMessageContent = '';
+  if (isChat) {
+    userMessageContent = note;
+  } else {
+    const userParts = [`RAW NOTE:\n${note}`];
+    if (analysis) {
+      userParts.push(
+        `ANALYSIS (use it, but the raw note always wins if they disagree):\n${JSON.stringify(analysis, null, 2)}`
+      );
+    }
+    const clarifications = answersBlock(answers);
+    if (clarifications) userParts.push(clarifications);
+    userParts.push('Write the finished prompt now.');
+    userMessageContent = userParts.join('\n\n');
   }
-  const clarifications = answersBlock(answers);
-  if (clarifications) userParts.push(clarifications);
-  userParts.push('Write the finished prompt now.');
 
   const first = await chatComplete({
     chat,
@@ -665,18 +675,18 @@ async function run({
       ...common,
       image: imagePayload,
       system,
-      messages: [{ role: 'user', content: userParts.join('\n\n') }]
+      messages: [{ role: 'user', content: userMessageContent }]
     },
     onToken,
     onStatus
   });
 
-  let output = clean(first.text);
+  let output = clean(first.text, isChat);
   let truncated = first.truncated;
   // Token kullanımını biriktir: cilalama yapıldıysa her iki aşamanın toplamı.
   let runTokens = first.totalTokens || null;
 
-  if (effectiveDeepMode && output) {
+  if (effectiveDeepMode && output && !isChat) {
     onStatus?.({ key: 'status.polishing', text: 'Cilalanıyor…', kind: 'thinking' });
     onStage?.();
     // Cilalama taslağın TAMAMINI yeniden yazar; bütçe taslaktan küçük kalırsa
@@ -696,7 +706,7 @@ async function run({
       onStatus
     });
     if (refined.totalTokens) runTokens = (runTokens || 0) + refined.totalTokens;
-    const cleaned = clean(refined.text);
+    const cleaned = clean(refined.text, false);
     if (cleaned && validateRefinedPrompt(output, cleaned)) {
       output = cleaned;
       truncated = refined.truncated;
