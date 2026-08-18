@@ -1194,19 +1194,26 @@ function hideCommandSuggestions() {
   if (overlay) overlay.hidden = true;
 }
 
-function toggleQuickPicker(force) {
+async function toggleQuickPicker(force) {
   if (!quickModelPickerPopover) return;
   const show = typeof force === 'boolean' ? force : quickModelPickerPopover.hidden;
   if (show) {
-    populateQuickPicker();
     quickModelPickerPopover.hidden = false;
+    await populateQuickPicker();
+    if (quickModelSearch) {
+      quickModelSearch.value = '';
+      setTimeout(() => quickModelSearch.focus(), 50);
+    }
   } else {
     quickModelPickerPopover.hidden = true;
   }
 }
 
 async function populateQuickPicker() {
-  if (!quickProviderSel || !state.settings) return;
+  if (!quickProviderSel) return;
+  if (!state.settings) state.settings = await api.settings.get();
+  if (!state.providers || !state.providers.length) state.providers = await api.providers.catalog();
+
   const currentProvider = state.settings.provider;
   const currentModel = state.settings.model;
 
@@ -1270,12 +1277,6 @@ function groupAndFilterModels(models, filterQuery, activeModel) {
 }
 
 const collapsedGroups = new Set();
-
-function toggleQuickPicker(force) {
-  if (!quickModelPickerPopover) return;
-  const isHidden = typeof force === 'boolean' ? !force : !quickModelPickerPopover.hidden;
-  quickModelPickerPopover.hidden = isHidden;
-}
 
 function renderQuickModelList(models, filterQuery, activeModel, onSelect) {
   if (!quickModelList) return;
@@ -1419,26 +1420,9 @@ async function updateQuickModels(providerId, targetModel) {
 }
 
 function initQuickModelPicker() {
-  btnQuickModelPicker?.addEventListener('click', (e) => {
+  btnQuickModelPicker?.addEventListener('click', async (e) => {
     e.stopPropagation();
-    toggleQuickPicker();
-    if (quickModelSearch) {
-      quickModelSearch.value = '';
-      renderQuickModelList(quickModelsCache, '', quickActiveModel, async (chosenModel) => {
-        quickActiveModel = chosenModel;
-        if (quickModelCustom) quickModelCustom.hidden = true;
-        const patch = {
-          provider: quickActiveProvider,
-          model: chosenModel,
-          modelByProvider: { ...(state.settings?.modelByProvider || {}), [quickActiveProvider]: chosenModel }
-        };
-        const updated = await api.settings.set(patch);
-        applySettings(updated);
-        toggleQuickPicker(false);
-        setStatus({ text: `${i18n.t('app.ready')} (${chosenModel})`, kind: 'success' });
-      });
-      setTimeout(() => quickModelSearch.focus(), 50);
-    }
+    await toggleQuickPicker();
   });
 
   btnCloseQuickPicker?.addEventListener('click', (e) => {
