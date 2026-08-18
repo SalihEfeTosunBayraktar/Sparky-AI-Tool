@@ -398,6 +398,9 @@ function renderEmpty() {
 function startStage() {
   state.streaming = '';
   outputEl.textContent = '';
+  const blocksContainer = $('promptBlocksContainer');
+  if (blocksContainer) blocksContainer.hidden = true;
+  outputEl.hidden = false;
   const caret = document.createElement('span');
   caret.className = 'caret';
   outputEl.appendChild(caret);
@@ -1084,10 +1087,12 @@ if (api.on.tokensUpdated) {
 
   if (typeof PromptAssistUI !== 'undefined') {
     promptAssistUI = new PromptAssistUI({
+      toolbar: $('assistToolbar'),
       tabsContainer: $('variationTabs'),
       blocksContainer: $('promptBlocksContainer'),
       rawTextarea: outputEl,
-      toggleViewBtn: $('btnToggleViewMode')
+      toggleViewBtn: $('btnToggleViewMode'),
+      shuffleBtn: $('btnShuffleTriad')
     }, {
       api,
       i18n,
@@ -1097,27 +1102,18 @@ if (api.on.tokensUpdated) {
           const el = $(id);
           if (el) el.disabled = !updatedText;
         }
-      }
-    });
-
-    document.querySelectorAll('.var-tab').forEach((tab) => {
-      tab.addEventListener('click', async () => {
-        document.querySelectorAll('.var-tab').forEach((t) => t.classList.remove('active'));
-        tab.classList.add('active');
-        const varType = tab.dataset.var;
-        if (promptAssistUI) {
-          promptAssistUI.activeVariation = varType;
-          if (promptAssistUI.variations[varType]) {
-            promptAssistUI.setContent(promptAssistUI.variations[varType]);
-          } else {
-            const raw = state.lastInput || inputEl.value.trim();
-            if (raw) {
-              const targetStyle = varType === 'concise' ? 'concise' : (varType === 'deep' ? 'research' : 'detailed');
-              await startGeneration({ raw, image: imageHandler.getImage(), mode: 'create', styleOverride: targetStyle });
-            }
-          }
+      },
+      onVariationSelect: async (strategy) => {
+        const raw = state.lastInput || inputEl.value.trim();
+        if (raw) {
+          await startGeneration({
+            raw,
+            image: imageHandler.getImage(),
+            mode: 'create',
+            styleOverride: strategy.style || 'detailed'
+          });
         }
-      });
+      }
     });
   }
 

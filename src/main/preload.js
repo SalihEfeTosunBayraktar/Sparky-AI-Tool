@@ -114,7 +114,8 @@ contextBridge.exposeInMainWorld('sparky', {
   },
 
   assist: {
-    getStrategies: () => ipcRenderer.invoke('assist:getStrategies'),
+    getStrategies: (opts) => ipcRenderer.invoke('assist:getStrategies', opts),
+    recordSelection: (strategyId) => ipcRenderer.invoke('assist:recordSelection', strategyId),
     parseBlocks: (text) => ipcRenderer.invoke('assist:parseBlocks', text),
     serializeBlocks: (blocks) => ipcRenderer.invoke('assist:serializeBlocks', blocks),
     refineBlock: (payload) => ipcRenderer.invoke('assist:refineBlock', payload)

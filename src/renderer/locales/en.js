@@ -364,6 +364,18 @@ const en = {
     cosmic: 'Cosmic Dream',
     ocean: 'Ocean Breeze',
     midnight: 'Midnight Chrome'
+  },
+  assist: {
+    varConcise: 'Concise',
+    varStructured: 'Structured',
+    varDeep: 'Deep',
+    shuffleTitle: 'Shuffle 3 alternative strategies',
+    toggleViewTitle: 'Toggle between Blocks and Raw Markdown',
+    blockMode: 'Blocks',
+    rawMode: 'Raw Text',
+    refineBlock: 'Refine this section',
+    deleteBlock: 'Delete this section',
+    refinePromptQuestion: 'How would you like to refine this section?'
   }
 };
 

@@ -42,6 +42,7 @@ const DEFAULTS = {
   enableNotifications: true,
   enableSound: true,
   notifyOnlyWhenBackground: true,
+  assistWeights: {},
   // Küredeki bilgi baloncuğu kuyruğunun önem eşiği. 'minimal' yalnızca
   // yüksek/kritik olayları (sonuç, hata, anahtar döngüsü) gösterir;
   // 'normal' aşama bilgilerini de ekler; 'all' düşük öncelikli tikleri

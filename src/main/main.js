@@ -295,7 +295,7 @@ async function runGeneration(payload) {
   const controller = new AbortController();
   activeRun = controller;
 
-  const cfg = settings.all();
+  const cfg = { ...settings.all(), ...(payload.styleOverride ? { style: payload.styleOverride } : {}) };
   const started = Date.now();
 
   const mode = payload.mode || 'create';
@@ -1010,8 +1010,18 @@ function registerIpc() {
     return { ok: false, error: 'Project not found' };
   });
 
-  // --- prompt assist (3 varyasyon & blok ayrıştırma/düzenleme)
-  ipcMain.handle('assist:getStrategies', () => PromptAssistEngine.getStrategies());
+  // --- prompt assist (dinamik varyasyonlar, ağırlıklı seçim & blok ayrıştırma)
+  ipcMain.handle('assist:getStrategies', (_e, opts = {}) => {
+    const cfg = settings.all();
+    return PromptAssistEngine.getWeightedTriad(cfg.assistWeights || {}, !!opts.forceRandom);
+  });
+  ipcMain.handle('assist:recordSelection', (_e, strategyId) => {
+    const cfg = settings.all();
+    const weights = { ...(cfg.assistWeights || {}) };
+    weights[strategyId] = (weights[strategyId] || 0) + 1;
+    settings.patch({ assistWeights: weights });
+    return weights;
+  });
   ipcMain.handle('assist:parseBlocks', (_e, text) => PromptAssistEngine.parseBlocks(text));
   ipcMain.handle('assist:serializeBlocks', (_e, blocks) => PromptAssistEngine.serializeBlocks(blocks));
   ipcMain.handle('assist:refineBlock', async (_e, { fullText, blockType, currentContent, instruction }) => {

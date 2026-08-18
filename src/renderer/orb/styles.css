@@ -1130,7 +1130,7 @@ select option {
 }
 
 /* ================================================================== */
-/* Prompt Assist (3-Way Variations & Granular Block Editor)           */
+/* Prompt Assist (Integrated Inside Output Bubble Toolbar)            */
 /* ================================================================== */
 
 .row-label.out {
@@ -1140,31 +1140,31 @@ select option {
   margin-top: 2px;
 }
 
-.out-left-group {
+.prompt-assist-toolbar {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 8px;
-}
-
-.out-right-group {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  gap: 6px;
+  padding: 4px 6px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-bottom: none;
+  border-top-left-radius: 9px;
+  border-top-right-radius: 9px;
+  z-index: 5;
+  user-select: none;
 }
 
 .variation-tabs {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  background: var(--bg-card);
-  padding: 2px;
-  border-radius: 8px;
-  border: 1px solid var(--border-color);
+  overflow-x: auto;
 }
 
 .var-tab {
   height: 22px;
-  padding: 0 8px;
+  padding: 0 7px;
   border-radius: 6px;
   border: 1px solid transparent;
   background: transparent;
@@ -1179,6 +1179,17 @@ select option {
   white-space: nowrap;
 }
 
+.var-tab .var-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
+}
+
+.var-tab.active .var-icon {
+  color: #ffffff;
+}
+
 .var-tab:hover:not(.active) {
   background: var(--accent-subtle);
   color: var(--accent);
@@ -1191,9 +1202,15 @@ select option {
   box-shadow: 0 2px 8px var(--accent-glow-color);
 }
 
-.btn-toggle-view {
+.assist-toolbar-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.btn-assist-action {
   height: 22px;
-  padding: 0 8px;
+  padding: 0 6px;
   border-radius: 6px;
   border: 1px solid var(--border-color);
   background: var(--btn-bg);
@@ -1203,11 +1220,11 @@ select option {
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
   transition: all 0.15s ease;
 }
 
-.btn-toggle-view:hover {
+.btn-assist-action:hover {
   background: var(--accent-subtle);
   color: var(--accent);
   border-color: var(--accent-border);

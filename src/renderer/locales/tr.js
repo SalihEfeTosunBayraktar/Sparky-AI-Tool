@@ -364,6 +364,18 @@ const tr = {
     cosmic: 'Cosmic Dream',
     ocean: 'Ocean Breeze',
     midnight: 'Midnight Chrome'
+  },
+  assist: {
+    varConcise: 'Kısa',
+    varStructured: 'Yapılandırılmış',
+    varDeep: 'Derin',
+    shuffleTitle: 'Farklı 3 strateji getir',
+    toggleViewTitle: 'Bloklar ve Ham Metin arasında geçiş yap',
+    blockMode: 'Bloklar',
+    rawMode: 'Ham Metin',
+    refineBlock: 'Bu Bölümü Düzenle',
+    deleteBlock: 'Bu Bölümü Sil',
+    refinePromptQuestion: 'Bu bölümü nasıl düzenleyelim?'
   }
 };
 
