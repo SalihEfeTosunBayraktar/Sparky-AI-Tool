@@ -242,9 +242,18 @@ const en = {
       behavior: 'Behavior',
       memoryAndContext: 'Memory & Context Management',
       notificationsAndSound: 'Notifications & Sound',
+      voiceStt: 'Voice Recognition & STT',
       shortcuts: 'Shortcuts'
     },
     fields: {
+      voiceProvider: 'Voice Recognition Engine',
+      voiceAuto: 'Automatic (Groq > OpenAI)',
+      voiceGroq: 'Groq Whisper (whisper-large-v3-turbo · Ultra Fast)',
+      voiceOpenai: 'OpenAI Whisper (whisper-1)',
+      voiceCustom: 'Custom Whisper Endpoint (Local / Remote)',
+      voiceHint: 'Select the STT engine used when clicking the microphone button.',
+      voiceCustomEndpoint: 'Custom Whisper Endpoint URL',
+      voiceCustomHint: 'Enter OpenAI Whisper compatible /v1/audio/transcriptions URL.',
       provider: 'Provider',
       btnProbe: 'Scan local servers',
       endpoint: 'Server endpoint',

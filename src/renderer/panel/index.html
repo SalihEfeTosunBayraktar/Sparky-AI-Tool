@@ -247,6 +247,25 @@
               </p>
             </div>
           </div>
+
+          <h2 data-i18n="panel.sections.voiceStt">Ses Tanıma & Transkripsiyon (STT)</h2>
+          <div class="card">
+            <div class="field">
+              <label for="voiceProvider" data-i18n="panel.fields.voiceProvider">Ses Tanıma Sağlayıcısı</label>
+              <select id="voiceProvider">
+                <option value="auto" data-i18n="panel.fields.voiceAuto">Otomatik (Groq > OpenAI)</option>
+                <option value="groq" data-i18n="panel.fields.voiceGroq">Groq Whisper (whisper-large-v3-turbo · Ultra Hızlı)</option>
+                <option value="openai" data-i18n="panel.fields.voiceOpenai">OpenAI Whisper (whisper-1)</option>
+                <option value="custom" data-i18n="panel.fields.voiceCustom">Özel Whisper Uç Noktası (Yerel / Uzak)</option>
+              </select>
+              <p class="hint" data-i18n="panel.fields.voiceHint">Küre üzerindeki mikrofona bastığınızda konuşmanızı metne dönüştürecek motoru seçin.</p>
+            </div>
+            <div class="field" id="voiceCustomEndpointRow" hidden>
+              <label for="voiceCustomEndpoint" data-i18n="panel.fields.voiceCustomEndpoint">Özel Whisper Endpoint URL</label>
+              <input id="voiceCustomEndpoint" placeholder="örn. http://localhost:8000/v1/audio/transcriptions" spellcheck="false" />
+              <p class="hint" data-i18n="panel.fields.voiceCustomHint">OpenAI Whisper uyumlu `/v1/audio/transcriptions` adresini girin.</p>
+            </div>
+          </div>
         </section>
 
         <!-- 2. PROJELER PANE -->

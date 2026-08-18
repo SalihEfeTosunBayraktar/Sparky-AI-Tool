@@ -38,6 +38,15 @@ const PROVIDERS = {
     defaultEndpoint: 'https://api.openai.com/v1',
     keyHint: 'platform.openai.com → API keys'
   },
+  groq: {
+    id: 'groq',
+    label: 'Groq (Ultra Hızlı)',
+    kind: 'openai',
+    needsKey: true,
+    defaultEndpoint: 'https://api.groq.com/openai/v1',
+    endpointHint: 'https://api.groq.com/openai/v1',
+    keyHint: 'console.groq.com/keys → API keys'
+  },
   anthropic: {
     id: 'anthropic',
     label: 'Anthropic (Claude)',

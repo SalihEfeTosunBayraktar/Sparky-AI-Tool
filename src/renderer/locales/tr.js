@@ -242,9 +242,18 @@ const tr = {
       behavior: 'Davranış',
       memoryAndContext: 'Hafıza & Context Yönetimi',
       notificationsAndSound: 'Bildirimler ve ses',
+      voiceStt: 'Ses Tanıma & Transkripsiyon (STT)',
       shortcuts: 'Kısayollar'
     },
     fields: {
+      voiceProvider: 'Ses Tanıma Sağlayıcısı',
+      voiceAuto: 'Otomatik (Groq > OpenAI)',
+      voiceGroq: 'Groq Whisper (whisper-large-v3-turbo · Ultra Hızlı)',
+      voiceOpenai: 'OpenAI Whisper (whisper-1)',
+      voiceCustom: 'Özel Whisper Uç Noktası (Yerel / Uzak)',
+      voiceHint: 'Küre üzerindeki mikrofona bastığınızda konuşmanızı metne dönüştürecek motoru seçin.',
+      voiceCustomEndpoint: 'Özel Whisper Endpoint URL',
+      voiceCustomHint: 'OpenAI Whisper uyumlu /v1/audio/transcriptions adresini girin.',
       provider: 'Sağlayıcı',
       btnProbe: 'Yerel sunucuları tara',
       endpoint: 'Sunucu adresi',

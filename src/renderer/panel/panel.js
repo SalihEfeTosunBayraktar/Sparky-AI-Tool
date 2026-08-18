@@ -484,6 +484,18 @@ $('autoCompactThreshold')?.addEventListener('change', () =>
   save({ autoCompactThreshold: Number($('autoCompactThreshold').value) })
 );
 
+$('voiceProvider')?.addEventListener('change', async () => {
+  const vp = $('voiceProvider').value;
+  if ($('voiceCustomEndpointRow')) {
+    $('voiceCustomEndpointRow').hidden = vp !== 'custom';
+  }
+  await save({ voiceProvider: vp });
+});
+
+$('voiceCustomEndpoint')?.addEventListener('change', async () => {
+  await save({ voiceCustomEndpoint: $('voiceCustomEndpoint').value.trim() });
+});
+
 
 /* ------------------------------------------------------------------ */
 /* Kısayol yakalama                                                    */
@@ -1023,6 +1035,16 @@ function renderAll() {
   if ($('enableSound')) $('enableSound').checked = !!settings.enableSound;
   if ($('notifyOnlyWhenBackground')) $('notifyOnlyWhenBackground').checked = !!settings.notifyOnlyWhenBackground;
   if ($('notifyLevel')) $('notifyLevel').value = settings.notifyLevel || 'normal';
+
+  if ($('voiceProvider')) {
+    $('voiceProvider').value = settings.voiceProvider || 'auto';
+    if ($('voiceCustomEndpointRow')) {
+      $('voiceCustomEndpointRow').hidden = (settings.voiceProvider || 'auto') !== 'custom';
+    }
+  }
+  if ($('voiceCustomEndpoint')) {
+    $('voiceCustomEndpoint').value = settings.voiceCustomEndpoint || '';
+  }
 
   const sc = settings.shortcuts || {};
   document.querySelectorAll('.accel').forEach((i) => {
