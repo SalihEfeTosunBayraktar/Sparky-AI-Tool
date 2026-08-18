@@ -100,8 +100,10 @@ class VoiceInput {
       const arrayBuffer = await audioBlob.arrayBuffer();
       const uint8Array = new Uint8Array(arrayBuffer);
 
-      if (this.api && this.api.voice && typeof this.api.voice.transcribe === 'function') {
-        const res = await this.api.voice.transcribe(uint8Array);
+      const apiBridge = this.api || (typeof window !== 'undefined' ? (window.api || (typeof api !== 'undefined' ? api : null)) : null);
+
+      if (apiBridge && apiBridge.voice && typeof apiBridge.voice.transcribe === 'function') {
+        const res = await apiBridge.voice.transcribe(uint8Array);
         if (res && res.ok && res.text) {
           if (typeof this.onResult === 'function') {
             this.onResult(res.text);
@@ -110,7 +112,7 @@ class VoiceInput {
         } else {
           this.setState('error');
           if (typeof this.onError === 'function') {
-            this.onError(res?.error || 'Ses çözümlenemedi.');
+            this.onError(res?.error || 'Sesli tanıma için Ayarlar bölümünden bir OpenAI veya Groq API anahtarı ekleyin.');
           }
         }
       } else {

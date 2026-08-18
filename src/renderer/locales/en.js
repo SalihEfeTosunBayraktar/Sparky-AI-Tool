@@ -227,6 +227,8 @@ const en = {
       projects: 'Projects',
       modes: 'Modes',
       providers: 'Model & API',
+      shortcuts: 'Shortcuts',
+      mcp: 'MCP',
       history: 'History',
       about: 'About'
     },

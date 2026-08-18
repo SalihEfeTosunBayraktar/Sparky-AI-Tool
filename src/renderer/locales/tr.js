@@ -227,6 +227,8 @@ const tr = {
       projects: 'Projeler',
       modes: 'Modlar',
       providers: 'Model/API',
+      shortcuts: 'Kısayollar',
+      mcp: 'MCP',
       history: 'Geçmiş',
       about: 'Hakkında'
     },

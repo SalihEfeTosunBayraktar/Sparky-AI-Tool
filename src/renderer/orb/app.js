@@ -1683,6 +1683,7 @@ function initQuickModelPicker() {
   const btnVoice = $('btnVoiceInput');
   if (typeof VoiceInput !== 'undefined' && btnVoice) {
     const voice = new VoiceInput({
+      api,
       lang: settings.appLanguage === 'en' ? 'en-US' : 'tr-TR',
       onResult: (text) => {
         if (inputEl) {
