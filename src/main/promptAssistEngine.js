@@ -127,27 +127,32 @@ class PromptAssistEngine {
     const lines = cleanText.split('\n');
     const blocks = [];
     let currentBlock = null;
-    const headingRegex = /^(?:#{1,4}\s+|\*\*)([A-Za-zÇĞİÖŞÜçğıöşü\s&/—–-]+?)(?:\*\*|:)?\s*$/;
+    const headingRegex = /^(?:#{1,6}\s+|\*\*(?:\d+\.?\s*)?|\b\d+\.\s+)(.*?)(?:\*\*|:)?\s*$/;
 
     for (const rawLine of lines) {
       const line = rawLine.trim();
       const match = line.match(headingRegex);
 
-      if (match && match[1] && match[1].trim().length < 50) {
-        if (currentBlock && currentBlock.content.trim()) {
-          currentBlock.content = currentBlock.content.trim();
-          blocks.push(currentBlock);
-        }
-        const rawTitle = match[1].trim();
+      if (match && match[1] && match[1].trim().length < 60 && !line.includes('```')) {
+        const rawTitle = match[1].replace(/^[^\w\s\u00C0-\u017F]+/, '').trim();
         const type = detectBlockType(rawTitle);
-        currentBlock = {
-          id: `blk_${type}_${Date.now()}_${blocks.length + 1}`,
-          type,
-          title: rawTitle,
-          content: '',
-          iconSvg: getBlockSvg(type)
-        };
-      } else if (currentBlock) {
+        if (type !== 'general' || line.startsWith('#') || line.startsWith('**')) {
+          if (currentBlock && currentBlock.content.trim()) {
+            currentBlock.content = currentBlock.content.trim();
+            blocks.push(currentBlock);
+          }
+          currentBlock = {
+            id: `blk_${type}_${Date.now()}_${blocks.length + 1}`,
+            type,
+            title: rawTitle || match[1].trim() || 'Bölüm',
+            content: '',
+            iconSvg: getBlockSvg(type)
+          };
+          continue;
+        }
+      }
+
+      if (currentBlock) {
         currentBlock.content += (currentBlock.content ? '\n' : '') + rawLine;
       } else if (line) {
         currentBlock = {
@@ -246,11 +251,27 @@ NON-NEGOTIABLE RULES:
     const variations = {};
 
     const findBlock = (type) => blocks.find((b) => b.type === type)?.content || '';
-    const role = findBlock('role');
-    const task = findBlock('task');
-    const context = findBlock('context');
-    const constraints = findBlock('constraints');
-    const outputFormat = findBlock('output_format');
+    let role = findBlock('role');
+    let task = findBlock('task');
+    let context = findBlock('context');
+    let constraints = findBlock('constraints');
+    let outputFormat = findBlock('output_format');
+
+    // Fallback: If no structured blocks were found, intelligently derive from paragraphs
+    if (!task && !role) {
+      const paragraphs = cleanText.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
+      if (paragraphs.length >= 1) {
+        if (/^(sen\s+|you\s+are|act\s+as)/i.test(paragraphs[0])) {
+          role = paragraphs[0];
+          task = paragraphs.slice(1).join('\n\n') || paragraphs[0];
+        } else {
+          task = paragraphs[0];
+          context = paragraphs.slice(1).join('\n\n');
+        }
+      } else {
+        task = cleanText;
+      }
+    }
 
     for (const st of strategies) {
       if (!st || !st.id) continue;
@@ -259,42 +280,46 @@ NON-NEGOTIABLE RULES:
         variations[st.id] = cleanText;
       } else if (st.id === 'concise' || st.id === 'minimal') {
         const parts = [];
-        if (role) parts.push(`Act as ${role.replace(/^You are\s+/i, '')}.`);
-        if (task) parts.push(task);
+        if (role) {
+          const cleanRole = role.replace(/^(?:sen\s+bir|you\s+are\s+a?|act\s+as\s+a?)\s+/i, '').trim();
+          parts.push(`Act as ${cleanRole}.`);
+        }
+        parts.push(task || cleanText);
         if (constraints) parts.push(`Constraints: ${constraints.replace(/\n+/g, '; ')}`);
         if (outputFormat) parts.push(`Output: ${outputFormat.replace(/\n+/g, ' ')}`);
-        variations[st.id] = parts.length > 0 ? parts.join(' ') : cleanText;
+        variations[st.id] = parts.join('\n\n');
       } else if (st.id === 'expert') {
         const parts = [];
         const expRole = role || 'Senior Subject Matter Expert & Principal Architect';
         parts.push(`## Role & Persona\n${expRole}\nOperate with rigorous industry methodology, high precision, and domain mastery.`);
-        if (task) parts.push(`## Objective\n${task}`);
+        parts.push(`## Objective\n${task || cleanText}`);
         if (context) parts.push(`## Background Context\n${context}`);
         if (constraints) parts.push(`## Operational Guardrails\n${constraints}`);
+        else parts.push('## Operational Guardrails\n- Ensure zero hallucinations and verify all claims.\n- Adhere to industry best practices.');
         if (outputFormat) parts.push(`## Deliverable Specification\n${outputFormat}`);
-        variations[st.id] = parts.length > 1 ? parts.join('\n\n') : cleanText;
+        variations[st.id] = parts.join('\n\n');
       } else if (st.id === 'code_centric') {
         const parts = [];
         parts.push(`## Engineering Role\n${role || 'Senior Software Engineer & Systems Architect'}`);
-        if (task) parts.push(`## Specification\n${task}`);
+        parts.push(`## Specification\n${task || cleanText}`);
         if (context) parts.push(`## Technical Context\n${context}`);
-        if (constraints) parts.push(`## Constraints & Error Handling\n${constraints}`);
+        parts.push(`## Constraints & Error Handling\n${constraints || '- Clean, production-ready code with type annotations.\n- Comprehensive error handling and edge cases.\n- Zero placeholders or TODO comments.'}`);
         if (outputFormat) parts.push(`## Interface Contract & Format\n${outputFormat}`);
-        variations[st.id] = parts.length > 1 ? parts.join('\n\n') : cleanText;
+        variations[st.id] = parts.join('\n\n');
       } else if (st.id === 'creative') {
         const parts = [];
         parts.push(`## Creative Vision\n${role ? `Adopt the persona of ${role}. ` : ''}${task || cleanText}`);
         if (context) parts.push(`## Setting & Context\n${context}`);
-        if (constraints || outputFormat) parts.push(`## Stylistic Guidelines\n${[constraints, outputFormat].filter(Boolean).join('\n')}`);
-        variations[st.id] = parts.length > 1 ? parts.join('\n\n') : cleanText;
+        parts.push(`## Stylistic Guidelines\n${[constraints, outputFormat].filter(Boolean).join('\n') || '- Rich vocabulary, compelling storytelling, and dynamic pacing.\n- Avoid clichés and embrace distinctive nuances.'}`);
+        variations[st.id] = parts.join('\n\n');
       } else if (st.id === 'deep') {
         const parts = [];
-        if (role) parts.push(`## Persona\n${role}`);
-        if (task) parts.push(`## Core Mission\n${task}`);
+        parts.push(`## Persona\n${role || 'Principal Research Scientist & Analytical Strategist'}`);
+        parts.push(`## Core Mission\n${task || cleanText}`);
         if (context) parts.push(`## Comprehensive Context & Edge Cases\n${context}`);
-        if (constraints) parts.push(`## Strict Constraints & Quality Criteria\n${constraints}`);
+        parts.push(`## Strict Constraints & Quality Criteria\n${constraints || '- Provide detailed step-by-step reasoning.\n- Address edge cases, trade-offs, and counter-arguments.'}`);
         if (outputFormat) parts.push(`## Target Deliverable\n${outputFormat}`);
-        variations[st.id] = parts.length > 1 ? parts.join('\n\n') : cleanText;
+        variations[st.id] = parts.join('\n\n');
       } else if (st.id === 'conversational') {
         const parts = [];
         parts.push(`You are a collaborative AI consultant. ${role ? `Expertise: ${role}.` : ''}`);

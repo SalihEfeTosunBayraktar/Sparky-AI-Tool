@@ -134,7 +134,7 @@ class PromptAssistUI {
     // Önbellekteki varyasyonu anında göster (yeniden üretim tetiklemez)
     const content = this.variations[strategyId] || this.variations['structured'] || '';
     if (content) {
-      this._displayContent(content);
+      await this._displayContent(content);
       this.onPromptChange(content);
     }
   }
@@ -196,12 +196,21 @@ class PromptAssistUI {
 
     // Aktif sekmenin varyasyonunu göster / Display current active strategy variation
     const currentText = this.variations[this.activeStrategyId] || text;
-    this._displayContent(currentText);
+    await this._displayContent(currentText);
   }
 
   /** İçeriği parse edip hem ham hem blok olarak hazırla / Parse and display content */
   async _displayContent(text) {
     if (this.toolbar) this.toolbar.hidden = false;
+
+    // Görünür çıktı alanını anında güncelle / Update visible output textarea/div immediately
+    if (this.rawTextarea) {
+      if ('value' in this.rawTextarea && typeof this.rawTextarea.value === 'string' && this.rawTextarea.tagName === 'TEXTAREA') {
+        this.rawTextarea.value = text;
+      } else {
+        this.rawTextarea.textContent = text;
+      }
+    }
 
     // Blokları ayrıştır / Parse blocks
     if (this.api?.assist?.parseBlocks) {
