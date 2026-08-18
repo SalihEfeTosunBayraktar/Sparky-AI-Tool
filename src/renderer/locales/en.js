@@ -456,6 +456,11 @@ const en = {
     apply: 'Apply & Save'
   },
   theme: {
+    modeLabel: 'Theme Mode',
+    modeDark: 'Dark',
+    modeLight: 'Light',
+    modeSystem: 'System',
+    accentLabel: 'Accent Palette & Orb Skin',
     sunset: 'Sunset (Orange/Pink)',
     cyber: 'Cyberpunk (Neon Cyan)',
     emerald: 'Emerald (Vibrant Green)',

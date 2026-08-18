@@ -172,8 +172,8 @@ class ThemeManager {
 
       swatch.innerHTML = `
         <span class="swatch-shape-preview shape-${shape.id}" style="background: ${currentPreset.gradient}; box-shadow: 0 0 10px ${currentPreset.glow};">
-          <svg viewBox="0 0 24 24" class="shape-icon" aria-hidden="true">
-            ${shape.svgPath}
+          <svg viewBox="0 0 24 24" class="swatch-sparkle" aria-hidden="true">
+            <path d="M12 2.2 13.9 9 20.8 10.9 13.9 12.8 12 19.6 10.1 12.8 3.2 10.9 10.1 9Z" fill="#ffffff" />
           </svg>
         </span>
         <span class="swatch-label">${label}</span>

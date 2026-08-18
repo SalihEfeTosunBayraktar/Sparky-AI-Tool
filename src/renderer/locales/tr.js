@@ -456,6 +456,11 @@ const tr = {
     apply: 'Uygula & Kaydet'
   },
   theme: {
+    modeLabel: 'Tema Modu (Theme Mode)',
+    modeDark: 'Koyu (Dark)',
+    modeLight: 'Açık (Light)',
+    modeSystem: 'Sistem (System)',
+    accentLabel: 'Vurgu Rengi & Küre Avatarı (Accent & Orb Skin)',
     sunset: 'Sunset (Günbatımı)',
     cyber: 'Cyberpunk (Neon Mavi)',
     emerald: 'Emerald (Zümrüt Yeşil)',
