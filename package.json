@@ -8,8 +8,8 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "start": "electron --in-process-gpu --disable-gpu-sandbox --log-level=3 --disable-logging .",
-    "dev": "electron --in-process-gpu --disable-gpu-sandbox --log-level=3 --disable-logging . --dev",
+    "start": "electron --use-angle=d3d9 --in-process-gpu --disable-gpu-sandbox --log-level=3 --disable-logging .",
+    "dev": "electron --use-angle=d3d9 --in-process-gpu --disable-gpu-sandbox --log-level=3 --disable-logging . --dev",
     "dist": "electron-builder --win nsis portable",
     "pack": "electron-builder --dir",
     "test": "node --test"
