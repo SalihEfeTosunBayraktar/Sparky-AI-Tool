@@ -5,24 +5,40 @@
  * Tema, Vurgu Rengi ve Küre Geometrisi yöneticisi.
  */
 
-let ACCENT_PRESETS = [];
-let SHAPE_PRESETS = [];
-
-if (typeof require !== 'undefined') {
-  try {
-    const presets = require('./themePresets');
-    ACCENT_PRESETS = presets.ACCENT_PRESETS || [];
-    SHAPE_PRESETS = presets.SHAPE_PRESETS || [];
-  } catch {
-    // Browser global fallback
+function getAccentPresets() {
+  if (typeof globalThis !== 'undefined' && Array.isArray(globalThis.ACCENT_PRESETS) && globalThis.ACCENT_PRESETS.length) {
+    return globalThis.ACCENT_PRESETS;
   }
+  if (typeof window !== 'undefined' && Array.isArray(window.ACCENT_PRESETS) && window.ACCENT_PRESETS.length) {
+    return window.ACCENT_PRESETS;
+  }
+  if (typeof require !== 'undefined') {
+    try {
+      const presets = require('./themePresets');
+      if (Array.isArray(presets.ACCENT_PRESETS) && presets.ACCENT_PRESETS.length) {
+        return presets.ACCENT_PRESETS;
+      }
+    } catch {}
+  }
+  return [];
 }
 
-if (!ACCENT_PRESETS.length && typeof window !== 'undefined' && window.ACCENT_PRESETS) {
-  ACCENT_PRESETS = window.ACCENT_PRESETS;
-}
-if (!SHAPE_PRESETS.length && typeof window !== 'undefined' && window.SHAPE_PRESETS) {
-  SHAPE_PRESETS = window.SHAPE_PRESETS;
+function getShapePresets() {
+  if (typeof globalThis !== 'undefined' && Array.isArray(globalThis.SHAPE_PRESETS) && globalThis.SHAPE_PRESETS.length) {
+    return globalThis.SHAPE_PRESETS;
+  }
+  if (typeof window !== 'undefined' && Array.isArray(window.SHAPE_PRESETS) && window.SHAPE_PRESETS.length) {
+    return window.SHAPE_PRESETS;
+  }
+  if (typeof require !== 'undefined') {
+    try {
+      const presets = require('./themePresets');
+      if (Array.isArray(presets.SHAPE_PRESETS) && presets.SHAPE_PRESETS.length) {
+        return presets.SHAPE_PRESETS;
+      }
+    } catch {}
+  }
+  return [];
 }
 
 class ThemeManager {
@@ -82,7 +98,7 @@ class ThemeManager {
     if (!container) return;
     container.innerHTML = '';
 
-    const list = ACCENT_PRESETS.length ? ACCENT_PRESETS : (typeof window !== 'undefined' && window.ACCENT_PRESETS ? window.ACCENT_PRESETS : []);
+    const list = getAccentPresets();
 
     for (const preset of list) {
       const isSelected = preset.id === this.currentAccent;
@@ -120,8 +136,8 @@ class ThemeManager {
     if (!container) return;
     container.innerHTML = '';
 
-    const accList = ACCENT_PRESETS.length ? ACCENT_PRESETS : (typeof window !== 'undefined' && window.ACCENT_PRESETS ? window.ACCENT_PRESETS : []);
-    const shapeList = SHAPE_PRESETS.length ? SHAPE_PRESETS : (typeof window !== 'undefined' && window.SHAPE_PRESETS ? window.SHAPE_PRESETS : []);
+    const accList = getAccentPresets();
+    const shapeList = getShapePresets();
 
     const currentPreset = accList.find((p) => p.id === this.currentAccent) || accList[0] || {
       gradient: 'linear-gradient(135deg, #FF6B4A, #E0287D)',
@@ -161,6 +177,19 @@ class ThemeManager {
   }
 }
 
+const ACCENT_PRESETS = getAccentPresets();
+const SHAPE_PRESETS = getShapePresets();
+
+if (typeof window !== 'undefined') {
+  window.ThemeManager = ThemeManager;
+  window.ACCENT_PRESETS = ACCENT_PRESETS;
+  window.SHAPE_PRESETS = SHAPE_PRESETS;
+}
+if (typeof globalThis !== 'undefined') {
+  globalThis.ThemeManager = ThemeManager;
+  globalThis.ACCENT_PRESETS = ACCENT_PRESETS;
+  globalThis.SHAPE_PRESETS = SHAPE_PRESETS;
+}
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { ThemeManager, ACCENT_PRESETS, SHAPE_PRESETS };
+  module.exports = { ThemeManager, ACCENT_PRESETS, SHAPE_PRESETS, getAccentPresets, getShapePresets };
 }

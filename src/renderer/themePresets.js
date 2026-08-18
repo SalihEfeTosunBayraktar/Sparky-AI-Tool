@@ -167,6 +167,14 @@ const SHAPE_PRESETS = [
   { id: 'cross', labelKey: 'theme.shapeCross' }
 ];
 
+if (typeof window !== 'undefined') {
+  window.ACCENT_PRESETS = ACCENT_PRESETS;
+  window.SHAPE_PRESETS = SHAPE_PRESETS;
+}
+if (typeof globalThis !== 'undefined') {
+  globalThis.ACCENT_PRESETS = ACCENT_PRESETS;
+  globalThis.SHAPE_PRESETS = SHAPE_PRESETS;
+}
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = { ACCENT_PRESETS, SHAPE_PRESETS };
 }
