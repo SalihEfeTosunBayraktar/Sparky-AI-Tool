@@ -68,8 +68,36 @@ const PROVIDERS = {
 
 const IMPL = { ollama, openai: openaiCompat, anthropic, gemini };
 
+/* ------------------------------------------------------------------ */
+/* Sabit + özel sağlayıcıları birleştiren yardımcı                      */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Sabit (PROVIDERS) ve kullanıcı tanımlı (customProviders) sağlayıcıları birleştirir.
+ * Merges built-in PROVIDERS with user-defined customProviders from settings.
+ */
+function allProviders() {
+  const customs = settings.get('customProviders') || [];
+  const merged = { ...PROVIDERS };
+  for (const cp of customs) {
+    if (!cp || !cp.id) continue;
+    merged[cp.id] = {
+      id: cp.id,
+      label: cp.label || cp.id,
+      kind: cp.kind || 'openai',
+      needsKey: cp.needsKey !== false,
+      local: !!cp.local,
+      defaultEndpoint: cp.endpoint || '',
+      endpointHint: cp.endpointHint || '',
+      keyHint: cp.keyHint || '',
+      custom: true // Özel sağlayıcı olduğunu işaretle / Mark as user-defined
+    };
+  }
+  return merged;
+}
+
 function meta(providerId) {
-  const p = PROVIDERS[providerId];
+  const p = allProviders()[providerId];
   if (!p) throw new LlmError(`Bilinmeyen sağlayıcı: ${providerId}`);
   return p;
 }
@@ -94,6 +122,64 @@ function resolve(providerId) {
 }
 
 /* ------------------------------------------------------------------ */
+/* Özel sağlayıcı CRUD                                                 */
+/* ------------------------------------------------------------------ */
+
+function addCustomProvider(data) {
+  if (!data || !data.label) return { ok: false, error: 'label-required' };
+  const id = `cp_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`;
+  const entry = {
+    id,
+    label: String(data.label).trim(),
+    kind: data.kind || 'openai',
+    needsKey: data.needsKey !== false,
+    endpoint: String(data.endpoint || '').trim(),
+    endpointHint: String(data.endpointHint || '').trim(),
+    keyHint: String(data.keyHint || '').trim()
+  };
+  const customs = [...(settings.get('customProviders') || []), entry];
+  settings.patch({ customProviders: customs, endpoints: { [id]: entry.endpoint } });
+  return { ok: true, id, provider: entry };
+}
+
+function removeCustomProvider(id) {
+  const customs = settings.get('customProviders') || [];
+  const idx = customs.findIndex((c) => c.id === id);
+  if (idx === -1) return { ok: false, error: 'not-found' };
+  const updated = customs.filter((c) => c.id !== id);
+  const cfg = settings.all();
+  const endpoints = { ...cfg.endpoints };
+  delete endpoints[id];
+  // Aktif sağlayıcı siliniyorsa varsayılana dön / Reset if active provider deleted
+  const patch = { customProviders: updated, endpoints };
+  if (cfg.provider === id) {
+    patch.provider = 'ollama';
+    patch.model = '';
+  }
+  settings.patch(patch);
+  // Anahtarları da temizle / Clean up secrets
+  try { secrets.setKey(id, ''); } catch { /* yok say */ }
+  return { ok: true };
+}
+
+function updateCustomProvider(id, partial) {
+  const customs = settings.get('customProviders') || [];
+  const target = customs.find((c) => c.id === id);
+  if (!target) return { ok: false, error: 'not-found' };
+  if (partial.label !== undefined) target.label = String(partial.label).trim();
+  if (partial.kind !== undefined) target.kind = partial.kind;
+  if (partial.needsKey !== undefined) target.needsKey = !!partial.needsKey;
+  if (partial.endpoint !== undefined) {
+    target.endpoint = String(partial.endpoint).trim();
+    settings.patch({ endpoints: { [id]: target.endpoint } });
+  }
+  if (partial.endpointHint !== undefined) target.endpointHint = String(partial.endpointHint).trim();
+  if (partial.keyHint !== undefined) target.keyHint = String(partial.keyHint).trim();
+  settings.patch({ customProviders: customs });
+  return { ok: true, provider: target };
+}
+
+/* ------------------------------------------------------------------ */
 /* Anahtar döngüsü ve otomatik yeniden deneme                          */
 /* ------------------------------------------------------------------ */
 
@@ -103,11 +189,6 @@ function resolve(providerId) {
 /**
  * İstek gövdesini anahtar döngüsüyle sarmalar: limit/geçersizlik hatasında
  * anahtarı işaretler, sıradakine geçer ve isteği şeffaf biçimde tekrarlar.
- *
- * @param {string} providerId
- * @param {(apiKey: string, keyId: string|null) => Promise<any>} run
- * @param {object} [opts]
- * @param {(info: object) => void} [opts.onRotate] Geçiş bildirimi (arayüz için).
  */
 async function withKeyRotation(providerId, run, { onRotate } = {}) {
   const p = meta(providerId);
@@ -130,15 +211,17 @@ async function withKeyRotation(providerId, run, { onRotate } = {}) {
 function catalog() {
   const cfg = settings.all();
   const keyStatus = secrets.status();
-  return Object.values(PROVIDERS).map((p) => ({
+  return Object.values(allProviders()).map((p) => ({
     id: p.id,
     label: p.label,
     needsKey: p.needsKey,
     local: !!p.local,
+    custom: !!p.custom,
     endpoint: cfg.endpoints?.[p.id] ?? p.defaultEndpoint,
     defaultEndpoint: p.defaultEndpoint,
     endpointHint: p.endpointHint || '',
     keyHint: p.keyHint || '',
+    kind: p.kind,
     hasKey: !!keyStatus.keys[p.id],
     keyMask: keyStatus.keys[p.id]?.hint || ''
   }));
@@ -167,9 +250,6 @@ async function chat({
 }) {
   const r = resolveBase(providerId);
 
-  // Akış sırasında hata gelirse bir kısım token arayüze çoktan yazılmış
-  // olabilir. Yeniden denemeden önce çağırana "çıktıyı sıfırla" diyebilmek
-  // için ilk token'ı takip ediyoruz.
   let streamed = false;
   const wrappedOnToken = onToken
     ? (chunk) => {
@@ -193,9 +273,6 @@ async function chat({
         temperature,
         maxTokens,
         effort,
-        // Sistem öneki önbelleğe alınabilir mi? Şimdilik yalnızca Anthropic
-        // sağlayıcısı bunu açıkça işaretliyor; diğerlerinde önek önbelleği
-        // sunucu tarafında otomatik çalışır, ek bir bayrak gerekmez.
         cacheSystem,
         signal,
         onToken: wrappedOnToken
@@ -210,9 +287,10 @@ async function chat({
 // Yerel sunucuları yokla — ilk kurulumda otomatik seçim için.
 async function probeLocal() {
   const out = [];
+  const all = allProviders();
   const checks = [
-    { id: 'ollama', url: `${PROVIDERS.ollama.defaultEndpoint}/api/tags` },
-    { id: 'lmstudio', url: `${PROVIDERS.lmstudio.defaultEndpoint}/models` }
+    { id: 'ollama', url: `${all.ollama.defaultEndpoint}/api/tags` },
+    { id: 'lmstudio', url: `${all.lmstudio.defaultEndpoint}/models` }
   ];
   await Promise.all(
     checks.map(async ({ id, url }) => {
@@ -230,4 +308,18 @@ async function probeLocal() {
   return out;
 }
 
-module.exports = { PROVIDERS, catalog, listModels, chat, probeLocal, meta, classifyKeyError, withKeyRotation };
+module.exports = {
+  PROVIDERS,
+  allProviders,
+  catalog,
+  listModels,
+  chat,
+  probeLocal,
+  meta,
+  classifyKeyError,
+  withKeyRotation,
+  addCustomProvider,
+  removeCustomProvider,
+  updateCustomProvider
+};
+

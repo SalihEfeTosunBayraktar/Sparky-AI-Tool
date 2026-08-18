@@ -376,6 +376,21 @@ const en = {
     refineBlock: 'Refine this section',
     deleteBlock: 'Delete this section',
     refinePromptQuestion: 'How would you like to refine this section?'
+  },
+  customProvider: {
+    addBtn: '+ Add Custom Provider',
+    deleteBtn: 'Delete',
+    deleteConfirm: 'This custom provider and all its keys will be deleted. Continue?',
+    nameLabel: 'Provider Name',
+    namePlaceholder: 'e.g. OpenRouter, DeepSeek, Groq…',
+    endpointLabel: 'Server Address (Base URL)',
+    endpointPlaceholder: 'https://openrouter.ai/api/v1',
+    protocolLabel: 'API Protocol',
+    needsKeyLabel: 'API Key Required',
+    saveBtn: 'Add',
+    cancelBtn: 'Cancel',
+    badge: 'Custom',
+    formTitle: 'New Custom Provider'
   }
 };
 

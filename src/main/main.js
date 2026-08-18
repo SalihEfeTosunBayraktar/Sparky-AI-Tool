@@ -734,7 +734,25 @@ function registerIpc() {
     }
   });
 
-  // --- anahtarlar (açık değer asla geri dönmez)
+  // --- özel sağlayıcı CRUD / Custom provider CRUD
+  ipcMain.handle('providers:addCustom', (_e, data) => {
+    const res = llm.addCustomProvider(data);
+    if (res.ok) broadcast('providers:changed');
+    return res;
+  });
+  ipcMain.handle('providers:removeCustom', (_e, id) => {
+    const res = llm.removeCustomProvider(id);
+    if (res.ok) {
+      broadcast('providers:changed');
+      broadcast('secrets:changed');
+    }
+    return res;
+  });
+  ipcMain.handle('providers:updateCustom', (_e, { id, partial }) => {
+    const res = llm.updateCustomProvider(id, partial);
+    if (res.ok) broadcast('providers:changed');
+    return res;
+  });
   ipcMain.handle('secrets:status', () => secrets.status());
   ipcMain.handle('secrets:set', (_e, { provider, value }) => {
     // Geriye dönük uyumluluk: tek anahtar akışı. Mevcut listeyi temizleyip

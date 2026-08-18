@@ -108,6 +108,33 @@ function renderProviderFields() {
     ? (typeof i18n !== 'undefined' ? i18n.t('panel.fields.needsKey') : 'Bu sağlayıcı için API anahtarı gerekiyor.')
     : (typeof i18n !== 'undefined' ? i18n.t('panel.fields.localNoKey') : 'Yerel sunucu — API anahtarı gerekmez.');
   $('testResult').hidden = true;
+
+  // Özel sağlayıcı silme butonu / Delete button for custom providers
+  const existingDel = document.getElementById('btnDeleteCustomProvider');
+  if (existingDel) existingDel.remove();
+  if (p.custom) {
+    const delBtn = document.createElement('button');
+    delBtn.id = 'btnDeleteCustomProvider';
+    delBtn.className = 'btn danger sm';
+    delBtn.textContent = T('customProvider.deleteBtn', 'Sil');
+    delBtn.title = p.label;
+    delBtn.addEventListener('click', async () => {
+      const msg = T('customProvider.deleteConfirm', 'Bu özel sağlayıcı ve tüm anahtarları silinecek. Devam etmek istiyor musunuz?');
+      if (!confirm(msg)) return;
+      const res = await api.providers.removeCustom(p.id);
+      if (res.ok) {
+        settings = await api.settings.get();
+        providers = await api.providers.catalog();
+        populateProviderSelect();
+        renderProviderFields();
+        renderKeys();
+        loadModels({ silent: true });
+      }
+    });
+    // Sağlayıcı <select> yanına ekle / Insert next to provider select
+    const providerInline = $('provider').parentElement;
+    if (providerInline) providerInline.appendChild(delBtn);
+  }
 }
 
 async function loadModels({ silent = false } = {}) {
@@ -395,7 +422,7 @@ function buildKeySection(p, keys, rotator) {
 
 async function renderKeys() {
   const token = ++renderKeysToken;
-  const rows = providers.filter((p) => p.needsKey || p.id === 'custom');
+  const rows = providers.filter((p) => p.needsKey || p.id === 'custom' || p.custom);
 
   const built = [];
   for (const p of rows) {
@@ -772,6 +799,89 @@ $('btnReset')?.addEventListener('click', async () => {
   }
 });
 
+/* ------------------------------------------------------------------ */
+/* Özel sağlayıcı ekleme formu / Custom provider add form              */
+/* ------------------------------------------------------------------ */
+
+$('btnAddCustomProvider')?.addEventListener('click', () => {
+  const formEl = $('customProviderForm');
+  if (!formEl) return;
+  const isVisible = !formEl.hidden;
+  if (isVisible) { formEl.hidden = true; formEl.innerHTML = ''; return; }
+  renderCustomProviderForm(formEl);
+});
+
+function renderCustomProviderForm(container) {
+  container.hidden = false;
+  container.innerHTML = `
+    <h3 class="custom-provider-form-title">${T('customProvider.formTitle', 'Yeni Özel Sağlayıcı')}</h3>
+    <div class="field">
+      <label>${T('customProvider.nameLabel', 'Sağlayıcı Adı')}</label>
+      <input id="cpName" type="text" placeholder="${T('customProvider.namePlaceholder', 'Örn. OpenRouter, DeepSeek, Groq…')}" spellcheck="false" />
+    </div>
+    <div class="field">
+      <label>${T('customProvider.endpointLabel', 'Sunucu Adresi (Base URL)')}</label>
+      <input id="cpEndpoint" type="text" placeholder="${T('customProvider.endpointPlaceholder', 'https://openrouter.ai/api/v1')}" spellcheck="false" />
+    </div>
+    <div class="field-grid">
+      <div class="field">
+        <label>${T('customProvider.protocolLabel', 'API Protokolü')}</label>
+        <select id="cpKind">
+          <option value="openai">OpenAI Uyumlu</option>
+          <option value="anthropic">Anthropic</option>
+          <option value="gemini">Google Gemini</option>
+          <option value="ollama">Ollama</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="switch">
+          <input id="cpNeedsKey" type="checkbox" checked />
+          <span class="track"><span class="knob"></span></span>
+          <span class="switch-label">${T('customProvider.needsKeyLabel', 'API Anahtarı Gerekli')}</span>
+        </label>
+      </div>
+    </div>
+    <div class="inline custom-provider-form-actions">
+      <button id="cpBtnSave" class="btn primary">${T('customProvider.saveBtn', 'Ekle')}</button>
+      <button id="cpBtnCancel" class="btn ghost">${T('customProvider.cancelBtn', 'İptal')}</button>
+    </div>
+  `;
+
+  $('cpBtnCancel').addEventListener('click', () => {
+    container.hidden = true;
+    container.innerHTML = '';
+  });
+
+  $('cpBtnSave').addEventListener('click', async () => {
+    const name = $('cpName').value.trim();
+    const endpoint = $('cpEndpoint').value.trim();
+    const kind = $('cpKind').value;
+    const needsKey = $('cpNeedsKey').checked;
+
+    if (!name) { $('cpName').focus(); return; }
+
+    const res = await api.providers.addCustom({
+      label: name,
+      endpoint,
+      kind,
+      needsKey
+    });
+
+    if (res.ok) {
+      container.hidden = true;
+      container.innerHTML = '';
+      // Yeni sağlayıcıyı seçili yap / Select new provider
+      await save({ provider: res.id });
+      settings = await api.settings.get();
+      providers = await api.providers.catalog();
+      populateProviderSelect();
+      renderProviderFields();
+      renderKeys();
+      loadModels({ silent: true });
+    }
+  });
+}
+
 $('btnOpenData')?.addEventListener('click', () => {
   if (api.shell && api.shell.openUserData) {
     api.shell.openUserData();
@@ -790,7 +900,10 @@ function populateProviderSelect() {
   for (const p of providers) {
     const o = document.createElement('option');
     o.value = p.id;
-    o.textContent = p.id === 'custom' && typeof i18n !== 'undefined' ? i18n.t('provider.customLabel') : p.label;
+    let label = p.id === 'custom' && typeof i18n !== 'undefined' ? i18n.t('provider.customLabel') : p.label;
+    // Özel sağlayıcılara rozet ekle / Add badge for custom providers
+    if (p.custom) label = `🔧 ${label}`;
+    o.textContent = label;
     provSel.appendChild(o);
   }
   if (current) provSel.value = current;
@@ -862,6 +975,16 @@ api.on.secretsChanged(async () => {
   populateProviderSelect();
   renderKeys();
 });
+
+// Özel sağlayıcı değişikliklerini dinle / Listen for custom provider changes
+if (api.on.providersChanged) {
+  api.on.providersChanged(async () => {
+    providers = await api.providers.catalog();
+    populateProviderSelect();
+    renderProviderFields();
+    renderKeys();
+  });
+}
 
 (async function init() {
   const [s, styles, langs, cat] = await Promise.all([

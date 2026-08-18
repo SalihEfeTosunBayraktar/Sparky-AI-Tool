@@ -376,6 +376,21 @@ const tr = {
     refineBlock: 'Bu Bölümü Düzenle',
     deleteBlock: 'Bu Bölümü Sil',
     refinePromptQuestion: 'Bu bölümü nasıl düzenleyelim?'
+  },
+  customProvider: {
+    addBtn: '+ Özel Sağlayıcı Ekle',
+    deleteBtn: 'Sil',
+    deleteConfirm: 'Bu özel sağlayıcı ve tüm anahtarları silinecek. Devam etmek istiyor musunuz?',
+    nameLabel: 'Sağlayıcı Adı',
+    namePlaceholder: 'Örn. OpenRouter, DeepSeek, Groq…',
+    endpointLabel: 'Sunucu Adresi (Base URL)',
+    endpointPlaceholder: 'https://openrouter.ai/api/v1',
+    protocolLabel: 'API Protokolü',
+    needsKeyLabel: 'API Anahtarı Gerekli',
+    saveBtn: 'Ekle',
+    cancelBtn: 'İptal',
+    badge: 'Özel',
+    formTitle: 'Yeni Özel Sağlayıcı'
   }
 };
 

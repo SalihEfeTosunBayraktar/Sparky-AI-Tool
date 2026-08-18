@@ -43,6 +43,8 @@ const DEFAULTS = {
   enableSound: true,
   notifyOnlyWhenBackground: true,
   assistWeights: {},
+  // Kullanıcının eklediği özel sağlayıcılar — her biri { id, label, kind, needsKey, endpoint, endpointHint, keyHint }
+  customProviders: [],
   // Küredeki bilgi baloncuğu kuyruğunun önem eşiği. 'minimal' yalnızca
   // yüksek/kritik olayları (sonuç, hata, anahtar döngüsü) gösterir;
   // 'normal' aşama bilgilerini de ekler; 'all' düşük öncelikli tikleri

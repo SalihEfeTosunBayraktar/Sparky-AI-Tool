@@ -31,7 +31,10 @@ contextBridge.exposeInMainWorld('sparky', {
     catalog: () => ipcRenderer.invoke('providers:catalog'),
     models: (id) => ipcRenderer.invoke('providers:models', id),
     probe: () => ipcRenderer.invoke('providers:probe'),
-    test: (id) => ipcRenderer.invoke('providers:test', id)
+    test: (id) => ipcRenderer.invoke('providers:test', id),
+    addCustom: (data) => ipcRenderer.invoke('providers:addCustom', data),
+    removeCustom: (id) => ipcRenderer.invoke('providers:removeCustom', id),
+    updateCustom: (id, partial) => ipcRenderer.invoke('providers:updateCustom', { id, partial })
   },
 
   secrets: {
@@ -144,6 +147,7 @@ contextBridge.exposeInMainWorld('sparky', {
     secretsChanged: (cb) => on('secrets:changed', cb),
     historyChanged: (cb) => on('history:changed', cb),
     projectsChanged: (cb) => on('projects:changed', cb),
+    providersChanged: (cb) => on('providers:changed', cb),
     modeChanged: (cb) => on('modes:changed', cb),
     tokensUpdated: (cb) => on('tokens:updated', cb),
     memoryUpdated: (cb) => on('memory:updated', cb),
