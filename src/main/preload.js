@@ -180,7 +180,8 @@ contextBridge.exposeInMainWorld('sparky', {
     modeChanged: (cb) => on('modes:changed', cb),
     tokensUpdated: (cb) => on('tokens:updated', cb),
     memoryUpdated: (cb) => on('memory:updated', cb),
-    panelTab: (cb) => on('panel:tab', cb)
+    panelTab: (cb) => on('panel:tab', cb),
+    voiceToggle: (cb) => on('voice:toggleTrigger', cb)
   }
 });
 

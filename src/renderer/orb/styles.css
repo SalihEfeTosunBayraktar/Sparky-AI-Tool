@@ -541,6 +541,20 @@ body {
   filter: drop-shadow(0 0 18px var(--accent)) drop-shadow(0 0 36px var(--accent-glow-color)) drop-shadow(0 0 8px #fff) !important;
 }
 
+.orb.voice-active {
+  filter: drop-shadow(0 0 22px #06b6d4) drop-shadow(0 0 40px rgba(6, 182, 212, 0.6)) drop-shadow(0 0 8px #fff) !important;
+  animation: orbVoicePulse 1.2s ease-in-out infinite !important;
+}
+
+@keyframes orbVoicePulse {
+  0%, 100% {
+    transform: scale(1.02);
+  }
+  50% {
+    transform: scale(1.12);
+  }
+}
+
 @keyframes orbBusyPulse {
   0%, 100% {
     transform: scale(1);
@@ -1280,25 +1294,39 @@ input[type="range"]:active::-webkit-slider-thumb {
 
 /* Canlı Karakter/Kelime ve Token Sayacı (Live Stats Badge) */
 .input-stats-badge {
-  font-size: 10.5px;
+  position: absolute;
+  right: 12px;
+  bottom: 46px;
+  font-size: 10px;
   font-weight: 550;
   color: var(--text-secondary, var(--txt-dim));
+  background: rgba(13, 17, 23, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(8px);
+  padding: 1px 7px;
+  border-radius: 6px;
   font-variant-numeric: tabular-nums;
   opacity: 0;
   transform: translateY(2px);
   transition: opacity 0.2s ease, transform 0.2s ease, color 0.2s ease;
   white-space: nowrap;
   pointer-events: none;
-  margin-right: 4px;
+  z-index: 4;
+}
+
+[data-theme="light"] .input-stats-badge {
+  background: rgba(240, 243, 248, 0.9);
+  border-color: rgba(0, 0, 0, 0.08);
 }
 
 .input-stats-badge.visible {
-  opacity: 1;
+  opacity: 0.9;
   transform: translateY(0);
 }
 
 .input-stats-badge.warning {
   color: var(--badge-warning-text, #f59e0b) !important;
+  border-color: rgba(245, 158, 11, 0.3) !important;
 }
 
 /* Birincil CTA "Üret" Butonu */

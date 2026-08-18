@@ -7,8 +7,10 @@
 const en = {
   app: {
     ready: 'Ready',
+    listening: '🎙️ Listening… (Speak)',
+    transcribing: '⚡ Transcribing audio…',
     selectModel: 'Select model',
-    orbTooltip: 'Click: open panel · Double click / middle click: prompt from clipboard · Ctrl+click: copy result · Right click: menu',
+    orbTooltip: 'Click: open panel · Alt+click: voice dictate · Double click: from clipboard · Ctrl+click: copy · Right click: menu',
     bubbleCopied: 'Prompt ready — copied to clipboard',
     bubbleReady: 'Prompt ready — click to copy',
     clipboardEmpty: 'Clipboard empty',
@@ -334,6 +336,7 @@ const en = {
       scToggle: 'Toggle panel',
       scClip: 'Generate from clipboard',
       scCopy: 'Copy last result',
+      scVoice: 'Voice Dictate & Generate',
       shortcutsHint: 'Click input and press key combination. Press Backspace to clear.',
       shortcutsError: 'The following shortcuts are used by system and could not be registered:'
     },

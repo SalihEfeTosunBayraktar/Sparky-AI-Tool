@@ -67,7 +67,8 @@ const DEFAULTS = {
   shortcuts: {
     toggle: 'Control+Shift+Space',
     fromClipboard: 'Control+Alt+P',
-    copyLast: 'Control+Alt+C'
+    copyLast: 'Control+Alt+C',
+    voiceDictate: 'Control+Shift+V'
   },
   orbBounds: null,
   panelBounds: null

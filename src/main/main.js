@@ -556,6 +556,12 @@ function registerShortcuts() {
 
   bind(sc.fromClipboard, 'Panodan üret', generateFromClipboard);
 
+  bind(sc.voiceDictate, 'Sesle Konuş & Üret', () => {
+    if (!orb || orb.isDestroyed()) return;
+    if (!orb.isVisible()) orb.show();
+    send('voice:toggleTrigger');
+  });
+
   bind(sc.copyLast, 'Son sonucu kopyala', () => {
     if (!lastOutput) {
       send('gen:status', { text: S.t('status.nothingToCopy'), kind: 'info' });
@@ -686,6 +692,7 @@ function registerIpc() {
     const L = getMenuLabels();
     const menu = Menu.buildFromTemplate([
       { label: expanded ? L.collapse : L.expand, click: () => setExpanded(!expanded, { focusInput: true }) },
+      { label: L.voiceDictate, click: () => send('voice:toggleTrigger') },
       {
         label: L.copyLast,
         enabled: !!lastOutput,

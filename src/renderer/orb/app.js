@@ -290,8 +290,15 @@ orbEl.addEventListener('contextmenu', (e) => {
 });
 
 let lastOrbClickAt = 0;
+let activeVoice = null;
 
 function onOrbClick(ev) {
+  // Alt + tık → Menüyü açmadan sesle dikteyi başlat/durdur.
+  if (ev.altKey) {
+    if (activeVoice) activeVoice.toggle();
+    return;
+  }
+
   // Ctrl + tık → sonucu hemen kopyala, paneli açma.
   if ((ev.ctrlKey || ev.metaKey) && state.output) {
     copyOutput(i18n.t('app.copiedToClipboard'));
@@ -1696,24 +1703,49 @@ function initQuickModelPicker() {
       onAutoSubmit: async () => {
         if (inputEl && inputEl.value.trim() && !state.busy) {
           btnVoice.classList.remove('voice-active');
+          orbEl.classList.remove('voice-active');
+          setStatus({
+            text: typeof i18n !== 'undefined' ? i18n.t('status.thinking', 'Düşünüyor…') : 'Düşünüyor…',
+            kind: 'thinking',
+            priority: 'high'
+          });
           await generate();
         }
       },
       onStateChange: (vState) => {
         if (vState === 'listening') {
           btnVoice.classList.add('voice-active');
-          setStatus({ text: 'Dinleniyor... (Konuşun)', kind: 'thinking' });
+          orbEl.classList.add('voice-active');
+          setStatus({
+            text: typeof i18n !== 'undefined' ? i18n.t('app.listening', '🎙️ Dinliyorum… (Konuşun)') : '🎙️ Dinliyorum… (Konuşun)',
+            kind: 'thinking',
+            priority: 'high'
+          });
         } else {
           btnVoice.classList.remove('voice-active');
-          if (vState === 'idle') {
+          orbEl.classList.remove('voice-active');
+          if (vState === 'processing') {
+            setStatus({
+              text: typeof i18n !== 'undefined' ? i18n.t('app.transcribing', '⚡ Ses çözümleniyor…') : '⚡ Ses çözümleniyor…',
+              kind: 'thinking',
+              priority: 'high'
+            });
+          } else if (vState === 'idle') {
             setStatus({ text: i18n.t('app.ready'), kind: 'idle' });
           }
         }
       },
       onError: (err) => {
         btnVoice.classList.remove('voice-active');
-        setStatus({ text: `Ses hatası: ${err}`, kind: 'error' });
+        orbEl.classList.remove('voice-active');
+        setStatus({ text: `Ses hatası: ${err}`, kind: 'error', priority: 'high' });
       }
+    });
+
+    activeVoice = voice;
+
+    api.on.voiceToggle?.(() => {
+      voice.toggle();
     });
 
     btnVoice.addEventListener('click', (e) => {

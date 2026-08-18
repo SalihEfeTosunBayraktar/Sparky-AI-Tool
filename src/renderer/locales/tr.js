@@ -7,8 +7,10 @@
 const tr = {
   app: {
     ready: 'Hazır',
+    listening: '🎙️ Dinliyorum… (Konuşun)',
+    transcribing: '⚡ Ses çözümleniyor…',
     selectModel: 'Model seçin',
-    orbTooltip: 'Tık: paneli aç · Çift tık / orta tık: panodaki metni prompt yap · Ctrl+tık: son sonucu kopyala · Sağ tık: menü',
+    orbTooltip: 'Tık: paneli aç · Alt+tık: sesle dikte · Çift tık: panodan üret · Ctrl+tık: kopyala · Sağ tık: menü',
     bubbleCopied: 'Prompt hazır — panoya kopyalandı',
     bubbleReady: 'Prompt hazır — kopyalamak için tıkla',
     clipboardEmpty: 'Pano boş',
@@ -334,6 +336,7 @@ const tr = {
       scToggle: 'Paneli aç / kapat',
       scClip: 'Panodaki metinden üret',
       scCopy: 'Son sonucu kopyala',
+      scVoice: 'Sesle Konuş & Üret (Dikte)',
       shortcutsHint: 'Kutuya tıklayıp tuş kombinasyonuna basın. Temizlemek için Backspace.',
       shortcutsError: 'Şu kısayollar sistem tarafından kullanılıyor, atanamadı:'
     },
