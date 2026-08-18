@@ -36,8 +36,16 @@ function classifyKeyError(err) {
   const status = err?.status;
   const msg = String(err?.message || '').toLowerCase();
 
+  // WAF, Cloudflare veya yetkisiz istemci (unauthorized client) engellemeleri anahtarın geçersiz olduğu anlamına gelmez
+  if (msg.includes('unauthorized client') || msg.includes('unauthorized_client') || msg.includes('cloudflare') || msg.includes('waf')) {
+    return 'other';
+  }
+
   if (status === 429) return 'rate_limit';
-  if (status === 401 || status === 403) return 'invalid';
+  if (status === 401 || status === 403) {
+    if (msg.includes('client') && !msg.includes('key')) return 'other';
+    return 'invalid';
+  }
 
   // Sağlayıcılar aynı durumu farklı gövde metinleriyle bildiriyor.
   if (/rate.?limit|too many requests|quota|resource[_ ]exhausted|insufficient_quota|over.?capacity/.test(msg)) {
