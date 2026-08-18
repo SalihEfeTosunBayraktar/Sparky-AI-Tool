@@ -778,6 +778,7 @@ bindCheck('deepMode', 'deepMode');
 bindCheck('autoMode', 'autoMode');
 bindCheck('clarify', 'clarify');
 bindCheck('suggestions', 'suggestions');
+bindCheck('enablePromptAssist', 'enablePromptAssist');
 bindCheck('alwaysOnTop', 'alwaysOnTop');
 bindCheck('autoCopy', 'autoCopy');
 bindCheck('launchAtStartup', 'launchAtStartup');
@@ -951,6 +952,7 @@ function renderAll() {
   if ($('autoMode')) $('autoMode').checked = !!settings.autoMode;
   if ($('clarify')) $('clarify').checked = !!settings.clarify;
   if ($('suggestions')) $('suggestions').checked = !!settings.suggestions;
+  if ($('enablePromptAssist')) $('enablePromptAssist').checked = settings.enablePromptAssist !== false;
   if ($('alwaysOnTop')) $('alwaysOnTop').checked = !!settings.alwaysOnTop;
   if ($('autoCopy')) $('autoCopy').checked = !!settings.autoCopy;
   if ($('launchAtStartup')) $('launchAtStartup').checked = !!settings.launchAtStartup;

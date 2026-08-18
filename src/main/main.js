@@ -408,7 +408,9 @@ async function runGeneration(payload) {
     const truncated = !!result.truncated;
 
     lastOutput = output;
-    if (cfg.autoCopy) clipboard.writeText(output);
+    const isNormalChat = modes.getActive()?.id === 'normal-chat';
+    const shouldAutoCopy = !!cfg.autoCopy && !isNormalChat;
+    if (shouldAutoCopy) clipboard.writeText(output);
 
     const tokenStats = tokenTracker.record({
       totalTokens: result.totalTokens,
@@ -439,8 +441,8 @@ async function runGeneration(payload) {
     });
 
     // Önce durum, sonra sonuç: baloncukta son sözü "done" mesajı söylesin.
-    send('gen:status', { text: S.t(cfg.autoCopy ? 'status.readyCopied' : 'status.ready'), kind: 'success' });
-    send('gen:done', { output, id: entry.id, copied: !!cfg.autoCopy, truncated, genId });
+    send('gen:status', { text: S.t(shouldAutoCopy ? 'status.readyCopied' : 'status.ready'), kind: 'success' });
+    send('gen:done', { output, id: entry.id, copied: shouldAutoCopy, truncated, genId });
 
     // Devam turlarına rağmen hâlâ kesikse kullanıcı bunu bilmeli — sessizce
     // eksik prompt teslim etmek en kötü sonuç.
@@ -1056,6 +1058,9 @@ function registerIpc() {
       cfg
     });
   });
+  ipcMain.handle('assist:deriveVariations', (_e, { text, strategies }) =>
+    PromptAssistEngine.deriveVariations(text, strategies)
+  );
 
   // --- kabuk
   ipcMain.handle('shell:openUserData', () => shell.openPath(app.getPath('userData')));

@@ -859,6 +859,9 @@ function applySettings(s) {
   clarifyBtn.setAttribute('aria-pressed', String(!!s.clarify));
   if (autoModeBtn) autoModeBtn.setAttribute('aria-pressed', String(!!s.autoMode));
   renderMeta();
+  if (promptAssistUI && modeSel) {
+    promptAssistUI.setMode(modeSel.value, s.enablePromptAssist !== false);
+  }
   if (imageHandler) {
     const config = getModelConfig(s.provider, s.model);
     imageHandler.setModelConfig(config);
@@ -1037,7 +1040,7 @@ function updateModeLayout(modeId) {
 
   // Prompt Assist açma/kapama
   if (promptAssistUI) {
-    promptAssistUI.setMode(modeId);
+    promptAssistUI.setMode(modeId, state.settings?.enablePromptAssist !== false);
   }
 }
 
@@ -1178,9 +1181,9 @@ if (api.on.tokensUpdated) {
         }
       }
     });
-    // İlk yüklemede aktif moda göre açma/kapama / Set initial mode
+    // İlk yüklemede aktif moda ve ayara göre açma/kapama / Set initial mode & setting
     const initialMode = await api.modes.getActive();
-    await promptAssistUI.setMode(initialMode);
+    await promptAssistUI.setMode(initialMode, settings.enablePromptAssist !== false);
   }
 
   renderEmpty();

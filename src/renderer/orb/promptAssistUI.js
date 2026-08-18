@@ -51,9 +51,9 @@ class PromptAssistUI {
     }
   }
 
-  /** Aktif moda göre Prompt Assist'i aç/kapat / Enable/disable based on active mode */
-  async setMode(modeId) {
-    this.enabled = modeId !== 'normal-chat';
+  /** Aktif moda ve ayara göre Prompt Assist'i aç/kapat / Enable/disable based on active mode & setting */
+  async setMode(modeId, enableSetting = true) {
+    this.enabled = modeId !== 'normal-chat' && enableSetting !== false;
     if (!this.enabled) {
       this.hide();
     } else if (this.strategies.length === 0) {
@@ -87,6 +87,12 @@ class PromptAssistUI {
         this.activeStrategyId = this.strategies[0].id;
       }
       this.renderTabs();
+
+      // Eğer ekranda mevcut bir prompt varsa 3 strateji için anında türet
+      const cur = this.variations[this.activeStrategyId] || (this.rawTextarea ? this.rawTextarea.value || this.rawTextarea.textContent : '');
+      if (cur && cur.trim()) {
+        await this.setContent(cur.trim());
+      }
     } catch (err) {
       console.warn('[PromptAssistUI] Stratejiler alınamadı:', err);
     }
@@ -125,14 +131,11 @@ class PromptAssistUI {
       this.api.assist.recordSelection(strategyId).catch(() => {});
     }
 
-    // Önbellekte varsa göster, yoksa yeni üretim tetikle / Show cached or trigger new gen
-    const cached = this.variations[strategyId];
-    if (cached) {
-      this._displayContent(cached);
-      this.onPromptChange(cached);
-    } else {
-      const selected = this.strategies.find((s) => s.id === strategyId);
-      this.onVariationSelect(selected || { id: strategyId, style: 'detailed' });
+    // Önbellekteki varyasyonu anında göster (yeniden üretim tetiklemez)
+    const content = this.variations[strategyId] || this.variations['structured'] || '';
+    if (content) {
+      this._displayContent(content);
+      this.onPromptChange(content);
     }
   }
 
@@ -166,7 +169,7 @@ class PromptAssistUI {
    * Dışarıdan içerik atama (setOutput sonrası çağrılır).
    * External content setter (called from setOutput in app.js).
    */
-  async setContent(promptMarkdown, updateCache = true) {
+  async setContent(promptMarkdown) {
     if (!this.enabled) {
       this.hide();
       return;
@@ -180,11 +183,20 @@ class PromptAssistUI {
       return;
     }
 
-    if (updateCache && this.activeStrategyId) {
-      this.variations[this.activeStrategyId] = text;
+    // 3 aktif stratejinin tamamı için varyasyonları anında türet / Pre-derive all 3 variations at once
+    if (this.api?.assist?.deriveVariations && this.strategies.length > 0) {
+      try {
+        this.variations = await this.api.assist.deriveVariations(text, this.strategies);
+      } catch {
+        this.variations = { [this.activeStrategyId || 'structured']: text };
+      }
+    } else {
+      this.variations = { [this.activeStrategyId || 'structured']: text };
     }
 
-    this._displayContent(text);
+    // Aktif sekmenin varyasyonunu göster / Display current active strategy variation
+    const currentText = this.variations[this.activeStrategyId] || text;
+    this._displayContent(currentText);
   }
 
   /** İçeriği parse edip hem ham hem blok olarak hazırla / Parse and display content */

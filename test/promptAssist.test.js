@@ -102,4 +102,22 @@ Deliver a single TSX component.`;
     assert.ok(res.updatedFullMarkdown.includes('ESC key listener'));
     assert.ok(res.updatedFullMarkdown.includes('Expert React Developer'));
   });
+
+  await t.test('8. Derive Variations: pre-computes instant variations for all 3 triad strategies', () => {
+    const samplePrompt = `## Role\nExpert React Developer\n\n## Task\nBuild a modal dialog\n\n## Constraints\n- Accessible WCAG`;
+    const strategies = [
+      { id: 'structured', label: 'Yapılandırılmış' },
+      { id: 'concise', label: 'Kısa & Doğrudan' },
+      { id: 'expert', label: 'Uzman Rolü' }
+    ];
+
+    const variations = PromptAssistEngine.deriveVariations(samplePrompt, strategies);
+    assert.ok(variations.structured);
+    assert.ok(variations.concise);
+    assert.ok(variations.expert);
+
+    assert.equal(variations.structured, samplePrompt);
+    assert.ok(variations.concise.includes('Build a modal dialog'));
+    assert.ok(variations.expert.includes('Expert React Developer'));
+  });
 });

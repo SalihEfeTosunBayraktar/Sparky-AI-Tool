@@ -6,6 +6,7 @@
 
 const projectContext = require('./projectContext');
 const { allProviders } = require('./llm');
+const { supportsVision } = require('./providers/imageUtils');
 
 const STYLES = {
   detailed: {
@@ -549,11 +550,14 @@ async function run({
   signal
 }) {
   let note = String(raw || '').trim();
+  const modelHasVision = supportsVision(cfg?.provider, cfg?.model);
   const allImages = [];
-  if (image) allImages.push(image);
-  if (project && Array.isArray(project.images)) {
-    for (const img of project.images) {
-      if (img && img.base64) allImages.push({ mimeType: img.mimeType, base64: img.base64 });
+  if (modelHasVision) {
+    if (image) allImages.push(image);
+    if (project && Array.isArray(project.images)) {
+      for (const img of project.images) {
+        if (img && img.base64) allImages.push({ mimeType: img.mimeType, base64: img.base64 });
+      }
     }
   }
   const imagePayload = allImages.length > 0 ? allImages : null;

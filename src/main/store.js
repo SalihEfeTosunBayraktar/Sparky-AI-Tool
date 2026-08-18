@@ -43,6 +43,8 @@ const DEFAULTS = {
   enableSound: true,
   notifyOnlyWhenBackground: true,
   assistWeights: {},
+  // Prompt Asistanı (varyasyonlar & blok düzenleyici) aktif mi?
+  enablePromptAssist: true,
   // Kullanıcının eklediği özel sağlayıcılar — her biri { id, label, kind, needsKey, endpoint, endpointHint, keyHint }
   customProviders: [],
   // Küredeki bilgi baloncuğu kuyruğunun önem eşiği. 'minimal' yalnızca

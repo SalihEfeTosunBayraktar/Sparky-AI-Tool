@@ -228,6 +228,87 @@ NON-NEGOTIABLE RULES:
 
     return { updatedContent, updatedFullMarkdown };
   }
+
+  /**
+   * Generates instant pre-computed variations for all 3 active strategies from the generated prompt.
+   * Üretilen prompttan aktif 3 strateji için anında türetilmiş varyasyonlar oluşturur (yeniden API çağrısı yapmaz).
+   *
+   * @param {string} text - The generated prompt markdown
+   * @param {Array<object>} strategies - Triad strategies
+   * @returns {Object<string, string>} { [strategyId]: promptText }
+   */
+  static deriveVariations(text, strategies = []) {
+    if (!text || typeof text !== 'string') return {};
+    const cleanText = text.trim();
+    if (!cleanText) return {};
+
+    const blocks = PromptAssistEngine.parseBlocks(cleanText);
+    const variations = {};
+
+    const findBlock = (type) => blocks.find((b) => b.type === type)?.content || '';
+    const role = findBlock('role');
+    const task = findBlock('task');
+    const context = findBlock('context');
+    const constraints = findBlock('constraints');
+    const outputFormat = findBlock('output_format');
+
+    for (const st of strategies) {
+      if (!st || !st.id) continue;
+
+      if (st.id === 'structured') {
+        variations[st.id] = cleanText;
+      } else if (st.id === 'concise' || st.id === 'minimal') {
+        const parts = [];
+        if (role) parts.push(`Act as ${role.replace(/^You are\s+/i, '')}.`);
+        if (task) parts.push(task);
+        if (constraints) parts.push(`Constraints: ${constraints.replace(/\n+/g, '; ')}`);
+        if (outputFormat) parts.push(`Output: ${outputFormat.replace(/\n+/g, ' ')}`);
+        variations[st.id] = parts.length > 0 ? parts.join(' ') : cleanText;
+      } else if (st.id === 'expert') {
+        const parts = [];
+        const expRole = role || 'Senior Subject Matter Expert & Principal Architect';
+        parts.push(`## Role & Persona\n${expRole}\nOperate with rigorous industry methodology, high precision, and domain mastery.`);
+        if (task) parts.push(`## Objective\n${task}`);
+        if (context) parts.push(`## Background Context\n${context}`);
+        if (constraints) parts.push(`## Operational Guardrails\n${constraints}`);
+        if (outputFormat) parts.push(`## Deliverable Specification\n${outputFormat}`);
+        variations[st.id] = parts.length > 1 ? parts.join('\n\n') : cleanText;
+      } else if (st.id === 'code_centric') {
+        const parts = [];
+        parts.push(`## Engineering Role\n${role || 'Senior Software Engineer & Systems Architect'}`);
+        if (task) parts.push(`## Specification\n${task}`);
+        if (context) parts.push(`## Technical Context\n${context}`);
+        if (constraints) parts.push(`## Constraints & Error Handling\n${constraints}`);
+        if (outputFormat) parts.push(`## Interface Contract & Format\n${outputFormat}`);
+        variations[st.id] = parts.length > 1 ? parts.join('\n\n') : cleanText;
+      } else if (st.id === 'creative') {
+        const parts = [];
+        parts.push(`## Creative Vision\n${role ? `Adopt the persona of ${role}. ` : ''}${task || cleanText}`);
+        if (context) parts.push(`## Setting & Context\n${context}`);
+        if (constraints || outputFormat) parts.push(`## Stylistic Guidelines\n${[constraints, outputFormat].filter(Boolean).join('\n')}`);
+        variations[st.id] = parts.length > 1 ? parts.join('\n\n') : cleanText;
+      } else if (st.id === 'deep') {
+        const parts = [];
+        if (role) parts.push(`## Persona\n${role}`);
+        if (task) parts.push(`## Core Mission\n${task}`);
+        if (context) parts.push(`## Comprehensive Context & Edge Cases\n${context}`);
+        if (constraints) parts.push(`## Strict Constraints & Quality Criteria\n${constraints}`);
+        if (outputFormat) parts.push(`## Target Deliverable\n${outputFormat}`);
+        variations[st.id] = parts.length > 1 ? parts.join('\n\n') : cleanText;
+      } else if (st.id === 'conversational') {
+        const parts = [];
+        parts.push(`You are a collaborative AI consultant. ${role ? `Expertise: ${role}.` : ''}`);
+        parts.push(`Primary Goal: ${task || cleanText}`);
+        if (constraints) parts.push(`Follow these guidelines: ${constraints.replace(/\n+/g, '; ')}`);
+        parts.push('Ask clarifying questions if anything is ambiguous, then provide the solution step-by-step.');
+        variations[st.id] = parts.join('\n\n');
+      } else {
+        variations[st.id] = cleanText;
+      }
+    }
+
+    return variations;
+  }
 }
 
 module.exports = PromptAssistEngine;

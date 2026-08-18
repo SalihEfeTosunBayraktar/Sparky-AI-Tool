@@ -132,4 +132,18 @@ test('=== Running ImageHandler Vision Adaptation Tests ===', async (t) => {
     assert.strictEqual(handler.getImage(), null);
     assert.ok(warningCalled);
   });
+
+  await t.test('4. Backend supportsVision: accurately identifies multimodal vs text-only models', () => {
+    const { supportsVision } = require('../src/main/providers/imageUtils');
+    assert.strictEqual(supportsVision('openai', 'gpt-4o'), true);
+    assert.strictEqual(supportsVision('gemini', 'gemini-1.5-flash'), true);
+    assert.strictEqual(supportsVision('anthropic', 'claude-3-5-sonnet'), true);
+    assert.strictEqual(supportsVision('ollama', 'llava:latest'), true);
+
+    // Non-vision models
+    assert.strictEqual(supportsVision('openai', 'gpt-3.5-turbo'), false);
+    assert.strictEqual(supportsVision('custom', 'deepseek-chat'), false);
+    assert.strictEqual(supportsVision('custom', 'nvidia/nemotron-3-ultra-550b-a55b:free'), false);
+    assert.strictEqual(supportsVision('custom', 'mistralai/mixtral-8x7b-instruct'), false);
+  });
 });

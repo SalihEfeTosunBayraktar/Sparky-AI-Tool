@@ -225,6 +225,8 @@ const en = {
       clarifyHint: 'If note is ambiguous, asks up to 3 questions before generating; your answers shape the prompt.',
       suggestionsLabel: 'Generate improvement suggestions',
       suggestionsHint: 'Shows one-click actionable suggestion badges below the result.',
+      enablePromptAssistLabel: 'Prompt Assist (Variations & Block Editor)',
+      enablePromptAssistHint: 'Enables multi-strategy variation tabs and block-level editing toolbar in Prompt Preparer mode.',
       alwaysOnTop: 'Always on top',
       autoCopy: 'Auto copy result',
       launchAtStartup: 'Launch with Windows',

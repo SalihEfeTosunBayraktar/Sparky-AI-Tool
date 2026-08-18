@@ -97,10 +97,83 @@ function toGeminiContent(imageInput) {
   }));
 }
 
+/**
+ * Determines if a given provider and model combination supports vision/image input.
+ * Verilen sağlayıcı ve modelin görsel girişini destekleyip desteklemediğini doğrular.
+ *
+ * @param {string} provider
+ * @param {string} model
+ * @returns {boolean}
+ */
+function supportsVision(provider, model) {
+  const p = String(provider || '').toLowerCase();
+  const m = String(model || '').toLowerCase();
+
+  // Explicit non-vision checks
+  if (
+    p === 'deepseek' ||
+    m.includes('deepseek-chat') ||
+    m.includes('deepseek-coder') ||
+    m.includes('deepseek-reasoner') ||
+    m.includes('nemotron') ||
+    m.includes('mistral-7b') ||
+    m.includes('mixtral') ||
+    m.includes('qwen-2.5-coder') ||
+    m.includes('command-r')
+  ) {
+    if (!m.includes('vl') && !m.includes('vision')) {
+      return false;
+    }
+  }
+
+  if (m.startsWith('gpt-3.5') || m === 'gpt-4' || m === 'gpt-4-0314' || m === 'gpt-4-0613') {
+    return false;
+  }
+
+  // Vision detection rules
+  if (p === 'gemini' || m.includes('gemini') || m.includes('flash') || m.includes('pro-vision')) {
+    return true;
+  }
+
+  if (
+    p === 'anthropic' ||
+    m.includes('claude-3') ||
+    m.includes('claude-opus') ||
+    m.includes('claude-sonnet') ||
+    m.includes('claude-haiku')
+  ) {
+    return true;
+  }
+
+  if (
+    m.includes('4o') ||
+    m.includes('vision') ||
+    m.includes('llava') ||
+    m.includes('bakllava') ||
+    m.includes('moondream') ||
+    m.includes('vl') ||
+    m.includes('minicpm-v') ||
+    m.includes('pixtral')
+  ) {
+    return true;
+  }
+
+  if (p === 'openai' && (m.includes('gpt-4') || m.includes('o1') || m.includes('o3') || m.includes('chatgpt-4o'))) {
+    return true;
+  }
+
+  if (p === 'ollama' || p === 'lmstudio') {
+    return /(vision|llava|bakllava|moondream|minicpm-v|vl|pixtral)/i.test(m);
+  }
+
+  return false;
+}
+
 module.exports = {
   normalizeImage,
   normalizeImages,
   toOpenAiContent,
   toAnthropicContent,
-  toGeminiContent
+  toGeminiContent,
+  supportsVision
 };

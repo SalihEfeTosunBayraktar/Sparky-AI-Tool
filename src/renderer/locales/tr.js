@@ -225,6 +225,8 @@ const tr = {
       clarifyHint: 'Metin belirsizse model üretimden önce en fazla 3 soru sorar; cevaplarınız prompt\'a işlenir.',
       suggestionsLabel: 'İyileştirme önerileri üret',
       suggestionsHint: 'Sonucun altında tek tıkla uygulanabilir öneri rozetleri gösterilir.',
+      enablePromptAssistLabel: 'Prompt Asistanı (Varyasyonlar & Blok Düzenleyici)',
+      enablePromptAssistHint: 'Prompt Hazırlayıcı modunda çoklu strateji sekmelerini ve blok bazlı düzenleme çubuğunu etkinleştirir.',
       alwaysOnTop: 'Her zaman üstte kal',
       autoCopy: 'Sonucu otomatik kopyala',
       launchAtStartup: 'Windows ile başlat',
