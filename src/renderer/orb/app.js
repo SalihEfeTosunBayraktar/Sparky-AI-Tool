@@ -1198,6 +1198,7 @@ async function toggleQuickPicker(force) {
   if (!quickModelPickerPopover) return;
   const show = typeof force === 'boolean' ? force : quickModelPickerPopover.hidden;
   if (show) {
+    expandedGroups.clear();
     quickModelPickerPopover.hidden = false;
     await populateQuickPicker();
     if (quickModelSearch) {
@@ -1276,7 +1277,7 @@ function groupAndFilterModels(models, filterQuery, activeModel) {
   return groups;
 }
 
-const collapsedGroups = new Set();
+const expandedGroups = new Set();
 
 function renderQuickModelList(models, filterQuery, activeModel, onSelect) {
   if (!quickModelList) return;
@@ -1297,11 +1298,13 @@ function renderQuickModelList(models, filterQuery, activeModel, onSelect) {
   } else {
     groupKeys.forEach((grp) => {
       const items = groups[grp];
-      const isCollapsed = filterQuery ? false : collapsedGroups.has(grp);
+      // Arama yapılıyorsa otomatik açık tut, arama yoksa varsayılan olarak daraltılmış (kapalı) başlasın
+      const isExpanded = filterQuery ? true : expandedGroups.has(grp);
+      const isCollapsed = !isExpanded;
 
       const grpEl = document.createElement('div');
       grpEl.className = `quick-group-header${isCollapsed ? ' collapsed' : ''}`;
-      grpEl.title = 'Daralt / Genişlet';
+      grpEl.title = 'Genişlet / Daralt';
       grpEl.innerHTML = `
         <div class="quick-group-left">
           <svg class="quick-group-chevron" viewBox="0 0 16 16">
@@ -1317,14 +1320,14 @@ function renderQuickModelList(models, filterQuery, activeModel, onSelect) {
 
       grpEl.addEventListener('click', (e) => {
         e.stopPropagation();
-        if (collapsedGroups.has(grp)) {
-          collapsedGroups.delete(grp);
+        if (expandedGroups.has(grp)) {
+          expandedGroups.delete(grp);
         } else {
-          collapsedGroups.add(grp);
+          expandedGroups.add(grp);
         }
-        const nowCollapsed = collapsedGroups.has(grp);
-        grpEl.classList.toggle('collapsed', nowCollapsed);
-        itemsContainer.classList.toggle('collapsed', nowCollapsed);
+        const nowExpanded = expandedGroups.has(grp);
+        grpEl.classList.toggle('collapsed', !nowExpanded);
+        itemsContainer.classList.toggle('collapsed', !nowExpanded);
       });
 
       quickModelList.appendChild(grpEl);
@@ -1482,6 +1485,7 @@ function initQuickModelPicker() {
   quickProviderSel?.addEventListener('change', async () => {
     const provId = quickProviderSel.value;
     if (!provId) return;
+    expandedGroups.clear();
     const rememberedModel = state.settings?.modelByProvider?.[provId] || '';
     const newModel = await updateQuickModels(provId, rememberedModel);
     const patch = {
