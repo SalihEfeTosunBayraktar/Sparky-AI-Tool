@@ -153,6 +153,13 @@ contextBridge.exposeInMainWorld('sparky', {
     apply: (projectPath, filePath, content) => ipcRenderer.invoke('code:apply', { projectPath, filePath, content })
   },
 
+  update: {
+    check: () => ipcRenderer.invoke('update:check'),
+    download: () => ipcRenderer.invoke('update:download'),
+    install: () => ipcRenderer.invoke('update:install'),
+    currentVersion: () => ipcRenderer.invoke('update:currentVersion')
+  },
+
   voice: {
     transcribe: (audioBuffer) => ipcRenderer.invoke('voice:transcribe', audioBuffer),
     testEndpoint: (url) => ipcRenderer.invoke('voice:testEndpoint', url)
@@ -186,7 +193,8 @@ contextBridge.exposeInMainWorld('sparky', {
     tokensUpdated: (cb) => on('tokens:updated', cb),
     memoryUpdated: (cb) => on('memory:updated', cb),
     panelTab: (cb) => on('panel:tab', cb),
-    voiceToggle: (cb) => on('voice:toggleTrigger', cb)
+    voiceToggle: (cb) => on('voice:toggleTrigger', cb),
+    updateStatus: (cb) => on('update:status', cb)
   }
 });
 

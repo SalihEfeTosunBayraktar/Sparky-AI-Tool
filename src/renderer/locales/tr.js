@@ -399,6 +399,18 @@ const tr = {
       noEntries: 'Henüz kayıt yok.',
       noSearchResults: 'Aramayla eşleşen kayıt yok.'
     },
+    update: {
+      check: "Güncellemeleri denetle",
+      checking: "Denetleniyor…",
+      download: "İndir",
+      install: "Kur ve yeniden başlat",
+      starting: "İndirme başlıyor…",
+      downloading: "İndiriliyor",
+      available: "Yeni sürüm hazır: v{{v}}",
+      current: "En güncel sürümü kullanıyorsunuz.",
+      ready: "v{{v}} indirildi — kurmaya hazır.",
+      failed: "Güncelleme hatası"
+    },
     about: {
       description: 'Yüzen prompt asistanı. Girdiğiniz metni, konuyu ve bağlamı bozmadan kullanıma hazır bir prompt\'a çevirir.'
     }

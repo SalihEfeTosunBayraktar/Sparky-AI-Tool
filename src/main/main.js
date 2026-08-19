@@ -28,6 +28,7 @@ const projects = require('./projects');
 const notifier = require('./notifier');
 const modes = require('./modes');
 const modeRegistry = require('./modeRegistry');
+const updater = require('./updater');
 const TokenTracker = require('./tokenTracker');
 const tokenTracker = new TokenTracker();
 const ProjectMemory = require('./projectMemory');
@@ -1024,6 +1025,12 @@ function registerIpc() {
     return m;
   });
   // --- mod pazarı (GitHub deposu dağıtım sunucusu olarak kullanılıyor)
+  // --- otomatik güncelleme (GitHub Releases)
+  ipcMain.handle('update:check', () => updater.check({ isPackaged: app.isPackaged }));
+  ipcMain.handle('update:download', () => updater.download());
+  ipcMain.handle('update:install', () => { updater.quitAndInstall(); return true; });
+  ipcMain.handle('update:currentVersion', () => app.getVersion());
+
   ipcMain.handle('modes:registryUrl', () => settings.get('modeRegistryUrl') || modeRegistry.getDefaultUrl());
   ipcMain.handle('modes:browseRegistry', async (_e, opts = {}) => {
     const url = settings.get('modeRegistryUrl') || modeRegistry.getDefaultUrl();
@@ -1282,6 +1289,13 @@ if (!app.requestSingleInstanceLock()) {
 
     registerIpc();
     createOrb();
+
+    // Güncelleme durumunu her iki pencereye de bildir; yalnızca kurulu sürümde.
+    updater.init({ isPackaged: app.isPackaged, notify: (payload) => broadcast('update:status', payload) });
+    if (app.isPackaged && settings.get('autoCheckUpdates') !== false) {
+      // Açılışta hemen sorgulamak açılışı yavaşlatıyor; kısa bir gecikme veriyoruz.
+      setTimeout(() => { updater.check({ isPackaged: true }).catch(() => {}); }, 8000);
+    }
     buildTray();
     registerShortcuts();
 

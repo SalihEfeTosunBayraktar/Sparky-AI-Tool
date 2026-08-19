@@ -399,6 +399,18 @@ const en = {
       noEntries: 'No records yet.',
       noSearchResults: 'No matching records found.'
     },
+    update: {
+      check: "Check for updates",
+      checking: "Checking…",
+      download: "Download",
+      install: "Install and restart",
+      starting: "Starting download…",
+      downloading: "Downloading",
+      available: "New version available: v{{v}}",
+      current: "You are on the latest version.",
+      ready: "v{{v}} downloaded — ready to install.",
+      failed: "Update failed"
+    },
     about: {
       description: 'Floating prompt assistant. Converts your note into a ready-to-use prompt while preserving context and intent.'
     }

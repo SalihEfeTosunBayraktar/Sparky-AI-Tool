@@ -534,6 +534,52 @@ $('voiceDevice')?.addEventListener('change', async () => {
   await save({ voiceDeviceId: $('voiceDevice').value });
 });
 
+/* ---- Otomatik güncelleme (GitHub Releases) ---- */
+function setUpdateUi({ status, showDownload = false, showInstall = false, busy = false }) {
+  const el = $('updateStatus');
+  if (el) el.textContent = status || '';
+  if ($('btnDownloadUpdate')) $('btnDownloadUpdate').hidden = !showDownload;
+  if ($('btnInstallUpdate')) $('btnInstallUpdate').hidden = !showInstall;
+  if ($('btnCheckUpdate')) $('btnCheckUpdate').disabled = !!busy;
+}
+
+$('btnCheckUpdate')?.addEventListener('click', async () => {
+  setUpdateUi({ status: T('panel.update.checking', 'Denetleniyor…'), busy: true });
+  const res = await api.update.check();
+  if (res.skipped) {
+    // Geliştirme modunda güncelleme akışı çalışmaz — bunu gizlemek yerine söylüyoruz.
+    setUpdateUi({ status: res.error });
+    return;
+  }
+  if (!res.ok) {
+    setUpdateUi({ status: `${T('panel.update.failed', 'Denetlenemedi')}: ${res.error}` });
+  }
+  // Sonuç 'update:status' olayıyla gelir (available / current).
+});
+
+$('btnDownloadUpdate')?.addEventListener('click', async () => {
+  setUpdateUi({ status: T('panel.update.starting', 'İndirme başlıyor…'), busy: true });
+  const res = await api.update.download();
+  if (!res.ok) setUpdateUi({ status: `${T('panel.update.failed', 'İndirilemedi')}: ${res.error}` });
+});
+
+$('btnInstallUpdate')?.addEventListener('click', () => api.update.install());
+
+api.on.updateStatus?.((p) => {
+  if (!p) return;
+  if (p.state === 'available') {
+    setUpdateUi({ status: T('panel.update.available', 'Yeni sürüm hazır: v{{v}}').replace('{{v}}', p.version), showDownload: true });
+  } else if (p.state === 'current') {
+    setUpdateUi({ status: T('panel.update.current', 'En güncel sürümü kullanıyorsunuz.') });
+  } else if (p.state === 'downloading') {
+    setUpdateUi({ status: `${T('panel.update.downloading', 'İndiriliyor')} %${p.percent}`, busy: true });
+  } else if (p.state === 'downloaded') {
+    setUpdateUi({ status: T('panel.update.ready', 'v{{v}} indirildi — kurmaya hazır.').replace('{{v}}', p.version), showInstall: true });
+  } else if (p.state === 'error') {
+    setUpdateUi({ status: `${T('panel.update.failed', 'Güncelleme hatası')}: ${p.error}` });
+  }
+});
+
 $('btnVoiceTest')?.addEventListener('click', async () => {
   const el = $('voiceTestResult');
   const url = $('voiceCustomEndpoint').value.trim();
