@@ -13,7 +13,8 @@ const {
   Menu,
   nativeImage,
   shell,
-  dialog
+  dialog,
+  session
 } = require('electron');
 
 const { settings, history } = require('./store');
@@ -1236,6 +1237,24 @@ if (!app.requestSingleInstanceLock()) {
   });
 
   app.whenReady().then(async () => {
+    // Mikrofon izni. Electron, file:// sayfalarından gelen getUserMedia
+    // isteklerini bir izin yöneticisi tanımlanmadıkça SESSİZCE REDDEDER —
+    // sesli dikte "Mikrofon erişilemedi" hatası vermesinin sebebi buydu.
+    // Yalnızca kendi sayfalarımıza ve yalnızca ses/mikrofon için izin veriyoruz.
+    const isOwnPage = (url) => typeof url === 'string' && url.startsWith('file://');
+    const ALLOWED = new Set(['media', 'audioCapture']);
+
+    session.defaultSession.setPermissionRequestHandler((wc, permission, callback) => {
+      callback(ALLOWED.has(permission) && isOwnPage(wc?.getURL?.()));
+    });
+    session.defaultSession.setPermissionCheckHandler((wc, permission) =>
+      ALLOWED.has(permission) && isOwnPage(wc?.getURL?.())
+    );
+    // Kullanıcı birden çok mikrofona sahipse Chromium cihaz seçimi ister.
+    if (typeof session.defaultSession.setDevicePermissionHandler === 'function') {
+      session.defaultSession.setDevicePermissionHandler(() => true);
+    }
+
     registerIpc();
     createOrb();
     buildTray();
