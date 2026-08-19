@@ -146,8 +146,13 @@ function buildSystem({ styleId, languageId, modeConfig, project, raw, cfg, mode,
 
   let sys = interpolate(modeConfig ? modeConfig.mainRule : NORMAL_CHAT_BASE_RULES) || interpolate(NORMAL_CHAT_BASE_RULES);
 
-  const isPrompter = modeConfig?.id === 'prompt-preparer' || (modeConfig && modeConfig.useStyleGuide === true && modeConfig.basePreset === 'technical');
-  if (isPrompter && modeConfig && modeConfig.useStyleGuide) {
+  // `useStyleGuide` anahtarın kendisi zaten niyet beyanı: kullanıcı "bu mod
+  // prompt üretir, seçili Çıktı biçimini uygula" demiş oluyor. Eskiden buna ek
+  // olarak modun prompt-preparer ya da 'technical' tabanlı olması aranıyordu;
+  // bu yüzden kullanıcı kendi modunda anahtarı açsa bile sessizce yok sayılıyor,
+  // arayüzdeki switch yalan söylüyordu. Normal sohbet modlarında zaten
+  // varsayılan false olduğu için izolasyon niyeti korunuyor.
+  if (modeConfig && modeConfig.useStyleGuide) {
     sys += `\n\n${style.guide}`;
   }
 
