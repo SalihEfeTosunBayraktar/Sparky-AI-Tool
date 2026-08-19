@@ -38,259 +38,287 @@
       <main class="content">
         <!-- 1. GENEL AYARLAR PANE -->
         <section id="tab-settings" class="pane active">
-          <h2 data-i18n="panel.sections.appInterface">Arayüz Dili</h2>
-          <div class="card">
-            <div class="field">
-              <label for="appLanguage" data-i18n="panel.fields.appLanguage">Arayüz Dili (App Language)</label>
-              <select id="appLanguage">
-                <option value="tr">Türkçe</option>
-                <option value="en">English</option>
-              </select>
-            </div>
-          </div>
-
-          <h2 data-i18n="panel.sections.generation">Üretim & Modlar</h2>
-          <div class="card">
-            <div class="field-grid">
+          <details class="accordion" open>
+            <summary><span data-i18n="panel.sections.appInterface">Arayüz Dili</span> ▾</summary>
+            <div class="accordion-body">
+            <div class="card">
               <div class="field">
-                <label for="style" data-i18n="panel.fields.promptStyle">Prompt biçimi</label>
-                <select id="style"></select>
+                <label for="appLanguage" data-i18n="panel.fields.appLanguage">Arayüz Dili (App Language)</label>
+                <select id="appLanguage">
+                  <option value="tr">Türkçe</option>
+                  <option value="en">English</option>
+                </select>
+              </div>
+            </div>
+            </div>
+          </details>
+
+          <details class="accordion">
+            <summary><span data-i18n="panel.sections.generation">Üretim & Modlar</span> ▾</summary>
+            <div class="accordion-body">
+            <div class="card">
+              <div class="field-grid">
+                <div class="field">
+                  <label for="style" data-i18n="panel.fields.promptStyle">Prompt biçimi</label>
+                  <select id="style"></select>
+                </div>
+                <div class="field">
+                  <label for="language" data-i18n="panel.fields.outputLanguage">Çıktı dili</label>
+                  <select id="language"></select>
+                </div>
+              </div>
+  
+              <div class="field">
+                <label for="appMode" data-i18n="modes.label">Uygulama Modu</label>
+                <select id="appMode"></select>
+                <p class="hint" data-i18n="modes.hint">Sparky AI'ın doğrudan sohbet mi edeceği yoksa özel prompt mu üreteceğini belirler.</p>
+              </div>
+  
+              <div class="field">
+                <label class="switch">
+                  <input id="autoMode" type="checkbox" />
+                  <span class="track"><span class="knob"></span></span>
+                  <span class="switch-label" data-i18n="panel.fields.autoModeLabel">Otomatik Mod (Akıllı Karar Motoru)</span>
+                </label>
+                <p class="hint" data-i18n="panel.fields.autoModeHint">İsteğin karmaşıklığına göre Derin Mod veya Netleştirme Sorularını otomatik başlatır.</p>
+              </div>
+  
+              <div class="field">
+                <label class="switch">
+                  <input id="deepMode" type="checkbox" />
+                  <span class="track"><span class="knob"></span></span>
+                  <span class="switch-label" data-i18n="panel.fields.deepModeLabel">Derin mod (analiz → yaz → cilala)</span>
+                </label>
+                <p class="hint" data-i18n="panel.fields.deepModeHint">Üç aşamalı hat. Daha yavaş, küçük yerel modellerde belirgin fark yaratır.</p>
+              </div>
+  
+              <div class="field">
+                <label class="switch">
+                  <input id="clarify" type="checkbox" />
+                  <span class="track"><span class="knob"></span></span>
+                  <span class="switch-label" data-i18n="panel.fields.clarifyLabel">Netleştirme soruları sor</span>
+                </label>
+                <p class="hint" data-i18n="panel.fields.clarifyHint">Metin belirsizse model üretimden önce sorular sorar.</p>
+              </div>
+  
+              <div class="field">
+                <label class="switch">
+                  <input id="suggestions" type="checkbox" />
+                  <span class="track"><span class="knob"></span></span>
+                  <span class="switch-label" data-i18n="panel.fields.suggestionsLabel">İyileştirme önerileri üret</span>
+                </label>
+                <p class="hint" data-i18n="panel.fields.suggestionsHint">Sonucun altında tek tıkla uygulanabilir öneri rozetleri gösterilir.</p>
+              </div>
+  
+              <div class="field">
+                <label class="switch">
+                  <input id="enablePromptAssist" type="checkbox" />
+                  <span class="track"><span class="knob"></span></span>
+                  <span class="switch-label" data-i18n="panel.fields.enablePromptAssistLabel">Prompt Asistanı (Varyasyonlar & Blok Düzenleyici)</span>
+                </label>
+                <p class="hint" data-i18n="panel.fields.enablePromptAssistHint">Prompt Hazırlayıcı modunda varyasyon sekmelerini ve blok bazlı düzenleme çubuğunu etkinleştirir.</p>
+              </div>
+            </div>
+            </div>
+          </details>
+
+          <details class="accordion">
+            <summary><span data-i18n="panel.sections.appearance">Görünüm &amp; Tema</span> ▾</summary>
+            <div class="accordion-body">
+            <div class="card">
+              <div class="field">
+                <label for="themeMode" data-i18n="theme.modeLabel">Tema Modu (Theme Mode)</label>
+                <select id="themeMode">
+                  <option value="dark" data-i18n="theme.modeDark">Koyu (Dark)</option>
+                  <option value="light" data-i18n="theme.modeLight">Açık (Light)</option>
+                  <option value="system" data-i18n="theme.modeSystem">Sistem (System)</option>
+                </select>
+              </div>
+  
+              <!-- Vurgu Rengi Akordeon Bölümü -->
+              <div id="accentAccordion" class="theme-accordion-section">
+                <div class="theme-accordion-header" id="accentAccordionToggle" role="button" tabindex="0" title="Genişlet / Daralt">
+                  <div class="theme-accordion-title-group">
+                    <span class="theme-accordion-title" data-i18n="theme.accentLabel">Vurgu Rengi &amp; Küre Avatarı</span>
+                    <span class="theme-accordion-badge" id="accentsCountBadge">23 Renk</span>
+                  </div>
+                  <svg viewBox="0 0 24 24" class="theme-accordion-chevron" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </div>
+                <div class="theme-accordion-body">
+                  <p class="hint" data-i18n="theme.accentSectionDesc" style="margin-top: 0; margin-bottom: 8px;">Arayüzün ve kürenin parlayan renk paletini belirleyin.</p>
+                  <div id="accentPicker" class="accent-picker-grid"></div>
+                </div>
+              </div>
+  
+              <!-- Küre Geometrisi Akordeon Bölümü -->
+              <div id="shapeAccordion" class="theme-accordion-section">
+                <div class="theme-accordion-header" id="shapeAccordionToggle" role="button" tabindex="0" title="Genişlet / Daralt">
+                  <div class="theme-accordion-title-group">
+                    <span class="theme-accordion-title" data-i18n="theme.shapeSectionTitle">Küre Geometrisi (Orb Shape)</span>
+                    <span class="theme-accordion-badge" id="shapesCountBadge">12 Geometri</span>
+                  </div>
+                  <svg viewBox="0 0 24 24" class="theme-accordion-chevron" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </div>
+                <div class="theme-accordion-body">
+                  <p class="hint" data-i18n="theme.shapeSectionDesc" style="margin-top: 0; margin-bottom: 8px;">Yüzen kürenin geometrik şeklini özelleştirin; tüm renk paletleri ve ışımalar korunur.</p>
+                  <div id="shapePicker" class="shape-picker-grid"></div>
+                </div>
+              </div>
+            </div>
+            </div>
+          </details>
+
+          <details class="accordion">
+            <summary><span data-i18n="panel.sections.behavior">Davranış &amp; Arayüz</span> ▾</summary>
+            <div class="accordion-body">
+            <div class="card">
+              <div class="field">
+                <label class="switch">
+                  <input id="alwaysOnTop" type="checkbox" />
+                  <span class="track"><span class="knob"></span></span>
+                  <span class="switch-label" data-i18n="panel.fields.alwaysOnTop">Her zaman üstte kal</span>
+                </label>
               </div>
               <div class="field">
-                <label for="language" data-i18n="panel.fields.outputLanguage">Çıktı dili</label>
-                <select id="language"></select>
+                <label class="switch">
+                  <input id="autoCopy" type="checkbox" />
+                  <span class="track"><span class="knob"></span></span>
+                  <span class="switch-label" data-i18n="panel.fields.autoCopy">Sonucu otomatik kopyala</span>
+                </label>
+              </div>
+              <div class="field">
+                <label class="switch">
+                  <input id="launchAtStartup" type="checkbox" />
+                  <span class="track"><span class="knob"></span></span>
+                  <span class="switch-label" data-i18n="panel.fields.launchAtStartup">Windows ile başlat</span>
+                </label>
+              </div>
+              <div class="field">
+                <label for="opacity"><span data-i18n="panel.fields.opacity">Küre saydamlığı</span> — <span id="opacityVal">%100</span></label>
+                <input id="opacity" type="range" min="0.4" max="1" step="0.05" />
+              </div>
+              <div class="field">
+                <label for="historyLimit" data-i18n="panel.fields.historyLimit">Geçmiş kaydı sınırı</label>
+                <input id="historyLimit" type="number" min="10" max="2000" step="10" />
               </div>
             </div>
-
-            <div class="field">
-              <label for="appMode" data-i18n="modes.label">Uygulama Modu</label>
-              <select id="appMode"></select>
-              <p class="hint" data-i18n="modes.hint">Sparky AI'ın doğrudan sohbet mi edeceği yoksa özel prompt mu üreteceğini belirler.</p>
             </div>
+          </details>
 
-            <div class="field">
-              <label class="switch">
-                <input id="autoMode" type="checkbox" />
-                <span class="track"><span class="knob"></span></span>
-                <span class="switch-label" data-i18n="panel.fields.autoModeLabel">Otomatik Mod (Akıllı Karar Motoru)</span>
-              </label>
-              <p class="hint" data-i18n="panel.fields.autoModeHint">İsteğin karmaşıklığına göre Derin Mod veya Netleştirme Sorularını otomatik başlatır.</p>
+          <details class="accordion">
+            <summary><span data-i18n="panel.sections.memoryAndContext">Hafıza &amp; Context Yönetimi</span> ▾</summary>
+            <div class="accordion-body">
+            <div class="card">
+              <div class="field">
+                <label class="switch">
+                  <input id="autoCompactEnabled" type="checkbox" />
+                  <span class="track"><span class="knob"></span></span>
+                  <span class="switch-label" data-i18n="panel.fields.autoCompactEnabled">Otomatik hafıza sıkıştırmayı etkinleştir</span>
+                </label>
+              </div>
+              <div class="field">
+                <label for="autoCompactThreshold"><span data-i18n="panel.fields.autoCompactThreshold">Otomatik Sıkıştırma Eşiği</span> — <span id="autoCompactThresholdVal">%75</span></label>
+                <input id="autoCompactThreshold" type="range" min="30" max="95" step="5" />
+                <p class="hint" data-i18n="panel.fields.autoCompactThresholdHint">
+                  Proje hafızası context kapasitesinin bu yüzdesine ulaştığında (varsayılan: %75), eski konuşmalar otomatik olarak özetlenip sıkıştırılır.
+                </p>
+              </div>
             </div>
-
-            <div class="field">
-              <label class="switch">
-                <input id="deepMode" type="checkbox" />
-                <span class="track"><span class="knob"></span></span>
-                <span class="switch-label" data-i18n="panel.fields.deepModeLabel">Derin mod (analiz → yaz → cilala)</span>
-              </label>
-              <p class="hint" data-i18n="panel.fields.deepModeHint">Üç aşamalı hat. Daha yavaş, küçük yerel modellerde belirgin fark yaratır.</p>
             </div>
+          </details>
 
-            <div class="field">
-              <label class="switch">
-                <input id="clarify" type="checkbox" />
-                <span class="track"><span class="knob"></span></span>
-                <span class="switch-label" data-i18n="panel.fields.clarifyLabel">Netleştirme soruları sor</span>
-              </label>
-              <p class="hint" data-i18n="panel.fields.clarifyHint">Metin belirsizse model üretimden önce sorular sorar.</p>
+          <details class="accordion">
+            <summary><span data-i18n="panel.sections.notificationsAndSound">Bildirimler ve Ses</span> ▾</summary>
+            <div class="accordion-body">
+            <div class="card">
+              <div class="field">
+                <label class="switch">
+                  <input id="enableNotifications" type="checkbox" />
+                  <span class="track"><span class="knob"></span></span>
+                  <span class="switch-label" data-i18n="panel.fields.enableNotifications">Masaüstü bildirimlerini etkinleştir</span>
+                </label>
+              </div>
+              <div class="field">
+                <label class="switch">
+                  <input id="enableSound" type="checkbox" />
+                  <span class="track"><span class="knob"></span></span>
+                  <span class="switch-label" data-i18n="panel.fields.enableSound">Sesli uyarıları etkinleştir</span>
+                </label>
+              </div>
+              <div class="field">
+                <label class="switch">
+                  <input id="notifyOnlyWhenBackground" type="checkbox" />
+                  <span class="track"><span class="knob"></span></span>
+                  <span class="switch-label" data-i18n="panel.fields.notifyOnlyWhenBackground">Yalnızca arka plandayken bildir</span>
+                </label>
+              </div>
+              <div class="field">
+                <label for="notifyLevel" data-i18n="panel.fields.notifyLevel">Baloncuk sıklığı / önemi</label>
+                <select id="notifyLevel">
+                  <option value="minimal" data-i18n="panel.fields.notifyLevelMinimal">Sadece önemli (sonuç, hata, anahtar değişimi)</option>
+                  <option value="normal" data-i18n="panel.fields.notifyLevelNormal">Normal (+ aşama bilgileri)</option>
+                  <option value="all" data-i18n="panel.fields.notifyLevelAll">Tümü (her adımı göster)</option>
+                </select>
+                <p class="hint" data-i18n="panel.fields.notifyLevelHint">
+                  Küredeki bilgi baloncuğunun ne sıklıkla göründüğünü belirler. Önemli olaylar (sonuç, hata,
+                  anahtar değişimi) bu ayardan bağımsız her zaman gösterilir.
+                </p>
+              </div>
             </div>
-
-            <div class="field">
-              <label class="switch">
-                <input id="suggestions" type="checkbox" />
-                <span class="track"><span class="knob"></span></span>
-                <span class="switch-label" data-i18n="panel.fields.suggestionsLabel">İyileştirme önerileri üret</span>
-              </label>
-              <p class="hint" data-i18n="panel.fields.suggestionsHint">Sonucun altında tek tıkla uygulanabilir öneri rozetleri gösterilir.</p>
             </div>
+          </details>
 
-            <div class="field">
-              <label class="switch">
-                <input id="enablePromptAssist" type="checkbox" />
-                <span class="track"><span class="knob"></span></span>
-                <span class="switch-label" data-i18n="panel.fields.enablePromptAssistLabel">Prompt Asistanı (Varyasyonlar & Blok Düzenleyici)</span>
-              </label>
-              <p class="hint" data-i18n="panel.fields.enablePromptAssistHint">Prompt Hazırlayıcı modunda varyasyon sekmelerini ve blok bazlı düzenleme çubuğunu etkinleştirir.</p>
-            </div>
-          </div>
-
-          <h2 data-i18n="panel.sections.appearance">Görünüm &amp; Tema</h2>
-          <div class="card">
-            <div class="field">
-              <label for="themeMode" data-i18n="theme.modeLabel">Tema Modu (Theme Mode)</label>
-              <select id="themeMode">
-                <option value="dark" data-i18n="theme.modeDark">Koyu (Dark)</option>
-                <option value="light" data-i18n="theme.modeLight">Açık (Light)</option>
-                <option value="system" data-i18n="theme.modeSystem">Sistem (System)</option>
-              </select>
-            </div>
-
-            <!-- Vurgu Rengi Akordeon Bölümü -->
-            <div id="accentAccordion" class="theme-accordion-section">
-              <div class="theme-accordion-header" id="accentAccordionToggle" role="button" tabindex="0" title="Genişlet / Daralt">
-                <div class="theme-accordion-title-group">
-                  <span class="theme-accordion-title" data-i18n="theme.accentLabel">Vurgu Rengi &amp; Küre Avatarı</span>
-                  <span class="theme-accordion-badge" id="accentsCountBadge">23 Renk</span>
+          <details class="accordion">
+            <summary><span data-i18n="panel.sections.voiceStt">Ses Tanıma & Transkripsiyon (STT)</span> ▾</summary>
+            <div class="accordion-body">
+            <div class="card">
+              <div class="field">
+                <label for="voiceDevice" data-i18n="panel.fields.voiceDevice">Mikrofon</label>
+                <div class="inline">
+                  <select id="voiceDevice"></select>
+                  <button id="btnRefreshMics" class="btn" data-i18n="panel.fields.voiceRefreshMics">Yenile</button>
                 </div>
-                <svg viewBox="0 0 24 24" class="theme-accordion-chevron" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <polyline points="6 9 12 15 18 9"></polyline>
-                </svg>
+                <p class="hint" data-i18n="panel.fields.voiceDeviceHint">Dikte için kullanılacak mikrofonu seçin. Seçtiğiniz cihaz o an bağlı değilse otomatik olarak sistem varsayılanına düşülür.</p>
               </div>
-              <div class="theme-accordion-body">
-                <p class="hint" data-i18n="theme.accentSectionDesc" style="margin-top: 0; margin-bottom: 8px;">Arayüzün ve kürenin parlayan renk paletini belirleyin.</p>
-                <div id="accentPicker" class="accent-picker-grid"></div>
+              <div class="field">
+                <label for="voiceProvider" data-i18n="panel.fields.voiceProvider">Ses Tanıma Sağlayıcısı</label>
+                <select id="voiceProvider">
+                  <option value="auto" data-i18n="panel.fields.voiceAuto">Otomatik (Groq > OpenAI)</option>
+                  <option value="groq" data-i18n="panel.fields.voiceGroq">Groq Whisper (whisper-large-v3-turbo · Ultra Hızlı)</option>
+                  <option value="openai" data-i18n="panel.fields.voiceOpenai">OpenAI Whisper (whisper-1)</option>
+                  <option value="custom" data-i18n="panel.fields.voiceCustom">Özel / Yerel Whisper (İnternetsiz, ücretsiz)</option>
+                </select>
+                <p class="hint" data-i18n="panel.fields.voiceHint">Küre üzerindeki mikrofona bastığınızda konuşmanızı metne dönüştürecek motoru seçin.</p>
               </div>
-            </div>
-
-            <!-- Küre Geometrisi Akordeon Bölümü -->
-            <div id="shapeAccordion" class="theme-accordion-section">
-              <div class="theme-accordion-header" id="shapeAccordionToggle" role="button" tabindex="0" title="Genişlet / Daralt">
-                <div class="theme-accordion-title-group">
-                  <span class="theme-accordion-title" data-i18n="theme.shapeSectionTitle">Küre Geometrisi (Orb Shape)</span>
-                  <span class="theme-accordion-badge" id="shapesCountBadge">12 Geometri</span>
+              <div class="field" id="voiceCustomEndpointRow" hidden>
+                <label for="voiceCustomEndpoint" data-i18n="panel.fields.voiceCustomEndpoint">Yerel / Özel Whisper Adresi</label>
+                <div class="inline">
+                  <input id="voiceCustomEndpoint" placeholder="http://127.0.0.1:8080/v1/audio/transcriptions" spellcheck="false" />
+                  <button id="btnVoiceTest" class="btn" data-i18n="panel.fields.voiceTest">Test et</button>
                 </div>
-                <svg viewBox="0 0 24 24" class="theme-accordion-chevron" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <polyline points="6 9 12 15 18 9"></polyline>
-                </svg>
+                <p id="voiceTestResult" class="result" hidden></p>
+                <p class="hint" data-i18n="panel.fields.voiceCustomHint">
+                  Bilgisayarınızda çalışan bir Whisper sunucusuna bağlanır — bulut anahtarı gerekmez, ses cihazdan çıkmaz.
+                  Örnekler: <b>whisper.cpp</b> (<code>whisper-server --port 8080</code>) ·
+                  <b>faster-whisper-server</b> (<code>:8000</code>) · <b>LocalAI</b>.
+                  OpenAI uyumlu <code>/v1/audio/transcriptions</code> adresini yazın.
+                </p>
               </div>
-              <div class="theme-accordion-body">
-                <p class="hint" data-i18n="theme.shapeSectionDesc" style="margin-top: 0; margin-bottom: 8px;">Yüzen kürenin geometrik şeklini özelleştirin; tüm renk paletleri ve ışımalar korunur.</p>
-                <div id="shapePicker" class="shape-picker-grid"></div>
+              <div class="field" style="margin-top: 8px;">
+                <label class="switch">
+                  <input id="voiceAutoSubmit" type="checkbox" checked />
+                  <span class="track"><span class="knob"></span></span>
+                  <span class="switch-label" data-i18n="panel.fields.voiceAutoSubmit">Sessizlik Sonrası Otomatik Üret</span>
+                </label>
+                <p class="hint" data-i18n="panel.fields.voiceAutoSubmitHint">Konuşma bittikten sonra 3.2 saniye sessiz kalınırsa prompt üretimini otomatik başlatır.</p>
               </div>
             </div>
-          </div>
-
-          <h2 data-i18n="panel.sections.behavior">Davranış &amp; Arayüz</h2>
-          <div class="card">
-            <div class="field">
-              <label class="switch">
-                <input id="alwaysOnTop" type="checkbox" />
-                <span class="track"><span class="knob"></span></span>
-                <span class="switch-label" data-i18n="panel.fields.alwaysOnTop">Her zaman üstte kal</span>
-              </label>
             </div>
-            <div class="field">
-              <label class="switch">
-                <input id="autoCopy" type="checkbox" />
-                <span class="track"><span class="knob"></span></span>
-                <span class="switch-label" data-i18n="panel.fields.autoCopy">Sonucu otomatik kopyala</span>
-              </label>
-            </div>
-            <div class="field">
-              <label class="switch">
-                <input id="launchAtStartup" type="checkbox" />
-                <span class="track"><span class="knob"></span></span>
-                <span class="switch-label" data-i18n="panel.fields.launchAtStartup">Windows ile başlat</span>
-              </label>
-            </div>
-            <div class="field">
-              <label for="opacity"><span data-i18n="panel.fields.opacity">Küre saydamlığı</span> — <span id="opacityVal">%100</span></label>
-              <input id="opacity" type="range" min="0.4" max="1" step="0.05" />
-            </div>
-            <div class="field">
-              <label for="historyLimit" data-i18n="panel.fields.historyLimit">Geçmiş kaydı sınırı</label>
-              <input id="historyLimit" type="number" min="10" max="2000" step="10" />
-            </div>
-          </div>
-
-          <h2 data-i18n="panel.sections.memoryAndContext">Hafıza &amp; Context Yönetimi</h2>
-          <div class="card">
-            <div class="field">
-              <label class="switch">
-                <input id="autoCompactEnabled" type="checkbox" />
-                <span class="track"><span class="knob"></span></span>
-                <span class="switch-label" data-i18n="panel.fields.autoCompactEnabled">Otomatik hafıza sıkıştırmayı etkinleştir</span>
-              </label>
-            </div>
-            <div class="field">
-              <label for="autoCompactThreshold"><span data-i18n="panel.fields.autoCompactThreshold">Otomatik Sıkıştırma Eşiği</span> — <span id="autoCompactThresholdVal">%75</span></label>
-              <input id="autoCompactThreshold" type="range" min="30" max="95" step="5" />
-              <p class="hint" data-i18n="panel.fields.autoCompactThresholdHint">
-                Proje hafızası context kapasitesinin bu yüzdesine ulaştığında (varsayılan: %75), eski konuşmalar otomatik olarak özetlenip sıkıştırılır.
-              </p>
-            </div>
-          </div>
-
-          <h2 data-i18n="panel.sections.notificationsAndSound">Bildirimler ve Ses</h2>
-          <div class="card">
-            <div class="field">
-              <label class="switch">
-                <input id="enableNotifications" type="checkbox" />
-                <span class="track"><span class="knob"></span></span>
-                <span class="switch-label" data-i18n="panel.fields.enableNotifications">Masaüstü bildirimlerini etkinleştir</span>
-              </label>
-            </div>
-            <div class="field">
-              <label class="switch">
-                <input id="enableSound" type="checkbox" />
-                <span class="track"><span class="knob"></span></span>
-                <span class="switch-label" data-i18n="panel.fields.enableSound">Sesli uyarıları etkinleştir</span>
-              </label>
-            </div>
-            <div class="field">
-              <label class="switch">
-                <input id="notifyOnlyWhenBackground" type="checkbox" />
-                <span class="track"><span class="knob"></span></span>
-                <span class="switch-label" data-i18n="panel.fields.notifyOnlyWhenBackground">Yalnızca arka plandayken bildir</span>
-              </label>
-            </div>
-            <div class="field">
-              <label for="notifyLevel" data-i18n="panel.fields.notifyLevel">Baloncuk sıklığı / önemi</label>
-              <select id="notifyLevel">
-                <option value="minimal" data-i18n="panel.fields.notifyLevelMinimal">Sadece önemli (sonuç, hata, anahtar değişimi)</option>
-                <option value="normal" data-i18n="panel.fields.notifyLevelNormal">Normal (+ aşama bilgileri)</option>
-                <option value="all" data-i18n="panel.fields.notifyLevelAll">Tümü (her adımı göster)</option>
-              </select>
-              <p class="hint" data-i18n="panel.fields.notifyLevelHint">
-                Küredeki bilgi baloncuğunun ne sıklıkla göründüğünü belirler. Önemli olaylar (sonuç, hata,
-                anahtar değişimi) bu ayardan bağımsız her zaman gösterilir.
-              </p>
-            </div>
-          </div>
-
-          <h2 data-i18n="panel.sections.voiceStt">Ses Tanıma & Transkripsiyon (STT)</h2>
-          <div class="card">
-            <div class="field">
-              <label for="voiceDevice" data-i18n="panel.fields.voiceDevice">Mikrofon</label>
-              <div class="inline">
-                <select id="voiceDevice"></select>
-                <button id="btnRefreshMics" class="btn" data-i18n="panel.fields.voiceRefreshMics">Yenile</button>
-              </div>
-              <p class="hint" data-i18n="panel.fields.voiceDeviceHint">Dikte için kullanılacak mikrofonu seçin. Seçtiğiniz cihaz o an bağlı değilse otomatik olarak sistem varsayılanına düşülür.</p>
-            </div>
-            <div class="field">
-              <label for="voiceProvider" data-i18n="panel.fields.voiceProvider">Ses Tanıma Sağlayıcısı</label>
-              <select id="voiceProvider">
-                <option value="auto" data-i18n="panel.fields.voiceAuto">Otomatik (Groq > OpenAI)</option>
-                <option value="groq" data-i18n="panel.fields.voiceGroq">Groq Whisper (whisper-large-v3-turbo · Ultra Hızlı)</option>
-                <option value="openai" data-i18n="panel.fields.voiceOpenai">OpenAI Whisper (whisper-1)</option>
-                <option value="custom" data-i18n="panel.fields.voiceCustom">Özel / Yerel Whisper (İnternetsiz, ücretsiz)</option>
-              </select>
-              <p class="hint" data-i18n="panel.fields.voiceHint">Küre üzerindeki mikrofona bastığınızda konuşmanızı metne dönüştürecek motoru seçin.</p>
-            </div>
-            <div class="field" id="voiceCustomEndpointRow" hidden>
-              <label for="voiceCustomEndpoint" data-i18n="panel.fields.voiceCustomEndpoint">Yerel / Özel Whisper Adresi</label>
-              <div class="inline">
-                <input id="voiceCustomEndpoint" placeholder="http://127.0.0.1:8080/v1/audio/transcriptions" spellcheck="false" />
-                <button id="btnVoiceTest" class="btn" data-i18n="panel.fields.voiceTest">Test et</button>
-              </div>
-              <p id="voiceTestResult" class="result" hidden></p>
-              <p class="hint" data-i18n="panel.fields.voiceCustomHint">
-                Bilgisayarınızda çalışan bir Whisper sunucusuna bağlanır — bulut anahtarı gerekmez, ses cihazdan çıkmaz.
-                Örnekler: <b>whisper.cpp</b> (<code>whisper-server --port 8080</code>) ·
-                <b>faster-whisper-server</b> (<code>:8000</code>) · <b>LocalAI</b>.
-                OpenAI uyumlu <code>/v1/audio/transcriptions</code> adresini yazın.
-              </p>
-            </div>
-            <div class="field" style="margin-top: 8px;">
-              <label class="switch">
-                <input id="voiceAutoSubmit" type="checkbox" checked />
-                <span class="track"><span class="knob"></span></span>
-                <span class="switch-label" data-i18n="panel.fields.voiceAutoSubmit">Sessizlik Sonrası Otomatik Üret</span>
-              </label>
-              <p class="hint" data-i18n="panel.fields.voiceAutoSubmitHint">Konuşma bittikten sonra 3.2 saniye sessiz kalınırsa prompt üretimini otomatik başlatır.</p>
-            </div>
-          </div>
+          </details>
         </section>
 
         <!-- 2. PROJELER PANE -->

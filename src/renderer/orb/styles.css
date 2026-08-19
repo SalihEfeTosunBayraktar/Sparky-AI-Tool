@@ -456,7 +456,10 @@ body {
 .orb-layer {
   position: absolute;
   inset: 0;
-  padding: 16px;
+  /* Aura (drop-shadow) küreden ~20-40px dışarı taşıyor; body overflow:hidden
+     olduğu için dar bir boşlukta pencere kenarında SERT bir çizgiyle
+     kesiliyordu. Bu boşluk auranın yumuşakça sönmesi için gerekli. */
+  padding: 30px 16px 16px 30px;
   display: flex;
   align-items: flex-start;
   gap: 12px;
@@ -851,7 +854,7 @@ body {
    üretiyordu; gerçek kapsül için en/boy oranı da genişletilmeli. */
 [data-shape="pill"] .orb,
 .orb.shape-pill {
-  width: 68px;
+  width: 62px;
   border-radius: 999px;
   clip-path: none;
 }
