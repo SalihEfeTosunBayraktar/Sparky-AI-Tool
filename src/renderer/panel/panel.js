@@ -493,6 +493,47 @@ $('voiceProvider')?.addEventListener('change', async () => {
   await save({ voiceProvider: vp });
 });
 
+/**
+ * Kullanılabilir mikrofonları listeler. Etiketlerin görünmesi için mikrofon
+ * izni gerektiğinden kısa bir yoklama akışı açılır (hemen kapatılır).
+ */
+async function populateMicrophones() {
+  const sel = $('voiceDevice');
+  if (!sel) return;
+  const current = settings?.voiceDeviceId || '';
+  sel.innerHTML = '';
+
+  const optDefault = document.createElement('option');
+  optDefault.value = '';
+  optDefault.textContent = T('panel.fields.voiceDeviceDefault', 'Sistem varsayılanı');
+  sel.appendChild(optDefault);
+
+  let mics = [];
+  try {
+    let probe = null;
+    try { probe = await navigator.mediaDevices.getUserMedia({ audio: true }); } catch { /* izinsiz: etiketsiz listele */ }
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    if (probe) probe.getTracks().forEach((t) => t.stop());
+    mics = devices.filter((d) => d.kind === 'audioinput');
+  } catch {
+    /* cihaz listelenemedi — yalnızca varsayılan seçenek kalır */
+  }
+
+  for (const m of mics) {
+    const o = document.createElement('option');
+    o.value = m.deviceId;
+    o.textContent = m.label || 'Mikrofon';
+    sel.appendChild(o);
+  }
+  sel.value = current;
+}
+
+$('btnRefreshMics')?.addEventListener('click', () => populateMicrophones());
+
+$('voiceDevice')?.addEventListener('change', async () => {
+  await save({ voiceDeviceId: $('voiceDevice').value });
+});
+
 $('btnVoiceTest')?.addEventListener('click', async () => {
   const el = $('voiceTestResult');
   const url = $('voiceCustomEndpoint').value.trim();
@@ -1057,6 +1098,8 @@ function renderAll() {
       $('voiceCustomEndpointRow').hidden = (settings.voiceProvider || 'auto') !== 'custom';
     }
   }
+  // Mikrofon listesi (etiketler izin gerektirdiği için ayrı ve async doldurulur)
+  populateMicrophones();
   if ($('voiceCustomEndpoint')) {
     $('voiceCustomEndpoint').value = settings.voiceCustomEndpoint || '';
   }

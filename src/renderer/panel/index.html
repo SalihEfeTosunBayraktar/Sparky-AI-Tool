@@ -251,6 +251,14 @@
           <h2 data-i18n="panel.sections.voiceStt">Ses Tanıma & Transkripsiyon (STT)</h2>
           <div class="card">
             <div class="field">
+              <label for="voiceDevice" data-i18n="panel.fields.voiceDevice">Mikrofon</label>
+              <div class="inline">
+                <select id="voiceDevice"></select>
+                <button id="btnRefreshMics" class="btn" data-i18n="panel.fields.voiceRefreshMics">Yenile</button>
+              </div>
+              <p class="hint" data-i18n="panel.fields.voiceDeviceHint">Dikte için kullanılacak mikrofonu seçin. Seçtiğiniz cihaz o an bağlı değilse otomatik olarak sistem varsayılanına düşülür.</p>
+            </div>
+            <div class="field">
               <label for="voiceProvider" data-i18n="panel.fields.voiceProvider">Ses Tanıma Sağlayıcısı</label>
               <select id="voiceProvider">
                 <option value="auto" data-i18n="panel.fields.voiceAuto">Otomatik (Groq > OpenAI)</option>

@@ -40,10 +40,73 @@ class VoiceInput {
     this.segmentSilenceMs = 850;  // Bu kadar duraklama → parçayı yazıya çevir (canlı yazma)
     this.committedText = '';      // Şimdiye dek kesinleşmiş metin
     this.flushing = false;        // Parça çözümleme kilidi (yarış önleme)
+    // Ayarlardan seçilen mikrofon; boş/'default' ise sistem varsayılanı.
+    this.deviceId = options.deviceId || '';
   }
 
   static isSupported() {
     return typeof navigator !== 'undefined' && !!navigator.mediaDevices?.getUserMedia;
+  }
+
+  /**
+   * Mikrofon akışını açar. Ayarlarda belirli bir cihaz seçilmişse onu dener;
+   * o cihaz o an yoksa (sanal mikrofonlar gelip gidebiliyor) sessizce sistem
+   * varsayılanına düşer — kullanıcı "cihaz bulunamadı" duvarına toslamasın.
+   */
+  async _openMicStream() {
+    const deviceId = this.deviceId;
+    if (deviceId && deviceId !== 'default') {
+      try {
+        return await navigator.mediaDevices.getUserMedia({
+          audio: { deviceId: { exact: deviceId } }
+        });
+      } catch (err) {
+        // Seçili cihaz kayıpsa varsayılanla devam et.
+        if (err?.name !== 'NotFoundError' && err?.name !== 'OverconstrainedError') throw err;
+        console.warn('[VoiceInput] Seçili mikrofon bulunamadı, varsayılana dönülüyor.');
+      }
+    }
+    return navigator.mediaDevices.getUserMedia({ audio: true });
+  }
+
+  /** Kullanılabilir mikrofonları listeler (ayarlar ekranı için). */
+  static async listMicrophones() {
+    if (!VoiceInput.isSupported()) return [];
+    try {
+      // Etiketlerin dolu gelmesi için izin verilmiş olmalı; kısa bir akış açıp
+      // hemen kapatmak Chromium'un etiketleri açığa çıkarmasını sağlar.
+      let probe = null;
+      try { probe = await navigator.mediaDevices.getUserMedia({ audio: true }); } catch { /* izin yoksa etiketsiz listeleriz */ }
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      if (probe) probe.getTracks().forEach((t) => t.stop());
+      return devices
+        .filter((d) => d.kind === 'audioinput')
+        .map((d) => ({ deviceId: d.deviceId, label: d.label || 'Mikrofon' }));
+    } catch {
+      return [];
+    }
+  }
+
+  /** Mikrofon hatasını kullanıcının çözebileceği bir yönergeye çevirir. */
+  static describeMicError(err) {
+    const name = err?.name || '';
+    switch (name) {
+      case 'NotAllowedError':
+      case 'PermissionDeniedError':
+        return 'Mikrofon izni reddedildi. Windows → Ayarlar → Gizlilik ve güvenlik → Mikrofon bölümünden "Uygulamaların mikrofonunuza erişmesine izin verin" ve "Masaüstü uygulamalarının mikrofona erişmesine izin verin" seçeneklerini açın, sonra uygulamayı yeniden başlatın.';
+      case 'NotFoundError':
+      case 'DevicesNotFoundError':
+        return 'Mikrofon bulunamadı. Bir mikrofon takılı mı ve Windows ses ayarlarında etkin mi kontrol edin.';
+      case 'NotReadableError':
+      case 'TrackStartError':
+        return 'Mikrofon başka bir uygulama tarafından kullanılıyor (Zoom, Teams, Discord…). O uygulamayı kapatıp tekrar deneyin.';
+      case 'OverconstrainedError':
+        return 'Seçili mikrofon istenen ayarları desteklemiyor. Windows ses ayarlarından varsayılan cihazı değiştirmeyi deneyin.';
+      case 'SecurityError':
+        return 'Güvenlik kısıtı nedeniyle mikrofon açılamadı. Uygulamayı yeniden başlatın.';
+      default:
+        return `Mikrofon açılamadı (${name || 'bilinmeyen hata'}): ${err?.message || ''}`;
+    }
   }
 
   setState(newState) {
@@ -59,7 +122,7 @@ class VoiceInput {
     }
 
     try {
-      this.stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      this.stream = await this._openMicStream();
       this.audioChunks = [];
       this.hasSpoken = false;
       this.startTime = Date.now();
@@ -73,7 +136,11 @@ class VoiceInput {
       return true;
     } catch (err) {
       this.setState('error');
-      this.onError?.(`Mikrofon erişilemedi: ${err.message}`);
+      // getUserMedia'nın ham mesajı ("Permission denied") kullanıcıya ne
+      // yapacağını söylemiyor. DOMException adına göre uygulanabilir bir
+      // yönlendirme veriyoruz — sorunun uygulamada mı, Windows gizlilik
+      // ayarında mı, donanımda mı olduğu tek bakışta anlaşılsın.
+      this.onError?.(VoiceInput.describeMicError(err));
       return false;
     }
   }

@@ -1807,6 +1807,7 @@ function initQuickModelPicker() {
   if (typeof VoiceInput !== 'undefined' && btnVoice) {
     const voice = new VoiceInput({
       api,
+      deviceId: settings.voiceDeviceId || '',
       autoSubmit: settings.voiceAutoSubmit !== false,
       lang: settings.appLanguage === 'en' ? 'en-US' : 'tr-TR',
       // Dinleme başladığında kutuda ne varsa onu koru; canlı yazma bunun

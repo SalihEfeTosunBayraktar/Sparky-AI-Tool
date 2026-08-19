@@ -52,6 +52,13 @@ if (process.platform === 'win32') {
   // daha kararlı bir kompozisyon yolu kullanır.
   app.commandLine.appendSwitch('use-angle', 'd3d9');
   app.commandLine.appendSwitch('disable-gpu-sandbox');
+
+  // Ses servisini tarayıcı sürecinde çalıştırır. Chromium'un ayrı süreçli
+  // sandbox'lı ses servisinin bazı Windows sürücülerinde cihazları hiç
+  // listeleyemediği bilinen bir sorun; savunma amaçlı açık bırakıldı.
+  // NOT: Bu makinede sorunu yeniden üretemedik, dolayısıyla kanıtlanmış bir
+  // düzeltme değil — asıl çözüm ayarlardan mikrofon seçimi (voiceDeviceId).
+  app.commandLine.appendSwitch('disable-features', 'AudioServiceOutOfProcess');
 }
 // Dahili Chromium ve ANGLE sürücü uyarılarını gizle. NOT: 'disable-logging'
 // bilinçli olarak eklenmiyor — Chromium'un tüm günlüğünü kapattığı için

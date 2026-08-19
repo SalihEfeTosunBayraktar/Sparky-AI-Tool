@@ -20,6 +20,8 @@ const DEFAULTS = {
   voiceProvider: 'auto',
   voiceCustomEndpoint: '',
   voiceAutoSubmit: true,
+  // Dikte için kullanılacak mikrofon; boş ise sistem varsayılanı.
+  voiceDeviceId: '',
   // Sağlayıcı başına son seçilen model — sağlayıcı değişince geri yüklenir.
   modelByProvider: {},
   style: 'detailed',
