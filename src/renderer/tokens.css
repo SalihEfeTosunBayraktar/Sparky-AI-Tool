@@ -1,0 +1,113 @@
+/**
+ * tokens.css — Tüm pencerelerin paylaştığı tasarım token'ları.
+ *
+ * Bu dosyadan önce token'lar hem styles.css hem panel.css icinde ayri ayri
+ * tanimliydi; 22 token iki yerde birden yasiyordu. Ayni degeri iki dosyada
+ * tutmak sessiz sapmaya yol aciyordu (ornegin --bg-card acik temada 0.94 ve
+ * 0.96 olarak ayrismisti). Tek kaynak burasi; pencereye ozgu token'lar
+ * kendi dosyalarinda kalir.
+ */
+
+/* Çalışma anında JS tarafından atanan değişkenler. Burada varsayılanları
+   duruyor ki JS henüz çalışmadan önce de tutarlı render olsun:
+   --voice-level  app.js → mikrofon genliği (0..1)
+   --val          panel.js → kaydırıcı dolgu yüzdesi */
+:root {
+  --voice-level: 0;
+  --val: 50%;
+}
+
+:root,
+[data-theme="dark"] {
+  color-scheme: dark;
+  --bg-app: #0d1117;
+  --bg-card: rgba(22, 27, 34, 0.88);
+  --bg-input: #161b22;
+  --bg-surface-overlay: rgba(22, 27, 34, 0.96);
+  --border-color: #30363d;
+  --border-subtle: #30363d;
+  --border-color-strong: var(--accent-border);
+  --text-primary: #e6edf3;
+  --text-secondary: #8b949e;
+  --text-placeholder: #6e7681;
+  --bg: rgba(13, 17, 23, 0.95);
+  --bg-solid: #0d1117;
+  --line: #30363d;
+  --line-strong: var(--accent-border);
+  --txt: #e6edf3;
+  --txt-dim: #8b949e;
+  --txt-faint: #6e7681;
+  --field: #161b22;
+  --btn-bg: #21262d;
+  --card-shadow: 0 24px 60px rgba(0, 0, 0, 0.65);
+  --popover-shadow: 0 10px 30px rgba(0, 0, 0, 0.45), 0 4px 12px rgba(0, 0, 0, 0.25);
+  --out-bg: rgba(0, 0, 0, 0.35);
+  --select-opt-bg: #181922;
+  --select-opt-txt: #f1f3f9;
+  --status-idle-bg: rgba(16, 185, 129, 0.14);
+  --status-idle-border: rgba(16, 185, 129, 0.35);
+  --status-idle-text: #34d399;
+  --status-idle-dot: #10b981;
+  --badge-success-bg: rgba(16, 185, 129, 0.15);
+  --badge-success-text: #34d399;
+  --badge-warning-bg: rgba(245, 158, 11, 0.15);
+  --badge-warning-text: #f59e0b;
+  --badge-danger-bg: rgba(239, 68, 68, 0.15);
+  --badge-danger-text: #f87171;
+  --color-danger: #ef4444;
+  --color-danger-hover: #f87171;
+  --sug-bg: rgba(245, 158, 11, 0.12);
+  --sug-border: rgba(245, 158, 11, 0.45);
+  --sug-text: #fcd34d;
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+  --bg-app: #f8fafc;
+  --bg-card: rgba(255, 255, 255, 0.94);
+  --bg-input: #ffffff;
+  --bg-surface-overlay: #ffffff;
+  --border-color: #cbd5e1;
+  --border-subtle: #cbd5e1;
+  --border-color-strong: var(--accent-border);
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-placeholder: #94a3b8;
+  --bg: rgba(248, 250, 252, 0.96);
+  --bg-solid: #f8fafc;
+  --line: #cbd5e1;
+  --line-strong: var(--accent-border);
+  --txt: #0f172a;
+  --txt-dim: #475569;
+  --txt-faint: #64748b;
+  --field: #ffffff;
+  --btn-bg: #f1f5f9;
+  --card-shadow: 0 16px 40px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06);
+  --popover-shadow: 0 10px 30px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.06);
+  --out-bg: rgba(241, 245, 249, 0.9);
+  --select-opt-bg: #ffffff;
+  --select-opt-txt: #0f172a;
+  --status-idle-bg: rgba(5, 150, 105, 0.14);
+  --status-idle-border: rgba(5, 150, 105, 0.38);
+  --status-idle-text: #065f46;
+  --status-idle-dot: #059669;
+  --badge-success-bg: rgba(16, 185, 129, 0.12);
+  --badge-success-text: #059669;
+  --badge-warning-bg: rgba(245, 158, 11, 0.12);
+  --badge-warning-text: #b45309;
+  --badge-danger-bg: rgba(239, 68, 68, 0.12);
+  --badge-danger-text: #dc2626;
+  --color-danger: #dc2626;
+  --color-danger-hover: #b91c1c;
+  --sug-bg: rgba(245, 158, 11, 0.12);
+  --sug-border: rgba(217, 119, 6, 0.45);
+  --sug-text: #b45309;
+}
+
+:root {
+  --ok: #3ddc97;
+  --warn: #ffb020;
+  --err: #ff5f6d;
+  --radius: 18px;
+  --font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, system-ui, sans-serif;
+}
