@@ -569,8 +569,10 @@ body {
 /* Baloncuk konuşmaya göre şekil değiştirir: genlikle birlikte hafifçe
    şişer ve köşe yuvarlaklığı değişir — "konuşuyor" hissi verir. */
 .bubble.voice-reactive {
-  transform: scale(calc(1 + var(--voice-level, 0) * 0.07));
-  border-radius: calc(12px + var(--voice-level, 0) * 10px);
+  /* Ölçek kasıtlı olarak çok küçük tutuldu: metin kutusunu büyütüp küçültmek
+     okumayı zorlaştırıyordu. Tepki ağırlıklı olarak kenar/parıltıda. */
+  transform: scale(calc(1 + var(--voice-level, 0) * 0.02));
+  border-radius: calc(12px + var(--voice-level, 0) * 6px);
   border-color: rgba(6, 182, 212, calc(0.35 + var(--voice-level, 0) * 0.65));
   box-shadow:
     0 6px 22px rgba(0, 0, 0, 0.42),
@@ -845,10 +847,19 @@ body {
   clip-path: polygon(50% 0%, 63% 36%, 100% 50%, 63% 64%, 50% 100%, 37% 64%, 0% 50%, 37% 36%);
 }
 
+/* Pill = kapsül. Kare kutuda border-radius vermek yalnızca "yuvarlak kare"
+   üretiyordu; gerçek kapsül için en/boy oranı da genişletilmeli. */
 [data-shape="pill"] .orb,
 .orb.shape-pill {
-  border-radius: 20px;
+  width: 68px;
+  border-radius: 999px;
   clip-path: none;
+}
+
+/* Aura halkası kapsül oranını izlesin, daire olarak kalmasın */
+[data-shape="pill"] .orb .ring,
+.orb.shape-pill .ring {
+  border-radius: 999px;
 }
 
 [data-shape="leaf"] .orb,

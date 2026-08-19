@@ -269,6 +269,9 @@ function renderBubbleItem(item, meta) {
   // ama yaygın bir CSS-yeniden-tetikleme tekniği).
   bubble.classList.remove('anim-enter', 'anim-pulse', 'anim-exit');
   void bubble.offsetWidth; // eslint-disable-line no-unused-expressions
+  // `quiet` olaylar (canlı dikte metni gibi saniyede birkaç kez güncellenenler)
+  // nabız animasyonunu tetiklemez; yoksa baloncuk sürekli zıplıyor.
+  if (item.quiet && meta.coalesced) return;
   bubble.classList.add(meta.coalesced ? 'anim-pulse' : 'anim-enter');
 }
 
@@ -296,7 +299,7 @@ function queueBubble(text, kind, extra = {}) {
   const priority = extra.priority || kindMap[kind] || 'normal';
   const level = (state.settings && state.settings.notifyLevel) || 'normal';
   if ((prioMap[priority] || 2) < notifyThreshold(level)) return;
-  bubbleQueue.push({ text, kind, priority, dedupeKey: extra.dedupeKey || null });
+  bubbleQueue.push({ text, kind, priority, dedupeKey: extra.dedupeKey || null, quiet: !!extra.quiet });
 }
 
 /* ------------------------------------------------------------------ */
@@ -1829,10 +1832,12 @@ function initQuickModelPicker() {
         inputEl.scrollTop = inputEl.scrollHeight;
         updateInputStats();
         inputEl.classList.add('dictating');
+        // `quiet: true` → baloncuk metni güncellenir ama nabız animasyonu
+        // yeniden tetiklenmez; aksi hâlde her canlı güncellemede zıplıyordu.
         queueBubble(
           `💬 ${partial.length > 60 ? '…' + partial.slice(-60) : partial}`,
           'thinking',
-          { priority: 'high', dedupeKey: 'voice:partial' }
+          { priority: 'high', dedupeKey: 'voice:partial', quiet: true }
         );
       },
       // Mikrofon genliği → avatar ve baloncuk sese göre nefes alır.

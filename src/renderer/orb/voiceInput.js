@@ -38,6 +38,11 @@ class VoiceInput {
     this.hasSpoken = false;
     this.silenceSubmitMs = 2400;  // Bu kadar sessizlik → bitir ve üret
     this.segmentSilenceMs = 850;  // Bu kadar duraklama → parçayı yazıya çevir (canlı yazma)
+    // Kullanıcı hiç durmadan konuşursa duraklama beklemeden de yaz: aksi hâlde
+    // tek nefeslik konuşmada metin ancak en sonda görünüyor ve "canlı" hissi olmuyor.
+    this.maxSegmentMs = 2200;
+    this.segmentStartedAt = 0;
+    this.smoothLevel = 0;         // Yumuşatılmış genlik (titreşimi önler)
     this.committedText = '';      // Şimdiye dek kesinleşmiş metin
     this.flushing = false;        // Parça çözümleme kilidi (yarış önleme)
     // Ayarlardan seçilen mikrofon; boş/'default' ise sistem varsayılanı.
@@ -159,6 +164,7 @@ class VoiceInput {
       if (e.data?.size > 0) this.audioChunks.push(e.data);
     };
     this.mediaRecorder.start(250);
+    this.segmentStartedAt = Date.now();
   }
 
   /** Kaydediciyi durdurup biriken parçaları döndürür (son parça dahil). */
@@ -244,15 +250,23 @@ class VoiceInput {
         for (let i = 0; i < bufferLength; i++) sum += dataArray[i];
         const avg = sum / bufferLength;
 
-        // Genliği 0..1 aralığına indirip dışarı ver — avatar/baloncuk buna göre nefes alır.
-        // 60 pratikte normal konuşma tepe değeri; üstü tavanlanır.
-        this.onLevel?.(Math.min(1, avg / 60));
+        // Ham genlik kare kare zıpladığı için doğrudan animasyona bağlanınca
+        // baloncuk sürekli büyüyüp küçülüyordu. Üstel yumuşatma + sessizlikte
+        // sıfıra çekme ile yalnızca gerçek konuşmada tepki verir.
+        const raw = avg >= 4 ? Math.min(1, avg / 60) : 0;
+        this.smoothLevel += (raw - this.smoothLevel) * 0.25;
+        if (this.smoothLevel < 0.02) this.smoothLevel = 0;
+        this.onLevel?.(this.smoothLevel);
 
         const now = Date.now();
         // Sensitive threshold (>= 4 detects whispering/quiet mics)
         if (avg >= 4) {
           this.lastSpeechTime = now;
           this.hasSpoken = true;
+          // Kesintisiz konuşmada da belirli aralıklarla yazıya dök.
+          if (!this.flushing && this.segmentStartedAt && (now - this.segmentStartedAt) >= this.maxSegmentMs) {
+            this._flushSegment();
+          }
         } else {
           const silentFor = now - this.lastSpeechTime;
           if (this.hasSpoken && silentFor >= this.silenceSubmitMs) {
@@ -260,7 +274,6 @@ class VoiceInput {
             this.stopAndProcess(true);
           } else if (this.hasSpoken && silentFor >= this.segmentSilenceMs && !this.flushing) {
             // Kısa duraklama: o ana kadarki cümleyi yazıya çevir, dinlemeye devam et.
-            // Canlı yazma hissi buradan geliyor.
             this._flushSegment();
           } else if (!this.hasSpoken && (now - this.startTime) >= 7000) {
             // No speech detected at all for 7s: cancel listening
