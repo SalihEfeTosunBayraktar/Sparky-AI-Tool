@@ -456,10 +456,11 @@ body {
 .orb-layer {
   position: absolute;
   inset: 0;
-  /* Aura (drop-shadow) küreden ~20-40px dışarı taşıyor; body overflow:hidden
-     olduğu için dar bir boşlukta pencere kenarında SERT bir çizgiyle
-     kesiliyordu. Bu boşluk auranın yumuşakça sönmesi için gerekli. */
-  padding: 30px 16px 16px 30px;
+  /* Aura (drop-shadow) küreden en fazla ~48px dışarı taşıyor; body
+     overflow:hidden olduğu için dar bir boşlukta pencere kenarında SERT bir
+     çizgiyle kesiliyordu (özellikle hata/başarı gibi geniş auralarda).
+     Boşluk en geniş auraya göre seçildi ki her durumda yumuşakça sönsün. */
+  padding: 50px 16px 20px 50px;
   display: flex;
   align-items: flex-start;
   gap: 12px;
