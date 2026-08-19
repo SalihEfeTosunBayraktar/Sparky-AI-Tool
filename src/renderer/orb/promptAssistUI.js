@@ -29,11 +29,16 @@ class PromptAssistUI {
     this.i18n = options.i18n || window.i18n;
     this.onPromptChange = options.onPromptChange || (() => {});
     this.onVariationSelect = options.onVariationSelect || (() => {});
+    // Model varyasyonu yeniden yazarken avatarın tepki vermesi için.
+    this.onSynthStateChange = options.onSynthStateChange || null;
 
     this.activeStrategyId = null; // İlk strateji yüklendiğinde atanacak / Set on first load
     this.viewMode = 'raw'; // 'raw' | 'blocks'
     this.strategies = [];
-    this.variations = {};   // { [strategyId]: promptText }
+    this.variations = {};   // { [strategyId]: promptText } — anlık mekanik önizleme
+    this.synthesized = {};  // { [strategyId]: promptText } — modelin gerçekten dönüştürdüğü sürüm
+    this.sourceText = '';   // Varyasyonların türetildiği özgün prompt
+    this.synthToken = 0;    // Eskimiş sentez yanıtlarını eleme sayacı
     this.parsedBlocks = [];
     this.enabled = false;   // Mod kontrolü — sadece prompt-preparer'da true / Only true in prompt-preparer mode
     this.refineOverlay = null; // In-place refinement overlay reference
@@ -133,24 +138,76 @@ class PromptAssistUI {
       this.api.assist.recordSelection(strategyId).catch(() => {});
     }
 
-    // Önbellekteki varyasyonu al veya anında türet
-    let content = this.variations[strategyId];
-    if (!content || !content.trim()) {
-      const baseText = this.rawTextarea?.textContent || this.rawTextarea?.value || '';
+    // 1) Model zaten bu stratejiyi gerçekten dönüştürdüyse doğrudan onu göster.
+    if (this.synthesized[strategyId]) {
+      await this._displayContent(this.synthesized[strategyId]);
+      this.onPromptChange(this.synthesized[strategyId]);
+      return;
+    }
+
+    // 2) Anlık mekanik önizlemeyi hemen bas (arayüz beklemesin).
+    let preview = this.variations[strategyId];
+    if (!preview || !preview.trim()) {
+      const baseText = this.sourceText || this.rawTextarea?.textContent || this.rawTextarea?.value || '';
       if (baseText && this.api?.assist?.deriveVariations) {
         const pool = this.strategies.length > 0 ? this.strategies : [{ id: strategyId }];
         const derived = await this.api.assist.deriveVariations(baseText, pool);
         this.variations = { ...this.variations, ...derived };
-        content = this.variations[strategyId] || baseText;
+        preview = this.variations[strategyId] || baseText;
       } else {
-        content = baseText;
+        preview = baseText;
       }
     }
 
-    if (content) {
-      await this._displayContent(content);
-      this.onPromptChange(content);
+    if (preview) {
+      await this._displayContent(preview);
+      this.onPromptChange(preview);
     }
+
+    // 3) Arka planda modele gerçek dönüşümü yaptır ve gelince değiştir.
+    await this._synthesizeActive(strategyId);
+  }
+
+  /**
+   * Seçili strateji için modelden GERÇEK dönüşümü ister ve sonuç gelince
+   * ekranı günceller. 'structured' zaten kaynağın kendisi olduğu için atlanır.
+   */
+  async _synthesizeActive(strategyId) {
+    const source = this.sourceText;
+    if (!source || strategyId === 'structured') return;
+    if (!this.api?.assist?.synthesizeVariation) return;
+    if (this.synthesized[strategyId]) return;
+
+    const token = ++this.synthToken;
+    this._setTabLoading(strategyId, true);
+    const label = this.strategies.find((s) => s.id === strategyId)?.label || strategyId;
+    this.onSynthStateChange?.(true, label);
+    try {
+      const res = await this.api.assist.synthesizeVariation(source, strategyId);
+      // Kullanıcı bu arada başka sekmeye geçtiyse yazma / discard if stale
+      if (token !== this.synthToken) return;
+      if (res && res.synthesized && res.text && res.text.trim()) {
+        this.synthesized[strategyId] = res.text.trim();
+        if (this.activeStrategyId === strategyId) {
+          await this._displayContent(res.text.trim());
+          this.onPromptChange(res.text.trim());
+        }
+      }
+    } catch (err) {
+      console.warn('[PromptAssistUI] Varyasyon sentezlenemedi:', err);
+    } finally {
+      if (token === this.synthToken) {
+        this._setTabLoading(strategyId, false);
+        this.onSynthStateChange?.(false, label);
+      }
+    }
+  }
+
+  /** Sekmede dönüşümün sürdüğünü gösteren yükleniyor durumu. */
+  _setTabLoading(strategyId, isLoading) {
+    if (!this.tabsContainer) return;
+    const tab = this.tabsContainer.querySelector(`.var-tab[data-var="${strategyId}"]`);
+    if (tab) tab.classList.toggle('synthesizing', !!isLoading);
   }
 
   /** Blok / Ham metin görünümü arasında geçiş / Toggle between blocks and raw views */
@@ -192,9 +249,18 @@ class PromptAssistUI {
     const text = String(promptMarkdown || '').trim();
     if (!text) {
       this.variations = {};
+      this.synthesized = {};
+      this.sourceText = '';
       this.parsedBlocks = [];
       this.hide();
       return;
+    }
+
+    // Yeni bir prompt geldi: önceki sentezler artık geçersiz.
+    if (text !== this.sourceText) {
+      this.sourceText = text;
+      this.synthesized = {};
+      this.synthToken++;
     }
 
     // Ensure strategies are loaded
@@ -224,6 +290,11 @@ class PromptAssistUI {
     // Aktif sekmenin varyasyonunu göster / Display current active strategy variation
     const currentText = this.variations[this.activeStrategyId] || text;
     await this._displayContent(currentText);
+
+    // Aktif sekme kaynağın kendisi değilse arka planda gerçek dönüşümü başlat.
+    if (this.activeStrategyId) {
+      this._synthesizeActive(this.activeStrategyId).catch(() => {});
+    }
   }
 
   /** İçeriği parse edip hem ham hem blok olarak hazırla / Parse and display content */

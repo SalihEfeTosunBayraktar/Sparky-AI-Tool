@@ -256,14 +256,23 @@
                 <option value="auto" data-i18n="panel.fields.voiceAuto">Otomatik (Groq > OpenAI)</option>
                 <option value="groq" data-i18n="panel.fields.voiceGroq">Groq Whisper (whisper-large-v3-turbo · Ultra Hızlı)</option>
                 <option value="openai" data-i18n="panel.fields.voiceOpenai">OpenAI Whisper (whisper-1)</option>
-                <option value="custom" data-i18n="panel.fields.voiceCustom">Özel Whisper Uç Noktası (Yerel / Uzak)</option>
+                <option value="custom" data-i18n="panel.fields.voiceCustom">Özel / Yerel Whisper (İnternetsiz, ücretsiz)</option>
               </select>
               <p class="hint" data-i18n="panel.fields.voiceHint">Küre üzerindeki mikrofona bastığınızda konuşmanızı metne dönüştürecek motoru seçin.</p>
             </div>
             <div class="field" id="voiceCustomEndpointRow" hidden>
-              <label for="voiceCustomEndpoint" data-i18n="panel.fields.voiceCustomEndpoint">Özel Whisper Endpoint URL</label>
-              <input id="voiceCustomEndpoint" placeholder="örn. http://localhost:8000/v1/audio/transcriptions" spellcheck="false" />
-              <p class="hint" data-i18n="panel.fields.voiceCustomHint">OpenAI Whisper uyumlu `/v1/audio/transcriptions` adresini girin.</p>
+              <label for="voiceCustomEndpoint" data-i18n="panel.fields.voiceCustomEndpoint">Yerel / Özel Whisper Adresi</label>
+              <div class="inline">
+                <input id="voiceCustomEndpoint" placeholder="http://127.0.0.1:8080/v1/audio/transcriptions" spellcheck="false" />
+                <button id="btnVoiceTest" class="btn" data-i18n="panel.fields.voiceTest">Test et</button>
+              </div>
+              <p id="voiceTestResult" class="result" hidden></p>
+              <p class="hint" data-i18n="panel.fields.voiceCustomHint">
+                Bilgisayarınızda çalışan bir Whisper sunucusuna bağlanır — bulut anahtarı gerekmez, ses cihazdan çıkmaz.
+                Örnekler: <b>whisper.cpp</b> (<code>whisper-server --port 8080</code>) ·
+                <b>faster-whisper-server</b> (<code>:8000</code>) · <b>LocalAI</b>.
+                OpenAI uyumlu <code>/v1/audio/transcriptions</code> adresini yazın.
+              </p>
             </div>
             <div class="field" style="margin-top: 8px;">
               <label class="switch">

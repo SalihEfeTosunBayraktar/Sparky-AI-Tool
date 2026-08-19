@@ -20,6 +20,10 @@ class VoiceInput {
     this.onStateChange = options.onStateChange || null;
     this.onAutoSubmit = options.onAutoSubmit || null;
     this.onError = options.onError || null;
+    // Canlı yazma: her cümle parçası çözümlendiğinde o ana kadarki tam metni yollar.
+    this.onPartial = options.onPartial || null;
+    // Anlık mikrofon genliği (0..1) — avatar ve baloncuğun sese tepki vermesi için.
+    this.onLevel = options.onLevel || null;
     this.autoSubmit = options.autoSubmit !== false;
     this.api = options.api || (typeof window !== 'undefined' ? (window.api || (typeof api !== 'undefined' ? api : null)) : null);
     this.state = 'idle';
@@ -32,7 +36,10 @@ class VoiceInput {
     this.startTime = 0;
     this.lastSpeechTime = 0;
     this.hasSpoken = false;
-    this.silenceSubmitMs = 2400; // 2.4 seconds silence threshold
+    this.silenceSubmitMs = 2400;  // Bu kadar sessizlik → bitir ve üret
+    this.segmentSilenceMs = 850;  // Bu kadar duraklama → parçayı yazıya çevir (canlı yazma)
+    this.committedText = '';      // Şimdiye dek kesinleşmiş metin
+    this.flushing = false;        // Parça çözümleme kilidi (yarış önleme)
   }
 
   static isSupported() {
@@ -58,13 +65,9 @@ class VoiceInput {
       this.startTime = Date.now();
       this.lastSpeechTime = Date.now();
 
-      const mimeType = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/ogg';
-      this.mediaRecorder = new MediaRecorder(this.stream, { mimeType });
-      this.mediaRecorder.ondataavailable = (e) => {
-        if (e.data?.size > 0) this.audioChunks.push(e.data);
-      };
-
-      this.mediaRecorder.start(250);
+      this.committedText = '';
+      this.flushing = false;
+      this._startRecorder();
       await this.initVad(this.stream);
       this.setState('listening');
       return true;
@@ -72,6 +75,81 @@ class VoiceInput {
       this.setState('error');
       this.onError?.(`Mikrofon erişilemedi: ${err.message}`);
       return false;
+    }
+  }
+
+  /**
+   * Yeni bir MediaRecorder başlatır. Parça çözümlemede kaydedici durdurulup
+   * yeniden başlatılıyor; çünkü webm akışında ilk parçadan sonrakiler tek
+   * başına çözülebilir değil (başlık yok). Durdurup yeniden başlatmak her
+   * segmentin geçerli, bağımsız bir ses dosyası olmasını sağlar.
+   */
+  _startRecorder() {
+    if (!this.stream) return;
+    const mimeType = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/ogg';
+    this.mediaRecorder = new MediaRecorder(this.stream, { mimeType });
+    this.mediaRecorder.ondataavailable = (e) => {
+      if (e.data?.size > 0) this.audioChunks.push(e.data);
+    };
+    this.mediaRecorder.start(250);
+  }
+
+  /** Kaydediciyi durdurup biriken parçaları döndürür (son parça dahil). */
+  async _stopRecorderAndCollect() {
+    const rec = this.mediaRecorder;
+    if (rec && rec.state !== 'inactive') {
+      await new Promise((resolve) => {
+        rec.onstop = resolve;
+        try { rec.stop(); } catch { resolve(); }
+      });
+    }
+    const collected = this.audioChunks;
+    this.audioChunks = [];
+    return collected;
+  }
+
+  /** Ses parçalarını yazıya çevirir. Backend'den bağımsız (bulut ya da yerel). */
+  async _transcribeChunks(chunks) {
+    if (!chunks || !chunks.length) return '';
+    const audioBlob = new Blob(chunks, { type: 'audio/webm' });
+    const arrayBuffer = await audioBlob.arrayBuffer();
+    const uint8Array = new Uint8Array(arrayBuffer);
+    const apiBridge = this.api || (typeof window !== 'undefined' ? (window.api || (typeof api !== 'undefined' ? api : null)) : null);
+    if (!apiBridge?.voice?.transcribe) throw new Error('Ses servisi bulunamadı.');
+    const res = await apiBridge.voice.transcribe(uint8Array);
+    if (!res?.ok) throw new Error(res?.error || 'Sesli tanıma başarısız.');
+    return String(res.text || '').trim();
+  }
+
+  /**
+   * Konuşma duraklamasında o ana kadarki cümleyi yazıya çevirip ekrana basar,
+   * sonra dinlemeye kaldığı yerden devam eder — "canlı yazma" bu.
+   */
+  async _flushSegment() {
+    if (this.flushing || this.state !== 'listening') return;
+    this.flushing = true;
+    try {
+      const chunks = await this._stopRecorderAndCollect();
+
+      // Kullanıcı konuşmaya devam edebilir; kaydı hemen yeniden aç ki ses kaybolmasın.
+      if (this.state === 'listening' && this.stream) {
+        this._startRecorder();
+        this.hasSpoken = false;
+        this.lastSpeechTime = Date.now();
+      }
+
+      if (chunks.length) {
+        const text = await this._transcribeChunks(chunks);
+        if (text) {
+          this.committedText = this.committedText ? `${this.committedText} ${text}` : text;
+          this.onPartial?.(this.committedText);
+        }
+      }
+    } catch (err) {
+      // Parça hatası akışı bozmasın; kullanıcı konuşmaya devam edebilsin.
+      console.warn('[VoiceInput] Parça çözümlenemedi:', err.message);
+    } finally {
+      this.flushing = false;
     }
   }
 
@@ -99,6 +177,10 @@ class VoiceInput {
         for (let i = 0; i < bufferLength; i++) sum += dataArray[i];
         const avg = sum / bufferLength;
 
+        // Genliği 0..1 aralığına indirip dışarı ver — avatar/baloncuk buna göre nefes alır.
+        // 60 pratikte normal konuşma tepe değeri; üstü tavanlanır.
+        this.onLevel?.(Math.min(1, avg / 60));
+
         const now = Date.now();
         // Sensitive threshold (>= 4 detects whispering/quiet mics)
         if (avg >= 4) {
@@ -107,8 +189,12 @@ class VoiceInput {
         } else {
           const silentFor = now - this.lastSpeechTime;
           if (this.hasSpoken && silentFor >= this.silenceSubmitMs) {
-            // User spoke and paused: stop and process with auto-submit
+            // Uzun sessizlik: bitir, kalanı çöz ve üretimi tetikle.
             this.stopAndProcess(true);
+          } else if (this.hasSpoken && silentFor >= this.segmentSilenceMs && !this.flushing) {
+            // Kısa duraklama: o ana kadarki cümleyi yazıya çevir, dinlemeye devam et.
+            // Canlı yazma hissi buradan geliyor.
+            this._flushSegment();
           } else if (!this.hasSpoken && (now - this.startTime) >= 7000) {
             // No speech detected at all for 7s: cancel listening
             this.stop();
@@ -137,47 +223,51 @@ class VoiceInput {
 
   async stopAndProcess(shouldAutoSubmit = false) {
     if (this.state !== 'listening') return;
+
+    // Devam eden bir parça çözümlemesi varsa bitmesini bekle (metin sırası bozulmasın).
+    let guard = 0;
+    while (this.flushing && guard++ < 40) {
+      await new Promise((r) => setTimeout(r, 50));
+    }
+
     this.cleanupStream();
     this.setState('processing');
+    this.onLevel?.(0);
 
-    if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
-      await new Promise((resolve) => {
-        this.mediaRecorder.onstop = resolve;
-        try { this.mediaRecorder.stop(); } catch { resolve(); }
-      });
-    }
-
-    if (!this.audioChunks.length) {
-      this.setState('idle');
-      return;
-    }
+    const chunks = await this._stopRecorderAndCollect();
 
     try {
-      const audioBlob = new Blob(this.audioChunks, { type: 'audio/webm' });
-      this.audioChunks = [];
-      const arrayBuffer = await audioBlob.arrayBuffer();
-      const uint8Array = new Uint8Array(arrayBuffer);
-      const apiBridge = this.api || (typeof window !== 'undefined' ? (window.api || (typeof api !== 'undefined' ? api : null)) : null);
-
-      if (apiBridge?.voice?.transcribe) {
-        const res = await apiBridge.voice.transcribe(uint8Array);
-        if (res?.ok && res.text) {
-          this.onResult?.(res.text);
-          this.setState('idle');
-          if (shouldAutoSubmit && this.autoSubmit) {
-            setTimeout(() => this.onAutoSubmit?.(), 300);
-          }
-        } else {
-          this.setState('error');
-          this.onError?.(res?.error || 'Sesli tanıma için Ayarlar → Model/API bölümünden bir Groq veya OpenAI anahtarı ekleyin.');
+      // Kalan son parçayı da çöz ve biriken metne ekle.
+      if (chunks.length) {
+        const tail = await this._transcribeChunks(chunks);
+        if (tail) {
+          this.committedText = this.committedText ? `${this.committedText} ${tail}` : tail;
         }
-      } else {
-        this.setState('error');
-        this.onError?.('Ses servisi bulunamadı.');
+      }
+
+      const finalText = this.committedText.trim();
+      if (!finalText) {
+        this.setState('idle');
+        return;
+      }
+
+      this.onResult?.(finalText);
+      this.committedText = '';
+      this.setState('idle');
+      if (shouldAutoSubmit && this.autoSubmit) {
+        setTimeout(() => this.onAutoSubmit?.(), 300);
       }
     } catch (err) {
-      this.setState('error');
-      this.onError?.(`Ses hatası: ${err.message}`);
+      // Daha önce kesinleşmiş metin varsa onu kaybetme — kullanıcının emeği gitmesin.
+      const salvaged = this.committedText.trim();
+      if (salvaged) {
+        this.onResult?.(salvaged);
+        this.committedText = '';
+        this.setState('idle');
+      } else {
+        this.setState('error');
+        this.onError?.(err.message || 'Ses hatası');
+      }
     }
   }
 

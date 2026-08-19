@@ -126,7 +126,8 @@ contextBridge.exposeInMainWorld('sparky', {
     parseBlocks: (text) => ipcRenderer.invoke('assist:parseBlocks', text),
     serializeBlocks: (blocks) => ipcRenderer.invoke('assist:serializeBlocks', blocks),
     refineBlock: (payload) => ipcRenderer.invoke('assist:refineBlock', payload),
-    deriveVariations: (text, strategies) => ipcRenderer.invoke('assist:deriveVariations', { text, strategies })
+    deriveVariations: (text, strategies) => ipcRenderer.invoke('assist:deriveVariations', { text, strategies }),
+    synthesizeVariation: (text, strategyId) => ipcRenderer.invoke('assist:synthesizeVariation', { text, strategyId })
   },
 
   db: {
@@ -150,7 +151,8 @@ contextBridge.exposeInMainWorld('sparky', {
   },
 
   voice: {
-    transcribe: (audioBuffer) => ipcRenderer.invoke('voice:transcribe', audioBuffer)
+    transcribe: (audioBuffer) => ipcRenderer.invoke('voice:transcribe', audioBuffer),
+    testEndpoint: (url) => ipcRenderer.invoke('voice:testEndpoint', url)
   },
 
   shell: {

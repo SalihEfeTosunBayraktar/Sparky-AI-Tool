@@ -171,7 +171,9 @@ class WhisperEngine {
       });
 
       req.on('error', (err) => reject(err));
-      req.setTimeout(15000, () => {
+      // Yerel Whisper sunucuları (whisper.cpp / faster-whisper) CPU üzerinde
+      // ilk çağrıda modeli yüklediği için 15 sn yetmiyordu; 45 sn'ye çekildi.
+      req.setTimeout(45000, () => {
         req.destroy();
         reject(new Error('İstek zaman aşımına uğradı (15s)'));
       });

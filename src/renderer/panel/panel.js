@@ -493,6 +493,19 @@ $('voiceProvider')?.addEventListener('change', async () => {
   await save({ voiceProvider: vp });
 });
 
+$('btnVoiceTest')?.addEventListener('click', async () => {
+  const el = $('voiceTestResult');
+  const url = $('voiceCustomEndpoint').value.trim();
+  if (!el) return;
+  showResult(el, T('panel.fields.voiceTesting', 'Bağlanılıyor…'), 'warn');
+  const res = await api.voice.testEndpoint(url);
+  if (res.ok) {
+    showResult(el, T('panel.fields.voiceTestOk', 'Yerel Whisper sunucusuna ulaşıldı ✓'), 'ok');
+  } else {
+    showResult(el, res.error, 'bad');
+  }
+});
+
 $('voiceCustomEndpoint')?.addEventListener('change', async () => {
   await save({ voiceCustomEndpoint: $('voiceCustomEndpoint').value.trim() });
 });

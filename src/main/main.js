@@ -42,9 +42,20 @@ if (process.platform === 'win32') {
   app.setAppUserModelId('com.sparkyai.app');
 }
 
-// Dahili Chromium ve ANGLE sürücü uyarılarını gizle
+// Chromium/ANGLE ayarları — BURADA olmak zorunda, package.json'daki npm
+// betiklerinde DEĞİL. Betikteki bayraklar yalnızca `npm start` ile geliştirme
+// modunda electron ikilisine geçiyordu; paketlenmiş exe'yi hiç etkilemiyordu,
+// yani düzeltme kullanıcıya ulaşmıyordu. appendSwitch her iki durumda da geçerli.
+if (process.platform === 'win32') {
+  // Şeffaf + çerçevesiz pencerelerde D3D11 SwapChain gürültüsünü kesip
+  // daha kararlı bir kompozisyon yolu kullanır.
+  app.commandLine.appendSwitch('use-angle', 'd3d9');
+  app.commandLine.appendSwitch('disable-gpu-sandbox');
+}
+// Dahili Chromium ve ANGLE sürücü uyarılarını gizle. NOT: 'disable-logging'
+// bilinçli olarak eklenmiyor — Chromium'un tüm günlüğünü kapattığı için
+// gerçek renderer hatalarını da yutuyor ve sorun teşhisini imkânsızlaştırıyordu.
 app.commandLine.appendSwitch('log-level', '3');
-app.commandLine.appendSwitch('disable-logging');
 
 const COLLAPSED = { width: 340, height: 152 };
 const EXPANDED = { width: 480, height: 664 };
@@ -1123,6 +1134,20 @@ function registerIpc() {
   ipcMain.handle('assist:deriveVariations', (_e, { text, strategies }) =>
     PromptAssistEngine.deriveVariations(text, strategies)
   );
+  // Stratejiyi modele gerçekten uygulatır (mekanik önizlemenin aksine).
+  ipcMain.handle('assist:synthesizeVariation', async (_e, { text, strategyId }) => {
+    const cfg = settings.all();
+    try {
+      return await PromptAssistEngine.synthesizeVariation({
+        text,
+        strategyId,
+        chat: (params) => chatWithRotationNotice(params),
+        cfg
+      });
+    } catch (err) {
+      return { text: String(text || ''), synthesized: false, error: err.message };
+    }
+  });
 
   // --- Database & FTS5 Full-Text Search ---
   ipcMain.handle('db:history:search', (_e, { query, projectId, limit }) => database.searchHistory(query, { projectId, limit }));
@@ -1156,6 +1181,36 @@ function registerIpc() {
 
   // --- Voice Input (Whisper STT) ---
   ipcMain.handle('voice:transcribe', async (_e, audioBuffer) => WhisperEngine.transcribe(audioBuffer));
+  // Yerel/özel Whisper sunucusuna erişilebiliyor mu? (anahtar gerekmeden hızlı sağlık kontrolü)
+  ipcMain.handle('voice:testEndpoint', async (_e, url) => {
+    const target = String(url || '').trim();
+    if (!target) return { ok: false, error: 'Adres girilmedi.' };
+    let parsed;
+    try {
+      parsed = new URL(target);
+    } catch {
+      return { ok: false, error: 'Geçersiz URL.' };
+    }
+    const transport = parsed.protocol === 'https:' ? require('https') : require('http');
+    // Sunucunun ayakta olup olmadığına bakıyoruz; 404/405 bile "erişilebilir" demektir.
+    return new Promise((resolve) => {
+      const req = transport.request(
+        { hostname: parsed.hostname, port: parsed.port, path: parsed.pathname, method: 'GET' },
+        (res) => {
+          res.resume();
+          resolve({ ok: true, status: res.statusCode });
+        }
+      );
+      req.on('error', (err) => {
+        const hint = err.code === 'ECONNREFUSED'
+          ? 'Bağlantı reddedildi — sunucu çalışmıyor olabilir.'
+          : err.message;
+        resolve({ ok: false, error: hint });
+      });
+      req.setTimeout(5000, () => { req.destroy(); resolve({ ok: false, error: 'Zaman aşımı (5 sn).' }); });
+      req.end();
+    });
+  });
 
   // --- kabuk
   ipcMain.handle('shell:openUserData', () => shell.openPath(app.getPath('userData')));

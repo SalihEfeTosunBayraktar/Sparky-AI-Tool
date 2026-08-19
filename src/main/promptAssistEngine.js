@@ -64,6 +64,66 @@ const STRATEGY_POOL = [
   }
 ];
 
+/**
+ * Her strateji için GERÇEK anlamsal dönüşüm direktifi.
+ * Semantic transformation directive per strategy.
+ *
+ * Bu direktifler `synthesizeVariation()` tarafından modele verilir. Eskiden
+ * varyasyonlar yalnızca aynı metnin farklı başlıklarla sarılmasıydı; "Kısa"
+ * hiçbir şeyi kısaltmıyor, "Derin" hiçbir şeyi derinleştirmiyordu. Artık
+ * mekanik sürüm yalnızca anlık önizleme, asıl dönüşümü model yapıyor.
+ */
+const STRATEGY_DIRECTIVES = {
+  concise:
+    'Compress aggressively. Strip every word that does not change the model\'s output. Merge related constraints into single dense lines. Target roughly 30% of the original length while preserving every hard requirement.',
+  structured:
+    'Reorganize into clean, explicitly labelled markdown sections (Role, Task, Context, Requirements, Output format). Restructure only — do not add new substance or drop existing requirements.',
+  deep:
+    'Expand into a rigorous, comprehensive prompt. Make implicit expectations explicit: add step-by-step reasoning instructions, edge cases, trade-offs, failure modes, and measurable quality criteria that the original only implied.',
+  creative:
+    'Reframe with imaginative energy. Add an evocative persona, vivid framing, and explicit stylistic direction. Encourage novel angles and distinctive voice while preserving the core objective exactly.',
+  expert:
+    'Recast as a briefing written for a senior domain expert. Add methodological rigor, professional standards for the domain, and explicit guardrails against the common failure modes a practitioner would anticipate.',
+  code_centric:
+    'Recast for a coding model. Add explicit input/output contracts, type expectations, error handling requirements, concrete edge cases, and verification/testing expectations. Be unambiguous about interfaces.',
+  minimal:
+    'Reduce to the absolute minimum viable instruction: a few dense lines, no headings, no ceremony, no restating the obvious. Keep only what is strictly load-bearing.',
+  conversational:
+    'Reframe as an interactive collaboration. Instruct the model to surface and resolve ambiguities with targeted questions first, then proceed step by step, checking in at decision points.'
+};
+
+/** Metin birleştirmede çift noktalama oluşmasını engeller ("Node.js.." → "Node.js.") */
+function joinSentence(prefix, body) {
+  const clean = String(body || '').trim().replace(/[.!?]+$/, '');
+  return `${prefix}${clean}.`;
+}
+
+/** "Sen bir X'sin" / "You are a X" kalıbını sıyırıp yalın rol tanımı bırakır. */
+function stripRolePreamble(role) {
+  return String(role || '')
+    .trim()
+    .replace(/^(?:sen\s+bir|sen|you\s+are\s+an?|you\s+are|act\s+as\s+an?|act\s+as)\s+/i, '')
+    .replace(/\s*(?:olarak\s+davran|'?s[ıi]n)\s*\.?$/i, '')
+    .trim();
+}
+
+/** Madde listesini tek satırlık yoğun bir dizeye indirger. */
+function condenseList(text) {
+  return String(text || '')
+    .split('\n')
+    .map((l) => l.replace(/^[-•*\s]+/, '').trim())
+    .filter(Boolean)
+    .join('; ');
+}
+
+/** Metnin ilk N cümlesini döndürür (minimalist varyasyon için). */
+function firstSentences(text, count = 2) {
+  const clean = String(text || '').replace(/\s+/g, ' ').trim();
+  const sentences = clean.match(/[^.!?]+[.!?]+/g);
+  if (!sentences || sentences.length === 0) return clean;
+  return sentences.slice(0, count).join(' ').trim();
+}
+
 function detectBlockType(rawTitle) {
   const t = String(rawTitle || '').toLowerCase();
   if (t.includes('role') || t.includes('rol') || t.includes('persona') || t.includes('kimlik') || t.includes('expert') || t.includes('uzman')) return 'role';
@@ -274,6 +334,60 @@ NON-NEGOTIABLE RULES:
     return { updatedContent, updatedFullMarkdown };
   }
 
+  /** Bir stratejinin anlamsal dönüşüm direktifini döndürür. */
+  static getDirective(strategyId) {
+    return STRATEGY_DIRECTIVES[strategyId] || null;
+  }
+
+  /**
+   * Bir stratejiyi GERÇEKTEN uygulayarak promptu modele yeniden yazdırır.
+   * Genuinely transforms the prompt via the LLM according to the strategy directive.
+   *
+   * `deriveVariations()` yalnızca anlık mekanik önizleme üretir (aynı içeriği
+   * farklı başlıklarla sarar). Asıl anlamsal dönüşüm — kısaltma, derinleştirme,
+   * yaratıcılaştırma — burada modele yaptırılır.
+   *
+   * @returns {Promise<{text: string, synthesized: boolean}>}
+   */
+  static async synthesizeVariation({ text, strategyId, chat, cfg, signal }) {
+    const source = String(text || '').trim();
+    const directive = STRATEGY_DIRECTIVES[strategyId];
+    if (!source || !directive || typeof chat !== 'function') {
+      return { text: source, synthesized: false };
+    }
+
+    const systemPrompt = `You are a prompt transformation engine. You receive a finished AI prompt and rewrite it according to a single transformation directive.
+
+NON-NEGOTIABLE RULES
+1. PRESERVE INTENT — The subject, domain, named entities, numbers and hard requirements of the source prompt are sacred. Never change what is being asked for.
+2. APPLY THE DIRECTIVE FULLY — The rewrite must be visibly, substantially different from the source in the way the directive demands. A superficial re-heading is a failure.
+3. OUTPUT ONLY THE REWRITTEN PROMPT — no preamble, no commentary, no explanation of your changes, no markdown code fence around the whole output.
+4. LANGUAGE — Write the rewritten prompt in the same language as the source prompt.`;
+
+    const userMessage = `TRANSFORMATION DIRECTIVE:\n${directive}\n\nSOURCE PROMPT:\n${source}\n\nRewrite the source prompt now, applying the directive:`;
+
+    // Kısaltma stratejilerinde küçük, genişletme stratejilerinde geniş bütçe.
+    const shrinks = strategyId === 'concise' || strategyId === 'minimal';
+    const sourceTokens = Math.ceil(source.length / 3.5);
+    const budget = shrinks
+      ? Math.max(384, Math.ceil(sourceTokens * 0.8))
+      : Math.max(1024, Math.ceil(sourceTokens * 2.2));
+
+    const res = await chat({
+      providerId: cfg?.provider,
+      model: cfg?.model,
+      temperature: strategyId === 'creative' ? 0.85 : (cfg?.temperature ?? 0.4),
+      maxTokens: budget,
+      system: systemPrompt,
+      messages: [{ role: 'user', content: userMessage }],
+      signal
+    });
+
+    const out = String(res?.text || '').trim().replace(/^```[a-zA-Z]*\s*\n?|\n?```$/g, '').trim();
+    if (!out) return { text: source, synthesized: false };
+    return { text: out, synthesized: true };
+  }
+
   /**
    * Generates instant pre-computed variations for all 3 active strategies from the generated prompt.
    * Üretilen prompttan aktif 3 strateji için anında türetilmiş varyasyonlar oluşturur (yeniden API çağrısı yapmaz).
@@ -318,16 +432,21 @@ NON-NEGOTIABLE RULES:
 
       if (st.id === 'structured') {
         variations[st.id] = cleanText;
-      } else if (st.id === 'concise' || st.id === 'minimal') {
+      } else if (st.id === 'concise') {
         const parts = [];
-        if (role) {
-          const cleanRole = role.replace(/^(?:sen\s+bir|you\s+are\s+a?|act\s+as\s+a?)\s+/i, '').trim();
-          parts.push(`Act as ${cleanRole}.`);
-        }
+        if (role) parts.push(joinSentence('Act as ', stripRolePreamble(role)));
         parts.push(task || cleanText);
-        if (constraints) parts.push(`Constraints: ${constraints.replace(/\n+/g, '; ')}`);
-        if (outputFormat) parts.push(`Output: ${outputFormat.replace(/\n+/g, ' ')}`);
+        if (constraints) parts.push(`Constraints: ${condenseList(constraints)}`);
+        if (outputFormat) parts.push(`Output: ${outputFormat.replace(/\n+/g, ' ').trim()}`);
         variations[st.id] = parts.join('\n\n');
+      } else if (st.id === 'minimal') {
+        // Minimalist gerçekten minimal olmalı: yalnızca rol + görev + en kritik kısıt.
+        const parts = [];
+        if (role) parts.push(joinSentence('Act as ', stripRolePreamble(role)));
+        parts.push(firstSentences(task || cleanText, 2));
+        const topConstraint = String(constraints || '').split('\n').map((l) => l.replace(/^[-•*\s]+/, '').trim()).filter(Boolean)[0];
+        if (topConstraint) parts.push(`Must: ${topConstraint}`);
+        variations[st.id] = parts.join('\n');
       } else if (st.id === 'expert') {
         const parts = [];
         const expRole = role || 'Senior Subject Matter Expert & Principal Architect';
@@ -348,7 +467,7 @@ NON-NEGOTIABLE RULES:
         variations[st.id] = parts.join('\n\n');
       } else if (st.id === 'creative') {
         const parts = [];
-        parts.push(`## Creative Vision\n${role ? `Adopt the persona of ${role}. ` : ''}${task || cleanText}`);
+        parts.push(`## Creative Vision\n${role ? `${joinSentence('Adopt the persona of ', stripRolePreamble(role))} ` : ''}${task || cleanText}`);
         if (context) parts.push(`## Setting & Context\n${context}`);
         parts.push(`## Stylistic Guidelines\n${[constraints, outputFormat].filter(Boolean).join('\n') || '- Rich vocabulary, compelling storytelling, and dynamic pacing.\n- Avoid clichés and embrace distinctive nuances.'}`);
         variations[st.id] = parts.join('\n\n');
@@ -362,9 +481,9 @@ NON-NEGOTIABLE RULES:
         variations[st.id] = parts.join('\n\n');
       } else if (st.id === 'conversational') {
         const parts = [];
-        parts.push(`You are a collaborative AI consultant. ${role ? `Expertise: ${role}.` : ''}`);
+        parts.push(`You are a collaborative AI consultant.${role ? ` ${joinSentence('Domain expertise: ', stripRolePreamble(role))}` : ''}`);
         parts.push(`Primary Goal: ${task || cleanText}`);
-        if (constraints) parts.push(`Follow these guidelines: ${constraints.replace(/\n+/g, '; ')}`);
+        if (constraints) parts.push(`Follow these guidelines: ${condenseList(constraints)}`);
         parts.push('Ask clarifying questions if anything is ambiguous, then provide the solution step-by-step.');
         variations[st.id] = parts.join('\n\n');
       } else {

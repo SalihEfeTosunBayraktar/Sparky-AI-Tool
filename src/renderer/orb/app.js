@@ -153,20 +153,68 @@ function notifyThreshold(level) {
   return { minimal: 3, normal: 2, all: 1 }[level] ?? 2;
 }
 
+// Avatarın alabileceği tüm görsel durumlar tek yerde — ekleme yaparken
+// temizleme listesini güncellemeyi unutma riski ortadan kalksın diye.
+const ORB_STATE_CLASSES = [
+  'state-error', 'state-warning', 'state-success', 'state-compacting',
+  'state-asking', 'state-transcribing', 'state-synthesizing', 'state-copied',
+  'state-dozing'
+];
+
+const ORB_STATE_BY_KIND = {
+  error: 'state-error',
+  warning: 'state-warning',
+  ratelimit: 'state-warning',
+  success: 'state-success',
+  compacting: 'state-compacting',
+  asking: 'state-asking',
+  transcribing: 'state-transcribing',
+  synthesizing: 'state-synthesizing',
+  copied: 'state-copied'
+};
+
 function applyOrbStateVisual(kind) {
   if (!orbEl) return;
-  orbEl.classList.remove('state-error', 'state-warning', 'state-success', 'state-compacting', 'state-asking');
-  if (kind === 'error') {
-    orbEl.classList.add('state-error');
-  } else if (kind === 'warning' || kind === 'ratelimit') {
-    orbEl.classList.add('state-warning');
-  } else if (kind === 'success') {
-    orbEl.classList.add('state-success');
-  } else if (kind === 'compacting') {
-    orbEl.classList.add('state-compacting');
-  } else if (kind === 'asking') {
-    orbEl.classList.add('state-asking');
-  }
+  orbEl.classList.remove(...ORB_STATE_CLASSES);
+  const cls = ORB_STATE_BY_KIND[kind];
+  if (cls) orbEl.classList.add(cls);
+}
+
+/**
+ * Avatarı kısa süreli bir duruma sokar, sonra kendiliğinden temizler.
+ * Kopyalama gibi anlık geri bildirimler için.
+ */
+// Uzun süre etkileşim olmazsa avatar "uyuklama" moduna geçer; herhangi bir
+// hareket/tıklama onu uyandırır. Ekranda sürekli tam parlaklıkta durmasın diye.
+let dozeTimer = null;
+const DOZE_AFTER_MS = 60000;
+
+function scheduleDoze() {
+  if (dozeTimer) clearTimeout(dozeTimer);
+  if (orbEl) orbEl.classList.remove('state-dozing');
+  dozeTimer = setTimeout(() => {
+    if (!orbEl) return;
+    const busyish = state.busy
+      || orbEl.classList.contains('voice-active')
+      || document.getElementById('root')?.classList.contains('expanded');
+    if (!busyish) orbEl.classList.add('state-dozing');
+  }, DOZE_AFTER_MS);
+}
+
+['mousemove', 'mousedown', 'keydown', 'wheel'].forEach((evt) => {
+  window.addEventListener(evt, scheduleDoze, { passive: true });
+});
+
+let orbFlashTimer = null;
+function flashOrbState(kind, ms = 700) {
+  if (!orbEl) return;
+  applyOrbStateVisual(kind);
+  if (orbFlashTimer) clearTimeout(orbFlashTimer);
+  orbFlashTimer = setTimeout(() => {
+    if (!state.busy && !orbEl.classList.contains('voice-active')) {
+      orbEl.classList.remove(...ORB_STATE_CLASSES);
+    }
+  }, ms);
 }
 
 const bubbleQueue = new NotificationQueue({
@@ -185,7 +233,7 @@ const bubbleQueue = new NotificationQueue({
       bubble.hidden = true;
       bubble.classList.remove('anim-exit');
       if (!state.busy && !orbEl.classList.contains('voice-active')) {
-        orbEl.classList.remove('state-error', 'state-warning', 'state-success', 'state-compacting', 'state-asking');
+        orbEl.classList.remove(...ORB_STATE_CLASSES);
       }
     }, 150);
   },
@@ -284,8 +332,18 @@ orbEl.addEventListener('mousedown', (e) => {
   const sx = e.screenX;
   const sy = e.screenY;
   let travelled = 0;
+  let longPressFired = false;
   dragging = true;
   api.ui.dragStart();
+
+  // Basılı tut → konuş (push-to-talk). Küreyi 450 ms basılı tutmak dikteyi
+  // başlatır; bırakınca durur. Ses özelliğine en doğrudan erişim yolu.
+  const longPressTimer = setTimeout(() => {
+    if (travelled >= 6 || !activeVoice) return;
+    longPressFired = true;
+    orbEl.classList.add('push-to-talk');
+    activeVoice.start();
+  }, 450);
 
   // screenX/Y ekran koordinatı olduğu için pencere imleçle birlikte
   // hareket etse bile gerçek imleç yolunu doğru ölçer.
@@ -293,10 +351,20 @@ orbEl.addEventListener('mousedown', (e) => {
     travelled = Math.max(travelled, Math.abs(ev.screenX - sx) + Math.abs(ev.screenY - sy));
   };
   const onUp = (ev) => {
+    clearTimeout(longPressTimer);
     window.removeEventListener('mousemove', onMove);
     window.removeEventListener('mouseup', onUp);
     dragging = false;
     api.ui.dragEnd();
+
+    if (longPressFired) {
+      // Basılı tutma bitti: konuşmayı kapat ve metni işle. Tıklama sayılmaz.
+      orbEl.classList.remove('push-to-talk');
+      if (activeVoice && activeVoice.state === 'listening') {
+        activeVoice.stopAndProcess(false);
+      }
+      return;
+    }
     if (travelled < 6) onOrbClick(ev);
   };
 
@@ -311,6 +379,9 @@ orbEl.addEventListener('contextmenu', (e) => {
 
 let lastOrbClickAt = 0;
 let activeVoice = null;
+// Dikte başlarken kutuda bulunan metin — canlı yazma bunun üstüne eklenir,
+// böylece her parça geldiğinde kullanıcının önceden yazdığı silinmez.
+let voiceBaseText = '';
 
 function onOrbClick(ev) {
   // Alt + tık → Menüyü açmadan sesle dikteyi başlat/durdur.
@@ -533,6 +604,7 @@ async function copyOutput(msg, triggeringBtn) {
   const text = msg || i18n.t('app.copiedToClipboard');
   await api.clipboard.write(state.output);
   setStatus({ text, kind: 'success' });
+  flashOrbState('copied', 650); // Avatar da kopyalamayı onaylasın
   const btn = triggeringBtn || $('btnCopy');
   if (btn) triggerCopySuccessAnimation(btn);
 }
@@ -1681,6 +1753,21 @@ function initQuickModelPicker() {
           if (el) el.disabled = !updatedText;
         }
       },
+      // Model varyasyonu gerçekten yeniden yazarken avatar mor "yaratım"
+      // durumuna geçer ve ne yaptığını baloncukla söyler.
+      onSynthStateChange: (isSynthesizing, label) => {
+        if (isSynthesizing) {
+          applyOrbStateVisual('synthesizing');
+          queueBubble(
+            `✨ ${label} sürümü yazılıyor…`,
+            'thinking',
+            { priority: 'normal', dedupeKey: 'assist:synth' }
+          );
+        } else {
+          orbEl.classList.remove('state-synthesizing');
+          queueBubble(`✅ ${label} hazır`, 'success', { priority: 'normal', dedupeKey: 'assist:synth' });
+        }
+      },
       onVariationSelect: async (strategy) => {
         const raw = state.lastInput || inputEl.value.trim();
         if (raw) {
@@ -1722,12 +1809,37 @@ function initQuickModelPicker() {
       api,
       autoSubmit: settings.voiceAutoSubmit !== false,
       lang: settings.appLanguage === 'en' ? 'en-US' : 'tr-TR',
+      // Dinleme başladığında kutuda ne varsa onu koru; canlı yazma bunun
+      // üstüne eklenir. Böylece her parçada metin baştan yazılmaz.
       onResult: (text) => {
         if (inputEl) {
-          const cur = inputEl.value.trim();
-          inputEl.value = cur ? `${cur} ${text}` : text;
+          const base = voiceBaseText.trim();
+          inputEl.value = base ? `${base} ${text}` : text;
+          voiceBaseText = inputEl.value;
           updateInputStats();
+          inputEl.classList.remove('dictating');
         }
+      },
+      // Canlı yazma: her cümle parçası çözümlendikçe kutuyu anında güncelle.
+      onPartial: (partial) => {
+        if (!inputEl) return;
+        const base = voiceBaseText.trim();
+        inputEl.value = base ? `${base} ${partial}` : partial;
+        inputEl.scrollTop = inputEl.scrollHeight;
+        updateInputStats();
+        inputEl.classList.add('dictating');
+        queueBubble(
+          `💬 ${partial.length > 60 ? '…' + partial.slice(-60) : partial}`,
+          'thinking',
+          { priority: 'high', dedupeKey: 'voice:partial' }
+        );
+      },
+      // Mikrofon genliği → avatar ve baloncuk sese göre nefes alır.
+      onLevel: (level) => {
+        const root = document.documentElement;
+        root.style.setProperty('--voice-level', level.toFixed(3));
+        if (orbEl) orbEl.classList.toggle('voice-loud', level > 0.35);
+        if (bubble) bubble.classList.toggle('voice-reactive', level > 0.08);
       },
       onAutoSubmit: async () => {
         if (inputEl && inputEl.value.trim() && !state.busy) {
@@ -1743,6 +1855,8 @@ function initQuickModelPicker() {
       },
       onStateChange: (vState) => {
         if (vState === 'listening') {
+          // Dikte başlıyor: mevcut metni taban al ki canlı yazma onu ezmesin.
+          voiceBaseText = inputEl ? inputEl.value : '';
           btnVoice.classList.add('voice-active');
           orbEl.classList.add('voice-active');
           setStatus({
@@ -1753,13 +1867,19 @@ function initQuickModelPicker() {
         } else {
           btnVoice.classList.remove('voice-active');
           orbEl.classList.remove('voice-active');
+          orbEl.classList.remove('voice-loud');
+          if (bubble) bubble.classList.remove('voice-reactive');
+          if (inputEl) inputEl.classList.remove('dictating');
+          document.documentElement.style.setProperty('--voice-level', '0');
           if (vState === 'processing') {
+            applyOrbStateVisual('transcribing');
             setStatus({
               text: typeof i18n !== 'undefined' ? i18n.t('app.transcribing', '⚡ Ses çözümleniyor…') : '⚡ Ses çözümleniyor…',
               kind: 'thinking',
               priority: 'high'
             });
           } else if (vState === 'idle') {
+            orbEl.classList.remove('state-transcribing');
             setStatus({ text: i18n.t('app.ready'), kind: 'idle' });
           }
         }
@@ -1767,6 +1887,10 @@ function initQuickModelPicker() {
       onError: (err) => {
         btnVoice.classList.remove('voice-active');
         orbEl.classList.remove('voice-active');
+        orbEl.classList.remove('voice-loud');
+        if (bubble) bubble.classList.remove('voice-reactive');
+        if (inputEl) inputEl.classList.remove('dictating');
+        document.documentElement.style.setProperty('--voice-level', '0');
         setStatus({ text: `Ses hatası: ${err}`, kind: 'error', priority: 'high' });
       }
     });
@@ -1784,6 +1908,7 @@ function initQuickModelPicker() {
   }
 
   initQuickModelPicker();
+  scheduleDoze(); // Boşta kalma sayacını başlat
   renderEmpty();
   setStatus({ text: settings.model ? i18n.t('app.ready') : i18n.t('app.selectModel'), kind: settings.model ? 'idle' : 'info' });
 })();
