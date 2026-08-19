@@ -44,6 +44,18 @@ class ModeUI {
     this.ruleEditors = [];
   }
 
+  /**
+   * i18n kısayolu: çeviri yoksa (ya da anahtarın kendisi dönerse) yedek metni verir.
+   * PromptAssistUI'daki aynı desen — burada da gerekiyordu.
+   */
+  t(key, fallback) {
+    if (this.i18n && typeof this.i18n.t === 'function') {
+      const translated = this.i18n.t(key);
+      if (translated && translated !== key) return translated;
+    }
+    return fallback;
+  }
+
   ensureSkeleton() {
     const container = document.getElementById('modesContainer');
     if (!container || document.getElementById('modeSelectBtn')) return;
@@ -68,6 +80,27 @@ class ModeUI {
         <div class="projects-topbar">
           <button id="btnExportModes" class="btn" data-i18n="modes.exportBtn">📤 Dışa Aktar</button>
           <button id="btnImportModes" class="btn" data-i18n="modes.importBtn">📥 İçe Aktar</button>
+          <button id="btnBrowseRegistry" class="btn" data-i18n="modes.browseRegistry">🌐 Mod Galerisi</button>
+        </div>
+
+        <!-- Mod pazarı: katalog GitHub deposundan okunur -->
+        <div id="registryPanel" class="card registry-panel" hidden>
+          <div class="project-sub-header">
+            <span class="sub-title" data-i18n="modes.registryTitle">Mod Galerisi</span>
+            <button id="btnRegistryRefresh" class="btn" data-i18n="modes.registryRefresh">Yenile</button>
+          </div>
+          <p class="hint" data-i18n="modes.registryHint">Topluluk modları GitHub deposundan gelir. Kurmadan önce modun tam kuralını görebilirsiniz.</p>
+          <div class="inline registry-toolbar">
+            <input id="registrySearch" type="text" placeholder="Ara…" data-i18n-placeholder="modes.registrySearch" />
+            <select id="registrySort">
+              <option value="top" data-i18n="modes.sortTop">En popüler</option>
+              <option value="new" data-i18n="modes.sortNew">En yeni</option>
+              <option value="fav" data-i18n="modes.sortFav">Favorilerim</option>
+              <option value="az" data-i18n="modes.sortAz">A → Z</option>
+            </select>
+          </div>
+          <div id="registryStatus" class="hint"></div>
+          <div id="registryList" class="registry-list"></div>
         </div>
 
         <div id="modeForm" class="card project-card" hidden>
@@ -353,12 +386,135 @@ class ModeUI {
       }
     });
 
+    $('btnBrowseRegistry')?.addEventListener('click', () => {
+      const panel = $('registryPanel');
+      if (!panel) return;
+      panel.hidden = !panel.hidden;
+      if (!panel.hidden) this.loadRegistry(false);
+    });
+    $('btnRegistryRefresh')?.addEventListener('click', () => this.loadRegistry(true));
+    $('registrySearch')?.addEventListener('input', () => this._renderRegistryList());
+    $('registrySort')?.addEventListener('change', () => this._renderRegistryList());
+
     this.api.on.modeChanged(() => {
       const pane = document.getElementById('tab-modes');
       if (pane?.classList.contains('active')) this.render();
     });
 
     this.initialized = true;
+  }
+
+  /** Mod galerisini GitHub kataloğundan yükler. */
+  async loadRegistry(force) {
+    const statusEl = document.getElementById('registryStatus');
+    const listEl = document.getElementById('registryList');
+    if (!listEl || !statusEl) return;
+
+    statusEl.textContent = this.t('modes.registryLoading', 'Katalog yükleniyor…');
+    listEl.innerHTML = '';
+
+    const res = await this.api.modes.browseRegistry({ force });
+    if (!res.ok) {
+      statusEl.textContent = `${this.t('modes.registryError', 'Katalog alınamadı')}: ${res.error}`;
+      return;
+    }
+    if (!res.modes.length) {
+      statusEl.textContent = this.t('modes.registryEmpty', 'Katalogda henüz mod yok.');
+      return;
+    }
+
+    statusEl.textContent = this.t('modes.registryCount', '{{n}} mod bulundu').replace('{{n}}', res.modes.length);
+    this.registryModes = res.modes;
+    this._renderRegistryList();
+  }
+
+  /** Arama + sıralama uygulayıp galeri listesini çizer. */
+  async _renderRegistryList() {
+    const listEl = document.getElementById('registryList');
+    if (!listEl || !this.registryModes) return;
+
+    const q = (document.getElementById('registrySearch')?.value || '').trim().toLowerCase();
+    const sort = document.getElementById('registrySort')?.value || 'top';
+    const favs = new Set((await this.api.settings.get()).favoriteModes || []);
+
+    let list = this.registryModes.filter((m) => {
+      if (!q) return true;
+      return (m.name + ' ' + m.description + ' ' + m.tags.join(' ')).toLowerCase().includes(q);
+    });
+
+    if (sort === 'fav') list = list.filter((m) => favs.has(m.id));
+    list = [...list].sort((a, b) => {
+      if (sort === 'az') return a.name.localeCompare(b.name, 'tr');
+      if (sort === 'new') return String(b.addedAt || '').localeCompare(String(a.addedAt || ''));
+      return (b.popularity || 0) - (a.popularity || 0); // top (ve fav içinde de popülerlik)
+    });
+
+    if (!list.length) {
+      listEl.innerHTML = `<p class="hint">${escapeHtml(this.t('modes.registryNoMatch', 'Eşleşen mod yok.'))}</p>`;
+      return;
+    }
+
+    // Sıra numarası yalnızca "en popüler" sıralamasında anlamlı — orada gerçek
+    // bir top listesi; diğer sıralamalarda numara bilgi taşımayacağı için yok.
+    const ranked = sort === 'top';
+
+    listEl.innerHTML = list
+      .map((m, i) => `
+        <div class="registry-item" data-id="${escapeHtml(m.id)}">
+          <div class="registry-item-head">
+            ${ranked ? `<span class="registry-rank">${i + 1}</span>` : ''}
+            <span class="registry-name">${escapeHtml(m.name)}</span>
+            ${m.author ? `<span class="registry-author">${escapeHtml(m.author)}</span>` : ''}
+            <span class="registry-pop" title="${escapeHtml(this.t('modes.popularityTitle', 'Popülerlik'))}">★ ${m.popularity || 0}</span>
+            <button class="btn-fav${favs.has(m.id) ? ' on' : ''}" title="${escapeHtml(this.t('modes.favToggle', 'Favorilere ekle'))}">♥</button>
+          </div>
+          <div class="registry-desc">${escapeHtml(m.description)}</div>
+          <div class="registry-tags">${m.tags.map((t) => `<span class="registry-tag">${escapeHtml(t)}</span>`).join('')}</div>
+          <div class="registry-actions">
+            <button class="btn btn-registry-preview">${escapeHtml(this.t('modes.registryPreview', 'Kuralı gör'))}</button>
+            <button class="btn primary btn-registry-install">${escapeHtml(this.t('modes.registryInstall', 'Kur'))}</button>
+          </div>
+          <pre class="registry-preview" hidden></pre>
+        </div>
+      `)
+      .join('');
+
+    listEl.querySelectorAll('.registry-item').forEach((item) => {
+      const mode = this.registryModes.find((m) => m.id === item.dataset.id);
+      if (!mode) return;
+      const pre = item.querySelector('.registry-preview');
+
+      // Favori: yerel tercih, global oylama değil (GitHub raw yazma kabul etmiyor).
+      item.querySelector('.btn-fav').addEventListener('click', async (e) => {
+        const s = await this.api.settings.get();
+        const cur = new Set(s.favoriteModes || []);
+        if (cur.has(mode.id)) cur.delete(mode.id); else cur.add(mode.id);
+        await this.api.settings.patch({ favoriteModes: [...cur] });
+        e.currentTarget.classList.toggle('on', cur.has(mode.id));
+      });
+
+      // Önizleme: kullanıcı kurmadan önce sistem istemine ne gireceğini görür.
+      item.querySelector('.btn-registry-preview').addEventListener('click', () => {
+        if (pre.hidden) {
+          const rules = mode.additionalRules.length
+            ? `\n\n--- ${this.t('modes.rulesTitle', 'Ek Kurallar')} ---\n` +
+              mode.additionalRules.map((r, i) => `${i + 1}. ${r}`).join('\n')
+            : '';
+          pre.textContent = mode.mainRule + rules;
+        }
+        pre.hidden = !pre.hidden;
+      });
+
+      item.querySelector('.btn-registry-install').addEventListener('click', async () => {
+        const res2 = await this.api.modes.installFromRegistry(mode);
+        if (res2.ok) {
+          alert(this.t('modes.registryInstalled', '"{{name}}" kuruldu.').replace('{{name}}', mode.name));
+          this.render();
+        } else {
+          alert(res2.error || this.t('modes.registryInstallFailed', 'Kurulamadı.'));
+        }
+      });
+    });
   }
 
   updatePresetDropdownButton() {

@@ -1789,6 +1789,92 @@ select option {
   color: var(--txt-dim);
 }
 
+/* --- Mod galerisi (GitHub kataloğu) --------------------------------- */
+.registry-panel { display: flex; flex-direction: column; gap: 10px; }
+
+.registry-toolbar { gap: 8px; }
+.registry-toolbar #registrySearch { flex: 1; }
+.registry-toolbar #registrySort { flex: 0 0 auto; width: auto; }
+
+.registry-list { display: flex; flex-direction: column; gap: 8px; }
+
+.registry-item {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.registry-item-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.registry-rank {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent);
+  background: rgba(255, 111, 56, 0.14);
+  min-width: 20px;
+  height: 20px;
+  border-radius: 5px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+.registry-name { font-weight: 650; font-size: 12.5px; }
+.registry-author { font-size: 10.5px; color: var(--txt-faint); }
+.registry-pop { font-size: 10.5px; color: var(--txt-dim); margin-left: auto; white-space: nowrap; }
+
+.btn-fav {
+  background: none;
+  border: none;
+  color: var(--txt-faint);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 0 2px;
+  line-height: 1;
+  flex: 0 0 auto;
+}
+.btn-fav:hover { color: var(--err); }
+.btn-fav.on { color: var(--err); }
+
+.registry-desc { font-size: 11.5px; color: var(--txt-dim); line-height: 1.4; }
+
+.registry-tags { display: flex; gap: 4px; flex-wrap: wrap; }
+.registry-tag {
+  font-size: 9.5px;
+  color: var(--txt-faint);
+  background: rgba(255, 255, 255, 0.06);
+  padding: 2px 6px;
+  border-radius: 999px;
+}
+
+.registry-actions { display: flex; gap: 6px; }
+.registry-actions .btn { height: 24px; padding: 0 10px; font-size: 10.5px; }
+
+.registry-preview {
+  margin: 0;
+  padding: 9px 11px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 10.5px;
+  line-height: 1.5;
+  color: var(--txt-dim);
+  white-space: pre-wrap;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
 .mode-kind-badge {
   font-size: 10px;
   font-weight: 650;

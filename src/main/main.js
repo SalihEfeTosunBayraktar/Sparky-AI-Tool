@@ -27,6 +27,7 @@ const { getRotator } = require('./apiKeyRotator');
 const projects = require('./projects');
 const notifier = require('./notifier');
 const modes = require('./modes');
+const modeRegistry = require('./modeRegistry');
 const TokenTracker = require('./tokenTracker');
 const tokenTracker = new TokenTracker();
 const ProjectMemory = require('./projectMemory');
@@ -1022,6 +1023,23 @@ function registerIpc() {
     broadcast('modes:changed', modes.getActiveId());
     return m;
   });
+  // --- mod pazarı (GitHub deposu dağıtım sunucusu olarak kullanılıyor)
+  ipcMain.handle('modes:registryUrl', () => settings.get('modeRegistryUrl') || modeRegistry.getDefaultUrl());
+  ipcMain.handle('modes:browseRegistry', async (_e, opts = {}) => {
+    const url = settings.get('modeRegistryUrl') || modeRegistry.getDefaultUrl();
+    return modeRegistry.fetchCatalog(url, { force: !!opts.force });
+  });
+  // Kurulum yalnızca kullanıcı önizlemeyi görüp onayladıktan sonra çağrılır.
+  ipcMain.handle('modes:installFromRegistry', (_e, entry) => {
+    try {
+      const count = modes.importList([entry]);
+      broadcast('modes:changed', modes.getActiveId());
+      return { ok: count > 0, count };
+    } catch (err) {
+      return { ok: false, error: err.message };
+    }
+  });
+
   ipcMain.handle('modes:export', async () => {
     const items = modes.exportAll();
     if (!items.length) return { ok: false, error: S.t('modes.exportEmpty') };

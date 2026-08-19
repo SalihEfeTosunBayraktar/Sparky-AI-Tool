@@ -22,6 +22,8 @@ const DEFAULTS = {
   voiceAutoSubmit: true,
   // Dikte için kullanılacak mikrofon; boş ise sistem varsayılanı.
   voiceDeviceId: '',
+  // Mod galerisinde kullanıcının beğendiği modların id listesi (yerel).
+  favoriteModes: [],
   // Sağlayıcı başına son seçilen model — sağlayıcı değişince geri yüklenir.
   modelByProvider: {},
   style: 'detailed',

@@ -103,6 +103,9 @@ contextBridge.exposeInMainWorld('sparky', {
     resetToDefault: (id) => ipcRenderer.invoke('modes:resetToDefault', id),
     export: () => ipcRenderer.invoke('modes:export'),
     import: () => ipcRenderer.invoke('modes:import'),
+    registryUrl: () => ipcRenderer.invoke('modes:registryUrl'),
+    browseRegistry: (opts) => ipcRenderer.invoke('modes:browseRegistry', opts),
+    installFromRegistry: (entry) => ipcRenderer.invoke('modes:installFromRegistry', entry),
     presets: () => ipcRenderer.invoke('modes:presets'),
     categories: () => ipcRenderer.invoke('modes:categories'),
     variables: () => ipcRenderer.invoke('modes:variables')
